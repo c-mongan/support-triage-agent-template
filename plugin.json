@@ -1,0 +1,20 @@
+{
+  "name": "support-triage-agent-template",
+  "version": "0.1.0",
+  "description": "Read-only support triage workflow that turns customer tickets into evidence-graded triage reports with confidence scoring, known-issue search, and a draft customer response.",
+  "license": "MIT",
+  "agents": [
+    ".claude/agents/support-triage-agent.md"
+  ],
+  "commands": [
+    ".claude/commands/triage.md"
+  ],
+  "skills": [
+    "skills/ticket-intake",
+    "skills/known-issue-search",
+    "skills/triage-report",
+    "skills/response-drafting",
+    "skills/escalation",
+    "skills/redaction"
+  ]
+}

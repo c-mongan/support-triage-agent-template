@@ -1,0 +1,23 @@
+.DS_Store
+.env
+.env.*
+node_modules/
+dist/
+coverage/
+*.log
+tmp/
+
+# Local Claude Code overrides and per-engineer settings
+.claude/local/
+.claude/settings.local.json
+.mcp.json
+
+# Real customer reports must never land in git. Only the two committed samples
+# (sample-triage-report.md and sample-customer-response.md) are tracked; every
+# other report file is local-only.
+reports/private/
+reports/*.md
+!reports/sample-triage-report.md
+!reports/sample-customer-response.md
+triage-reports/
+

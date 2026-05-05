@@ -1,0 +1,65 @@
+{
+  "_comment": "Example MCP cookbook for support triage. Copy this file to .mcp.json and remove blocks you don't use. Replace ${VAR} placeholders with real env vars in your shell or .env file. None of these servers are required — the agent degrades gracefully when any are missing.",
+  "mcpServers": {
+    "deepwiki": {
+      "_comment": "AI-powered Q&A over public GitHub repos. Useful for 'how does X work internally?' on the product or SDK source.",
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/mcp"
+    },
+    "context7": {
+      "_comment": "Live framework / library docs. Useful for 'how does Next.js / Django / Flutter actually behave here?' from the customer's side.",
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "github": {
+      "_comment": "GitHub issues / PRs / source. Replace owner/repo defaults in your skills, not here. Token needs read-only repo + issue scopes.",
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    },
+    "sentry": {
+      "_comment": "Error monitor. Read-only checks that a customer's reported exception fingerprint matches a known group, when it first appeared, and which release introduced it. Do not enable mutate scopes.",
+      "type": "http",
+      "url": "https://mcp.sentry.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SENTRY_TOKEN}"
+      }
+    },
+    "linear": {
+      "_comment": "Engineering bug tracker. Read-only fetch of related issues during escalation. Do not enable issue-create scopes for triage.",
+      "type": "http",
+      "url": "https://mcp.linear.app/sse",
+      "oauth": {
+        "clientId": "${LINEAR_OAUTH_CLIENT_ID}",
+        "callbackPort": 3119
+      }
+    },
+    "slack": {
+      "_comment": "Search past internal threads for prior context. Posting is gated to an explicit operator opt-in; do not enable post scopes by default.",
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp",
+      "oauth": {
+        "clientId": "${SLACK_OAUTH_CLIENT_ID}",
+        "callbackPort": 3118
+      }
+    },
+    "zendesk": {
+      "_comment": "Read-only ticket history (other tickets from the same customer or org). Replace subdomain. Use a scoped API token with read-only ticket access.",
+      "type": "http",
+      "url": "https://${ZENDESK_SUBDOMAIN}.zendesk.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${ZENDESK_TOKEN}"
+      }
+    },
+    "your-product-mcp": {
+      "_comment": "Replace this block with your product's MCP server. Keep mutate scopes off; the agent should never write to production.",
+      "type": "http",
+      "url": "https://mcp.YOURDOMAIN.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${YOUR_PRODUCT_API_KEY}"
+      }
+    }
+  }
+}
