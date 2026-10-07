@@ -1,6 +1,6 @@
 # Support Triage Agent Template
 
-Portable instructions for AGENTS-aware clients (Codex, GitHub Copilot CLI, Cursor). The same workflow ships as a plugin for GitHub Copilot CLI and Claude Code (`agents/support-triage-agent.md`, the `/triage` command and the shared `skills/`). This file is the portable summary; the agent file is the canonical, detailed definition, and the two are kept in sync.
+Portable instructions for AGENTS-aware clients (Codex, GitHub Copilot CLI, Cursor). The same workflow ships as a plugin for GitHub Copilot CLI and Claude Code (`agents/support-triage-agent.md`, the `/triage` command and the shared `skills/`) and for Codex (`.codex-plugin/`, where it runs as the generated `support-triage` skill, invoked with `$support-triage`). This file is the portable summary; the agent file is the canonical, detailed definition, and the two are kept in sync.
 
 The goal is to produce careful, evidence-graded triage reports, not to automate customer support end to end. A human support engineer reviews every report.
 

@@ -1,6 +1,6 @@
 {
   "name": "support-triage-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Read-only support triage workflow: turns customer tickets into evidence-graded triage reports with confidence labels, a known-issue search gate, and a draft customer response.",
   "author": {
     "name": "Conor Mongan",
@@ -19,5 +19,6 @@
   "category": "support",
   "agents": "agents",
   "commands": "commands",
-  "skills": "skills"
+  "skills": "skills",
+  "hooks": "copilot/hooks.json"
 }

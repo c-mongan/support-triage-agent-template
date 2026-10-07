@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "userPromptSubmitted": [
+      { "type": "command", "bash": "bash \"$PLUGIN_ROOT/copilot/triage-guard.sh\" prompt", "timeoutSec": 10 }
+    ],
+    "preToolUse": [
+      { "type": "command", "bash": "bash \"$PLUGIN_ROOT/copilot/triage-guard.sh\" tool", "timeoutSec": 10 }
+    ]
+  }
+}

@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## 1.1.0 - 2026-10-07
+
+### Added
+
+- OpenAI Codex CLI plugin support. `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json` let Codex install the plugin with `codex plugin marketplace add` and `codex plugin add support-triage-agent@support-triage-agent-template`. Codex plugins carry skills only, so the workflow is also shipped as a `support-triage` skill (invoke with `$support-triage`).
+- `scripts/build-skill.mjs`: generates `skills/support-triage/SKILL.md` from `agents/support-triage-agent.md`, so the agent stays the single source. The validator and tests fail if the skill is stale.
+- `codex/support-triage.rules`: Codex execpolicy rules that forbid `rm`, `mv`, `git` and `gh` writes, write-side `curl` and package installs during triage.
+- `scripts/e2e.sh codex`: installs into an isolated `CODEX_HOME`, triages every synthetic ticket in the `workspace-write` sandbox, validates the reports and runs the destructive-action probe. Recorded run in `docs/demo/codex/` and `docs/demo/codex-e2e.gif`.
+- CI installs the plugin into Codex from the local marketplace.
+- `copilot/hooks.json` and `copilot/triage-guard.sh`: a Copilot CLI plugin hook. Once a session runs `/triage`, it denies every shell tool for the rest of that session, even under `--allow-all-tools`. Read-only no longer depends on the user passing `--deny-tool shell`.
+- `examples/setup-demo.sh`: creates the offline demo workspace, including `reports/`.
+- README: "First triage after installing" with a pasteable synthetic ticket, and the recommended Copilot launch command.
+
+### Changed
+
+- The validator also checks the Codex manifest, both marketplace files and version parity across all manifests.
+- The agent and `/triage` command save with the file tool only, never the shell. If `reports/` is missing and cannot be created, they print the report inline and ask the operator to run `mkdir reports`.
+- `scripts/e2e.sh` now builds its workspace with `examples/setup-demo.sh` and the README's launch flags instead of pre-creating `reports/` and passing `--deny-tool shell`. The Copilot destructive probe arrives inside a `/triage` ticket with `--allow-all-tools`, so the hook must refuse it.
+
+### Fixed
+
+- The README offline demo never created `reports/`, so the first Copilot run could not save its report.
+
 ## 1.0.0 - 2026-10-07
 
 ### Added

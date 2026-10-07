@@ -7,6 +7,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname, resolve, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildSkill, SKILL_PATH } from './build-skill.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -37,6 +38,14 @@ export const REQUIRED_FILES = [
   'CHANGELOG.md',
   'plugin.json',
   '.claude-plugin/plugin.json',
+  '.claude-plugin/marketplace.json',
+  '.codex-plugin/plugin.json',
+  '.agents/plugins/marketplace.json',
+  'codex/support-triage.rules',
+  'copilot/hooks.json',
+  'copilot/triage-guard.sh',
+  'examples/setup-demo.sh',
+  'skills/support-triage/SKILL.md',
   'agents/support-triage-agent.md',
   'commands/triage.md',
   '.claude/settings.json',
@@ -169,6 +178,34 @@ export function validateRepo() {
         if (!existsSync(join(ROOT, p))) err('.claude-plugin/plugin.json', `${k} path "${p}" does not exist`);
       }
     }
+    // Copilot hook: blocks shell tools in sessions that ran /triage.
+    if (copilot.hooks !== 'copilot/hooks.json') err('plugin.json', 'hooks must be "copilot/hooks.json"');
+    try {
+      const hooks = JSON.parse(read('copilot/hooks.json'));
+      const cmds = ['userPromptSubmitted', 'preToolUse'].map((e) => hooks.hooks?.[e]?.[0]?.bash || '');
+      if (hooks.version !== 1 || !cmds.every((c) => c.includes('$PLUGIN_ROOT/copilot/triage-guard.sh'))) {
+        err('copilot/hooks.json', 'needs version 1 and userPromptSubmitted + preToolUse hooks that run copilot/triage-guard.sh');
+      }
+    } catch (e) { err('copilot/hooks.json', `invalid JSON: ${e.message}`); }
+    // Codex reads ./.codex-plugin/plugin.json (skills only).
+    let codex;
+    try { codex = JSON.parse(read('.codex-plugin/plugin.json')); } catch (e) { err('.codex-plugin/plugin.json', `invalid JSON: ${e.message}`); }
+    if (codex) {
+      for (const k of ['name', 'version', 'description', 'license', 'repository']) {
+        if (codex[k] !== copilot[k]) err('manifests', `"${k}" differs between plugin.json and .codex-plugin/plugin.json`);
+      }
+      if (codex.skills !== './skills/') err('.codex-plugin/plugin.json', 'skills must be "./skills/"');
+      if (!codex.interface?.displayName) err('.codex-plugin/plugin.json', 'interface.displayName is required');
+    }
+    // Marketplaces: .claude-plugin/ for Copilot CLI and Claude Code, .agents/plugins/ for Codex.
+    for (const m of ['.claude-plugin/marketplace.json', '.agents/plugins/marketplace.json']) {
+      let mk;
+      try { mk = JSON.parse(read(m)); } catch (e) { err(m, `invalid JSON: ${e.message}`); continue; }
+      if (mk.name !== 'support-triage-agent-template') err(m, 'marketplace name must be "support-triage-agent-template"');
+      const entry = (mk.plugins || []).find((x) => x.name === copilot.name);
+      if (!entry) err(m, `no plugin entry named "${copilot.name}"`);
+      else if (entry.version !== copilot.version) err(m, `plugin version "${entry.version}" differs from manifest "${copilot.version}"`);
+    }
     if (existsSync(join(ROOT, 'CHANGELOG.md')) && !read('CHANGELOG.md').includes(`## ${copilot.version}`)) {
       err('CHANGELOG.md', `no "## ${copilot.version}" entry for the manifest version`);
     }
@@ -176,7 +213,7 @@ export function validateRepo() {
 
   // Skills: shared by both CLIs. Name must match its directory.
   const skillDirs = readdirSync(join(ROOT, 'skills')).filter((d) => statSync(join(ROOT, 'skills', d)).isDirectory());
-  if (skillDirs.length < 9) err('skills', `expected at least 9 skills, found ${skillDirs.length}`);
+  if (skillDirs.length < 10) err('skills', `expected at least 10 skills, found ${skillDirs.length}`);
   for (const d of skillDirs) {
     const p = `skills/${d}/SKILL.md`;
     if (!existsSync(join(ROOT, p))) { err(p, 'missing'); continue; }
@@ -209,6 +246,9 @@ export function validateRepo() {
         err(agentPath, `inline report skeleton headings differ from ${tpl}`);
       }
     }
+  }
+  if (existsSync(join(ROOT, agentPath)) && (!existsSync(join(ROOT, SKILL_PATH)) || read(SKILL_PATH) !== buildSkill())) {
+    err(SKILL_PATH, 'is stale; run: node scripts/build-skill.mjs');
   }
   const cmdPath = 'commands/triage.md';
   if (existsSync(join(ROOT, cmdPath)) && !parseFrontMatter(read(cmdPath))?.description) err(cmdPath, 'front matter needs a description');

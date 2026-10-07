@@ -1,17 +1,22 @@
-I triaged SUP-1003 and saved the full report and a separate customer reply.
+I triaged SUP-1003 and saved both files.
 
-**Saved reports:**
-- `reports/20261007-120111-SUP-1003-triage.md`
-- `reports/20261007-120111-SUP-1003-customer-response.md`
+**Paths**
+- `reports/20261007-133525-SUP-1003-triage.md`
+- `reports/20261007-133525-SUP-1003-customer-response.md`
 
 **Root-cause confidence:** Confirmed by data
 
-**TL;DR:** The 10,000-row stop is the documented cap on the UI "Export CSV" button (`mock-sources/docs/exports.md`), and it matches the open feature request BEACON-097, so it is not a bug. The draft reply points the customer to Query API cursor pagination, the warehouse export (only on plans that include it) and date-range batching, and gives no timeline.
+**TL;DR:** The 10,000-row stop is the documented cap on UI CSV export (`mock-sources/docs/exports.md`), tracked as open feature request BEACON-097, so it isn't a defect. The draft reply points Sam to the Query API with cursor pagination, date-range batches, or the warehouse export if the plan includes it, and makes no timeline promise.
 
-I did not know the customer's plan, so the reply tells them to check whether the warehouse export is available to them. I also had no project data access, so I could not look at their actual export file.- **Triage report:** `reports/20261007-120111-SUP-1003-triage.md`
-- **Customer response:** `reports/20261007-120111-SUP-1003-customer-response.md`
+I had no project data, so I couldn't check whether Sam saw the limit banner or which plan they are on.Triage of SUP-1003 is done.
+
+- **Triage report:** `reports/20261007-133525-SUP-1003-triage.md`
+- **Customer response:** `reports/20261007-133525-SUP-1003-customer-response.md`
 - **Root-cause confidence:** Confirmed by data
-- **TL;DR:** The 10,000-row stop is the documented cap on the UI "Export CSV" button (`mock-sources/docs/exports.md`). It matches the open feature request BEACON-097, so it isn't a bug. The reply points the customer to Query API cursor pagination, the warehouse export (plan-dependent) and date-range batching, with no timeline promised.
 
-I didn't know the customer's plan, so the reply asks them to check whether the warehouse export is available to them. I also couldn't look at their actual export file.
+**TL;DR:** The export stops at 10,000 rows because that is the documented cap on UI CSV export (`mock-sources/docs/exports.md`). It is an open feature request, BEACON-097, not a defect.
+
+The draft reply points the customer to the Query API with cursor pagination, date-range batches, or the warehouse export if their plan includes it. It makes no timeline promise.
+
+I had no project data. I couldn't check whether the customer saw the limit banner or which plan they are on.
 

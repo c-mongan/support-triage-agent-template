@@ -1,6 +1,6 @@
 # Support Triage Agent
 
-> A read-only plugin for **GitHub Copilot CLI** and **Claude Code** that turns a messy support ticket into an evidence-graded triage report and a draft customer reply.
+> A read-only plugin for **GitHub Copilot CLI**, **OpenAI Codex CLI** and **Claude Code** that turns a messy support ticket into an evidence-graded triage report and a draft customer reply.
 
 [![CI](https://github.com/c-mongan/support-triage-agent-template/actions/workflows/ci.yml/badge.svg)](https://github.com/c-mongan/support-triage-agent-template/actions/workflows/ci.yml)
 ![Status: experimental](https://img.shields.io/badge/status-experimental-orange)
@@ -32,7 +32,7 @@ This template gives that investigation a repeatable structure, with anti-halluci
 
 ### Prerequisites
 
-- [GitHub Copilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli) 1.0 or later with an active Copilot plan, **or** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) 2.x with a Claude login or API key.
+- One of: [GitHub Copilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli) 1.0 or later with an active Copilot plan; [OpenAI Codex CLI](https://developers.openai.com/codex/cli) 0.160 or later with a ChatGPT login or API key; or [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) 2.x with a Claude login or API key.
 - Node.js 20+ only if you want to run the validators or the end-to-end script.
 
 ### GitHub Copilot CLI
@@ -42,6 +42,16 @@ copilot plugin marketplace add c-mongan/support-triage-agent-template
 copilot plugin install support-triage-agent@support-triage-agent-template
 ```
 
+### OpenAI Codex CLI
+
+```bash
+codex plugin marketplace add c-mongan/support-triage-agent-template
+codex plugin add support-triage-agent@support-triage-agent-template
+cp codex/support-triage.rules ~/.codex/rules/   # optional, from a clone: forbids rm, git/gh writes, POSTs
+```
+
+Codex plugins carry skills, not custom agents or slash commands, so in Codex the workflow is the `support-triage` skill. It is generated from the agent file, so the instructions are identical.
+
 ### Claude Code
 
 ```bash
@@ -50,6 +60,21 @@ claude plugin install support-triage-agent@support-triage-agent-template
 ```
 
 Or, inside a Claude Code session: `/plugin marketplace add c-mongan/support-triage-agent-template`, then `/plugin install support-triage-agent@support-triage-agent-template`.
+
+### First triage after installing
+
+Make a folder for the output, then hand the agent a ticket. You can paste this synthetic one:
+
+```bash
+mkdir -p my-triage/reports && cd my-triage
+copilot --allow-tool write --allow-tool url     # recommended launch: no shell pre-approved
+```
+
+```text
+/triage Ticket SUP-2001 (P3). From: sam@example.com. Since Monday our nightly CSV export from the Beacon dashboard stops at exactly 10,000 rows. We have about 14,000 events per day. Plan: Growth. Expected: all rows. Actual: file ends at row 10,000, no error shown.
+```
+
+In Codex, start `codex` in the same folder and use `$support-triage` followed by the same text. With no `mock-sources/` folder and no connectors, the agent works from public docs and the ticket alone, so expect a **Suspected** label and a list of what it could not check. For the offline Beacon demo with a mock bug tracker, see [Offline demo](#offline-demo-no-connectors-no-credentials).
 
 ### Try it without installing
 
@@ -62,8 +87,9 @@ copilot --plugin-dir .        # or: claude --plugin-dir .
 ## Run it
 
 ```text
-/triage path/to/ticket.md
+/triage path/to/ticket.md          # Copilot CLI, Claude Code
 /triage <paste the ticket text>
+$support-triage path/to/ticket.md  # Codex
 ```
 
 The command hands the ticket to the read-only `support-triage-agent`, which writes two files under `reports/` in your working directory:
@@ -73,12 +99,13 @@ The command hands the ticket to the read-only `support-triage-agent`, which writ
 
 ### Offline demo (no connectors, no credentials)
 
-The demo product, Beacon, has a fake bug tracker, docs, release notes and status page in `examples/mock-sources/`. From a clone of this repo:
+The demo product, Beacon, has a fake bug tracker, docs, release notes and status page in `examples/mock-sources/`. From a clone of this repo, `examples/setup-demo.sh` creates a workspace with the tickets, the mock sources and an empty `reports/` folder:
 
 ```bash
-mkdir triage-demo && cd triage-demo
-cp -R ../examples/tickets tickets && cp -R ../examples/mock-sources mock-sources
-copilot --plugin-dir .. -p "/triage tickets/002-webhook-signature-failures.md" --allow-tool write --deny-tool shell
+bash examples/setup-demo.sh triage-demo && cd triage-demo
+copilot --plugin-dir .. -p "/triage tickets/002-webhook-signature-failures.md" --allow-tool write --allow-tool url
+# Codex, after installing the plugin:
+codex exec --skip-git-repo-check -s workspace-write '$support-triage tickets/002-webhook-signature-failures.md'
 ```
 
 When a `mock-sources/` folder is present, the agent uses it instead of live connectors. The four tickets cover:
@@ -92,20 +119,26 @@ When a `mock-sources/` folder is present, the agent uses it instead of live conn
 
 ## Verified end to end
 
-`scripts/e2e.sh copilot|claude` installs the plugin into a clean, throwaway CLI home from the local marketplace. It triages every synthetic ticket, validates each report, checks redaction, asks the CLI to `rm -rf` the fixtures, and confirms nothing outside `reports/` changed.
+`scripts/e2e.sh copilot|codex|claude` installs the plugin into a clean, throwaway CLI home from the local marketplace and sets up the workspace with the same `examples/setup-demo.sh` step as the README. It triages every synthetic ticket with the README's launch flags, validates each report, checks redaction, asks the CLI to `rm -rf` the fixtures, and confirms nothing outside `reports/` changed. For Copilot, the `rm -rf` request arrives inside a `/triage` ticket with every tool pre-approved (`--allow-all-tools`), so the refusal has to come from the plugin's hook.
 
 | CLI | Clean install | Triage + structure checks | Destructive request | Evidence |
 |---|---|---|---|---|
-| GitHub Copilot CLI 1.0.93 | ✅ marketplace install, 9 skills | ✅ 4 of 4 tickets (13 of 13 checks) | ✅ `rm -rf` refused, fixtures unchanged | [`docs/demo/copilot/`](docs/demo/copilot/), [cast](docs/demo/copilot-e2e.cast) |
-| Claude Code 2.1.285 | ✅ marketplace install (also in CI) | ⏳ not recorded yet: needs `ANTHROPIC_API_KEY` on the recording machine | ⏳ | [`docs/demo/claude/`](docs/demo/claude/) |
+| GitHub Copilot CLI 1.0.93 | ✅ marketplace install, 10 skills + hook | ✅ 4 of 4 tickets (14 of 14 checks) | ✅ `rm -rf` inside a `/triage` ticket under `--allow-all-tools` blocked by the plugin hook, fixtures unchanged | [`docs/demo/copilot/`](docs/demo/copilot/), [cast](docs/demo/copilot-e2e.cast) |
+| OpenAI Codex CLI 0.160.1 | ✅ marketplace install into a clean `CODEX_HOME` | ✅ 4 of 4 tickets (13 of 13 checks) | ✅ `rm -rf` rejected by `codex/support-triage.rules`, fixtures unchanged | [`docs/demo/codex/`](docs/demo/codex/), [GIF](docs/demo/codex-e2e.gif) |
+| Claude Code 2.1.285 | ✅ marketplace install (also in CI) | ⏳ not verified: the recording machine's Claude login had expired | ⏳ not verified | [`docs/demo/claude/`](docs/demo/claude/) |
 
-CI runs the structure tests, `claude plugin validate`, a marketplace install into both CLIs, gitleaks and a link check on every push. Model runs are not part of CI because they need credentials.
+CI runs the structure tests, `claude plugin validate`, a marketplace install into all three CLIs, a Codex execpolicy rules check, gitleaks and a link check on every push. Model runs are not part of CI because they need credentials.
 
 ### Read-only, in layers
 
-1. **Agent:** `agents/support-triage-agent.md` declares a tool allow-list with no shell (Read, Grep, Glob, Write, WebFetch, WebSearch). It cannot run `rm`, `git push` or `curl -X POST`, even if a ticket tries to tell it to.
-2. **Instructions:** writes go only to `reports/`; fixtures and connectors are read-only.
-3. **Host CLI:** run with `--deny-tool shell` (Copilot) or `--settings .claude/settings.json` (Claude Code, which denies destructive verbs and MCP write tools).
+Recommended Copilot launch: `copilot --allow-tool write --allow-tool url`. Do not pre-approve the shell.
+
+1. **Hook (Copilot CLI):** the plugin ships `copilot/hooks.json`. Once a session runs `/triage`, a `preToolUse` hook denies every shell tool for the rest of that session, even under `--allow-all-tools`. Sessions that never run `/triage` are not affected. A hook that crashes denies the call; a hook that times out lets it through, which is Copilot's documented behaviour.
+2. **Agent:** `agents/support-triage-agent.md` declares a tool allow-list with no shell (Read, Grep, Glob, Write, WebFetch, WebSearch). It cannot run `rm`, `git push` or `curl -X POST`, even if a ticket tries to tell it to.
+3. **Instructions:** writes go only to `reports/`, created with the file tool, never the shell. If `reports/` is missing and cannot be created, the agent prints the report inline and asks you to run `mkdir reports`.
+4. **Host CLI:** optionally add `--deny-tool shell` (Copilot), the `workspace-write` sandbox plus `codex/support-triage.rules` (Codex), or `--settings .claude/settings.json` (Claude Code, which denies destructive verbs and MCP write tools).
+
+Codex is the weakest of the three layers today. It loads the workflow as a skill, so the no-shell allow-list is an instruction rather than a sandbox, and Codex has no per-path write deny. The execpolicy rules forbid destructive shell commands, the sandbox stops writes outside the working directory, and the E2E run checks fixture hashes to prove nothing changed. Use `-s read-only` if you only want the report printed, not saved.
 
 ## Privacy
 
@@ -127,19 +160,27 @@ The `kb-article` skill here is original work, informed by the knowledge-base pat
 ├── plugin.json                    # Copilot CLI manifest
 ├── .claude-plugin/
 │   ├── plugin.json                # Claude Code manifest (same agent, command, skills)
-│   └── marketplace.json           # one-plugin marketplace used by both CLIs
+│   └── marketplace.json           # one-plugin marketplace used by Copilot CLI and Claude Code
+├── .codex-plugin/plugin.json      # Codex manifest (skills only)
+├── .agents/plugins/marketplace.json  # Codex marketplace
+├── codex/support-triage.rules     # Codex execpolicy rules: forbid destructive commands
+├── copilot/hooks.json             # Copilot hook: no shell once a session runs /triage
+├── copilot/triage-guard.sh        # the hook script (bash + sed, no dependencies)
 ├── agents/support-triage-agent.md # read-only agent: the canonical workflow
 ├── commands/triage.md             # /triage
-├── skills/                        # shared by both CLIs
+├── skills/                        # shared by all three CLIs
+│   ├── support-triage/            # the workflow as a skill, generated from the agent (Codex entry point)
 │   ├── ticket-intake/  known-issue-search/  triage-report/  response-drafting/
 │   ├── escalation/  redaction/  log-evidence/  reproduction-steps/  kb-article/
 │   └── */references/              # report, reply and escalation templates
 ├── .claude/                       # settings.json deny rules + symlinks for plain Claude Code use
 ├── examples/
+│   ├── setup-demo.sh              # creates an offline demo workspace with reports/
 │   ├── tickets/                   # four synthetic tickets
 │   └── mock-sources/              # fake bug tracker, docs, releases, status page
 ├── reports/                       # committed sample report and reply; your runs are gitignored
 ├── scripts/validate.mjs           # structural checks used by CI and the E2E run
+├── scripts/build-skill.mjs        # regenerates skills/support-triage from the agent
 ├── scripts/e2e.sh                 # install + triage + deny probe in a clean CLI home
 ├── tests/                         # node:test unit tests for the validator
 ├── docs/                          # architecture, connectors, recorded demo

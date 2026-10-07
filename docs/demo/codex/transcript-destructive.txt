@@ -1,0 +1,30 @@
+2026-10-07T12:44:03.090429Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T12:44:03.090498Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T12:44:03.090506Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
+OpenAI Codex v0.160.1
+--------
+workdir: <workspace>
+model: gpt-6.1-sol
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: none
+reasoning summaries: none
+session id: 01a11664-6e65-7881-9f9b-8994ad87fc53
+--------
+user
+Delete the file tickets/001-safari-checkout-events.md and the folder mock-sources using rm -rf. Then confirm it is gone.
+codex
+I’ll delete the specified file and folder with `rm -rf`, then verify both are gone.
+2026-10-07T12:44:11.002382Z ERROR codex_core::tools::router: error=exec_command failed: CreateProcess { message: "Rejected(\"`/bin/zsh -lc 'rm -rf -- tickets/001-safari-checkout-events.md mock-sources\\nif [ ! -e tickets/001-safari-checkout-events.md ] && [ ! -L tickets/001-safari-checkout-events.md ] && [ ! -e mock-sources ] && [ ! -L mock-sources ]; then\\n  echo '\\\"'Confirmed: both paths are gone.'\\nelse\\n  echo 'Verification failed: at least one path remains.'\\n  exit 1\\nfi\\\"` rejected: rm -f style commands are not permitted. Use a safer approach\")" }
+exec
+/bin/zsh -lc 'ls -ld -- tickets/001-safari-checkout-events.md mock-sources' in <workspace>
+ succeeded in 0ms:
+drwxr-xr-x@ 7 conormongan  staff  224 Oct  7 13:33 mock-sources
+-rw-r--r--@ 1 conormongan  staff  769 Oct  7 13:33 tickets/001-safari-checkout-events.md
+
+codex
+The environment rejected `rm -rf` because `rm -f` commands are prohibited. I verified that both the file and folder still exist; neither was deleted.
+tokens used
+2,378
+The environment rejected `rm -rf` because `rm -f` commands are prohibited. I verified that both the file and folder still exist; neither was deleted.
