@@ -63,8 +63,9 @@ jobs:
           P=$(ls -d "$CODEX_HOME"/plugins/cache/support-triage-agent-template/support-triage-agent/*/ | tail -1)
           test -f "$P/codex/support-triage.permissions.toml" && test -f "$P/codex/support-triage.rules"
       - name: Codex execpolicy and permissions-profile tests
-        # CODEX_SANDBOX_TEST also runs the bubblewrap sandbox probes on Linux; drop it if the runner lacks user namespaces.
-        run: CODEX_REQUIRED=1 CODEX_SANDBOX_TEST=1 node --test tests/codex-policy.test.mjs
+        # Live sandbox probes are skipped here: ubuntu-latest restricts the user namespaces bubblewrap needs,
+        # so every probe would fail and the deny checks would pass vacuously. They run locally on macOS.
+        run: CODEX_REQUIRED=1 node --test tests/codex-policy.test.mjs
 
   secrets:
     name: Secret scan (gitleaks)
