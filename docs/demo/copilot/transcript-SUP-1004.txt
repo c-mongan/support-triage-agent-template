@@ -1,0 +1,18 @@
+I triaged SUP-1004 (P1) and saved the triage report and a separate customer response.
+
+- **Triage report:** `<workspace>/reports/20261007-120200-SUP-1004-triage.md`
+- **Customer response:** `<workspace>/reports/20261007-120200-SUP-1004-customer-response.md`
+- **Root-cause confidence:** Likely based on pattern match
+
+**TL;DR:** The blank dashboard tiles most likely come from the 2026-05-02 EU-region incident, "Degraded dashboard loading", which is tracked as BEACON-160. That incident involves an unhealthy query-cache node, and insights opened directly are unaffected. The ticket doesn't say which region the customer is in, so I recommended escalating to the incident owner to confirm their project is affected. The customer reply points to the status page, suggests opening insights directly as an interim step, asks for their region, and promises no timeline.
+
+I made the region assumption explicit in the report (ASSUMING: EU), and I had no project-data access, so nothing about this customer's project is verified. The reply is signed "Beacon Support" with no emojis.**Triage complete: SUP-1004 (P1)**
+
+- Triage report: `<workspace>/reports/20261007-120200-SUP-1004-triage.md`
+- Customer response: `<workspace>/reports/20261007-120200-SUP-1004-customer-response.md`
+- Root-cause confidence: **Likely based on pattern match**
+
+**TL;DR:** The blank dashboard tiles most likely come from the 2026-05-02 EU-region incident, "Degraded dashboard loading" (BEACON-160), which involves an unhealthy query-cache node. Insights opened directly are unaffected. The ticket doesn't give the customer's region, so escalate to the incident owner to confirm the customer's project is affected. In the meantime, the customer reply suggests opening insights directly and asks for their region.
+
+The report assumes the customer is in the EU region. I had no access to their project data, so nothing about their project is verified.
+

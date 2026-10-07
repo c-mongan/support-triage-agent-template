@@ -1,0 +1,17 @@
+I triaged SUP-1003 and saved the full report and a separate customer reply.
+
+**Saved reports:**
+- `reports/20261007-120111-SUP-1003-triage.md`
+- `reports/20261007-120111-SUP-1003-customer-response.md`
+
+**Root-cause confidence:** Confirmed by data
+
+**TL;DR:** The 10,000-row stop is the documented cap on the UI "Export CSV" button (`mock-sources/docs/exports.md`), and it matches the open feature request BEACON-097, so it is not a bug. The draft reply points the customer to Query API cursor pagination, the warehouse export (only on plans that include it) and date-range batching, and gives no timeline.
+
+I did not know the customer's plan, so the reply tells them to check whether the warehouse export is available to them. I also had no project data access, so I could not look at their actual export file.- **Triage report:** `reports/20261007-120111-SUP-1003-triage.md`
+- **Customer response:** `reports/20261007-120111-SUP-1003-customer-response.md`
+- **Root-cause confidence:** Confirmed by data
+- **TL;DR:** The 10,000-row stop is the documented cap on the UI "Export CSV" button (`mock-sources/docs/exports.md`). It matches the open feature request BEACON-097, so it isn't a bug. The reply points the customer to Query API cursor pagination, the warehouse export (plan-dependent) and date-range batching, with no timeline promised.
+
+I didn't know the customer's plan, so the reply asks them to check whether the warehouse export is available to them. I also couldn't look at their actual export file.
+

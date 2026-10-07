@@ -17,7 +17,7 @@ Escalate when support cannot resolve the issue with available evidence, when cus
 
 ## Brief Requirements
 
-Use `templates/escalation-brief.md`.
+Use [`references/escalation-brief-template.md`](references/escalation-brief-template.md) in this skill's directory.
 
 Include:
 

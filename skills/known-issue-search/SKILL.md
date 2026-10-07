@@ -61,6 +61,14 @@ gh search issues '<broad term>' --repo OWNER/REPO --sort updated --limit 20 \
   --json number,title,state,createdAt,updatedAt,url
 ```
 
+### No shell? Use the search API over GET
+
+The shipped `support-triage-agent` has no shell tool. Run the same queries by fetching the GitHub search API with WebFetch, for example `https://api.github.com/search/issues?q=repo:OWNER/REPO+%22exact+phrase%22&sort=updated&per_page=20`. Unauthenticated search is rate-limited; record a gap rather than retrying more than twice.
+
+### Offline demo: `mock-sources/`
+
+If the working directory contains `mock-sources/issues/`, run all four query types there with Grep: hybrid (synonyms and paraphrases), lexical (short nouns), exact (quoted strings) and recent (compare `updated:` front matter with the ticket timeframe). Cite issues by path, for example `mock-sources/issues/BEACON-142.md`.
+
 ## Footguns
 
 - Do not run `gh search issues --state all`. `all` is not a valid state. Omit `--state`, or run open and closed separately.

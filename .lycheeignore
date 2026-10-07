@@ -1,0 +1,6 @@
+# Placeholder and example-only hosts used in synthetic fixtures.
+^https?://([a-z0-9-]+\.)*example\.(com|org|net)
+^https?://([a-z0-9-]+\.)*beacon\.example
+^https?://localhost
+# Search pages rate-limit CI runners.
+^https://github\.com/search

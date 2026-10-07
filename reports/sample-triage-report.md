@@ -116,8 +116,6 @@ flowchart LR
    - Run: `gh api '/search/issues?q=Safari+sendBeacon+missing+events+SDK+in:title,body&search_type=hybrid&per_page=5' --jq '.items[] | {number,title,state,html_url}'`.
    - Confirm none of the returned issues describes a Safari-specific event-delivery loss; the matrix is repo-scoped only after the vendor is named.
 
---- END OF CUSTOMER-FACING CONTENT ---
-
 ## 💬 Draft Customer Response
 
 Hi team,
@@ -143,7 +141,7 @@ If the network log shows the request succeeded but the event still does not appe
 Thanks,
 Support
 
----
+--- END OF CUSTOMER-FACING CONTENT ---
 
 ## 🔬 Evidence Pack (internal only)
 

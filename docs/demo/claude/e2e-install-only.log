@@ -1,0 +1,7 @@
+== support-triage-agent E2E · claude · 20261007T110011Z
+workspace: <scratch>
+Adding marketplace…✔ Successfully added marketplace: support-triage-agent-template (declared in user settings)
+Installing plugin "support-triage-agent@support-triage-agent-template"...✔ Successfully installed plugin: support-triage-agent@support-triage-agent-template (scope: user)
+PASS  plugin installed into clean CLAUDE_CONFIG_DIR
+FAIL  claude is not authenticated (run 'claude' and /login, then re-run); stopping before model calls
+RESULT claude: 1 passed, 1 failed

@@ -1,6 +1,6 @@
 # Support Triage Agent Template
 
-Portable instructions for AGENTS-aware clients (Codex, GitHub Copilot CLI, Cursor). The same workflow runs in Claude Code via `.claude/agents/support-triage-agent.md` and the `/triage` slash command — this file is the canonical reference and the two are kept in sync.
+Portable instructions for AGENTS-aware clients (Codex, GitHub Copilot CLI, Cursor). The same workflow ships as a plugin for GitHub Copilot CLI and Claude Code (`agents/support-triage-agent.md`, the `/triage` command and the shared `skills/`). This file is the portable summary; the agent file is the canonical, detailed definition, and the two are kept in sync.
 
 The goal is to produce careful, evidence-graded triage reports, not to automate customer support end to end. A human support engineer reviews every report.
 
@@ -55,7 +55,7 @@ Source-code citations must be commit-pinned permalinks, not `blob/main`.
 
 ### Phase 2 — Synthesis and report
 
-Write the report against `templates/triage-report.md` in one pass. Then:
+Write the report against `skills/triage-report/references/triage-report-template.md` in one pass. Then:
 
 - Run the anti-hallucination protocol (claim extraction, source mapping, verification status, contradiction check).
 - Run the pre-send spot check on the Draft Customer Response and Root-Cause Assessment.
@@ -64,6 +64,10 @@ Write the report against `templates/triage-report.md` in one pass. Then:
   - Bug-shaped ticket without full Known-Issue Search Gate → cap at Low (49%).
   - "No matching issue" / "expected behavior" without the matrix → cap at Low (40%).
   - Plausible candidate not ruled out → cap at Medium (70%).
+
+### Offline demo mode
+
+If the working directory contains `mock-sources/`, the ticket is about Beacon, the fictional demo product. Use `mock-sources/issues/` as the bug tracker, `mock-sources/docs/` as product docs, `mock-sources/releases/` as release notes and `mock-sources/status/` as the status page. Never edit those fixtures.
 
 ### Phase 3 — Save and hand off
 
@@ -94,10 +98,13 @@ The skills under `skills/` are workflow modules:
 
 - `ticket-intake` — normalize raw tickets into investigation inputs.
 - `known-issue-search` — run the search matrix before concluding misconfiguration.
-- `triage-report` — synthesize findings using `templates/triage-report.md`.
+- `triage-report` — synthesize findings using `skills/triage-report/references/triage-report-template.md`.
 - `response-drafting` — customer-facing reply with tone matched to the situation.
-- `escalation` — engineering-ready brief using `templates/escalation-brief.md`.
+- `escalation` — engineering-ready brief using `skills/escalation/references/escalation-brief-template.md`.
 - `redaction` — pattern list and scrubbing rules before saving.
+- `log-evidence` — read logs, stack traces, HAR and console output as evidence without running anything.
+- `reproduction-steps` — minimal numbered reproduction with a control run.
+- `kb-article` — draft a knowledge-base article from a resolved triage.
 
 Add product-specific diagnosis skills (e.g. `events-diagnosis`, `flags-diagnosis`) under `skills/`. Keep this generic agent definition stable; let domain variation live in skills.
 

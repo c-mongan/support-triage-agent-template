@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Structure, manifests and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests
+        run: node --test tests/*.test.mjs
+      - name: Validate repository, reports and demo output
+        run: node scripts/validate.mjs
+
+  plugin-install:
+    name: Plugin install (Copilot CLI + Claude Code)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install CLIs
+        run: npm install -g @github/copilot @anthropic-ai/claude-code
+      - name: Claude Code manifest and marketplace validation
+        run: |
+          claude plugin validate .claude-plugin/plugin.json
+          claude plugin validate .claude-plugin/marketplace.json
+      - name: Install from the local marketplace (isolated homes)
+        run: |
+          export COPILOT_HOME="$RUNNER_TEMP/copilot" CLAUDE_CONFIG_DIR="$RUNNER_TEMP/claude"
+          copilot plugin marketplace add "$GITHUB_WORKSPACE"
+          copilot plugin install support-triage-agent@support-triage-agent-template
+          copilot plugin list | tee copilot.txt
+          grep -q "support-triage-agent" copilot.txt
+          claude plugin marketplace add "$GITHUB_WORKSPACE"
+          claude plugin install support-triage-agent@support-triage-agent-template
+          claude plugin list | tee claude.txt
+          grep -q "support-triage-agent@support-triage-agent-template" claude.txt
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz | tar xz gitleaks
+          ./gitleaks git --redact --verbose .
+          ./gitleaks dir --redact --verbose .
+
+  links:
+    name: Markdown links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --max-retries 3 --accept 200,206,429 --exclude-path docs/demo './**/*.md'
+          fail: true

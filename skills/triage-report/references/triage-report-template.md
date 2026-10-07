@@ -80,6 +80,8 @@ flowchart LR
 
 **Reasoning:** [What evidence rows support the assessment, what remains uncertain, and which caps apply (root-cause unverified → Medium; known-issue search incomplete → Low; etc.).]
 
+**Not explained:** [Symptoms or facts this hypothesis does not account for. Write "Nothing known" only after checking.]
+
 ## Recommended Next Action
 
 1. [Action — be specific. Use 🔧 for workaround, 📝 for docs fix, 🚨 for escalation trigger.]
@@ -94,7 +96,7 @@ flowchart LR
 **Suggested owner if escalated:** [team / component / unknown]
 **Follow-up cadence:** [when to check back]
 
-If escalating, attach an Escalation Brief generated from `templates/escalation-brief.md`.
+If escalating, attach an Escalation Brief generated from the `escalation` skill's `references/escalation-brief-template.md`.
 
 ## 🔎 Verify This Report
 
