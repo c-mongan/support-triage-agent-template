@@ -11,9 +11,9 @@ $ARGUMENTS
 
 1. Delegate the whole investigation to the **support-triage-agent** custom agent (shipped with this plugin; it may appear as `support-triage-agent:support-triage-agent`). Pass it the ticket input above verbatim, plus the current working directory. Do not run the investigation in the main conversation: the agent has a read-only tool allow-list (no shell), which is part of the safety model.
 2. The agent follows its workflow end to end:
-   - Phase 0: intake. Print the `ASSUMING:` block and the normalized ticket summary.
+   - Phase 0: intake. Print the two-line `ASSUMING:` / `→ Correct me now` block and the normalized ticket summary, and copy both lines into the report's Intake section.
    - Phase 1: parallel research, including the Known-Issue Search Gate for bug-shaped tickets. If a `mock-sources/` folder exists in the working directory, it is the evidence source for the fictional demo product.
-   - Phase 2: synthesis against the `triage-report` skill's template, the anti-hallucination protocol and the pre-send spot check.
+   - Phase 2: synthesis against the `triage-report` skill's template, the anti-hallucination protocol and the pre-send spot check. The report embeds the full customer reply under Draft Customer Response, not a pointer to the separate file.
    - Phase 3: save exactly two files in the working directory, `reports/<YYYYMMDD-HHmmss>-<ticket-id>-triage.md` and `reports/<YYYYMMDD-HHmmss>-<ticket-id>-customer-response.md`. Keep both suffixes. Do not use a shell to get the time; if only the date is known, use `000000` for the time.
 3. When the agent returns, print:
    - The path to the saved triage report.

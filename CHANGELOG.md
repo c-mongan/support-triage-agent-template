@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## 1.2.0 - 2026-10-08
+
+### Added
+
+- `codex/support-triage.permissions.toml`: a Codex permissions profile that extends the built-in `:read-only` profile and grants write access to `reports/` only. The Codex sandbox now blocks shell redirects, inline interpreters (`python -c`, `node -e`), `rm` and `git` writes and `apply_patch` outside `reports/`. The README shows how to copy it from the installed plugin and launch with `codex -c default_permissions='"support-triage"'`.
+- `scripts/eval.mjs`: an offline rubric that scores saved reports on seven criteria (structure, confidence label, known-issue search before root cause, redaction, evidence citations, no fabricated IDs, versions or URLs, and the expected finding for each synthetic ticket). CI scores the recorded Copilot and Codex demo reports with no model. Model-run scores are in `docs/demo/eval-scores.md`.
+- `tests/codex-policy.test.mjs`: one test per known bypass of the Codex rules (about 50 commands), read-only commands that must stay allowed, the documented prefix-rule gaps, and sandbox probes of the profile through `codex sandbox`.
+- `scripts/e2e.sh`: `E2E_SOURCE` installs from any marketplace source (for example the public repo), a write probe (`python3 -c` and a shell redirect into the fixtures) for both CLIs, and the eval step.
+
+### Changed
+
+- The Copilot hook also denies file-tool writes (`create`, `edit`, `apply_patch` and similar) outside `<cwd>/reports/` once a session runs `/triage`, not only shell tools. Path traversal, sibling prefixes and unparseable patches are denied.
+- The hook matches `/triage` exactly, so `/triage-notes` or `/triagefoo` no longer mark a session (from PR #3).
+- `codex/support-triage.rules` grew from a few prefixes to 16 rules with inline examples, covering interpreters, `git` global options (`-C`, `-c`, `--git-dir`), `git reset`/`checkout`/`clean`/`stash`, `curl` bodies and output files, `wget`/`ssh`/`rsync`, `npx` and `python -m pip`.
+- The validator now requires the Phase 0 `ASSUMING:` block before the evidence, at least one Evidence Gathered row, and a full draft reply embedded in the report rather than a pointer to the separate file. The template, agent, command and sample report were updated to match.
+- README: a 30-second "what and why", a support matrix for the three CLIs, an offline-eval section and the Codex profile install. The demo evidence was regenerated from the public install.
+
 ## 1.1.0 - 2026-10-07
 
 ### Added

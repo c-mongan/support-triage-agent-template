@@ -1,23 +1,23 @@
-2026-10-07T12:41:26.271775Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T12:41:26.271829Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T12:41:26.271837Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T21:46:19.104523Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T21:46:19.105389Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T21:46:19.105398Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
 OpenAI Codex v0.160.1
 --------
 workdir: <workspace>
 model: gpt-6.1-sol
 provider: openai
 approval: never
-sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+sandbox: custom permissions
 reasoning effort: none
 reasoning summaries: none
-session id: 01a11662-09d5-7d90-bd3e-397df929ff7f
+session id: 01a11854-e3de-7d30-9e78-cefc6e96e541
 --------
 user
 $support-triage tickets/004-dashboards-blank.md
 codex
-I’ll use the support-triage skill to investigate the ticket and save an evidence-based report with a draft customer response.
+I’m using the support-triage skill to investigate the ticket and save an evidence-backed report and draft customer response.
 exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/support-triage/SKILL.md'" in <workspace>
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/support-triage/SKILL.md'" in <workspace>
  succeeded in 0ms:
 ---
 name: support-triage
@@ -204,6 +204,8 @@ After research returns, write the triage report in one pass using the template s
 ## 📖 Context for Reviewers
 ## Issue Summary
 ## Intake
+ASSUMING: <stack>, <region>, <plan>, <single-user vs systemic>.
+→ Correct me now or I proceed with these.
 ## Evidence Gathered
 ## 🐛 Known-Issue Search
 ## 🗺️ How It Works (and Where It Breaks)
@@ -220,7 +222,13 @@ After research returns, write the triage report in one pass using the template s
 ## 🔬 Evidence Pack (internal only)
 ```
 
-Do not rename or drop headings; the budget limits how deep you investigate, not the report shape. For a P4, short sections are fine ("Not needed" under Escalation Decision). Keep exactly one `**Confidence:**` line under Root-Cause Assessment using one of the three labels verbatim (`Confirmed by data`, `Likely based on pattern match`, `Suspected, needs human verification`), and put the `--- END OF CUSTOMER-FACING CONTENT ---` marker after the Draft Customer Response. Then:
+Do not rename or drop headings; the budget limits how deep you investigate, not the report shape. For a P4, short sections are fine ("Not needed" under Escalation Decision). Keep exactly one `**Confidence:**` line under Root-Cause Assessment using one of the three labels verbatim (`Confirmed by data`, `Likely based on pattern match`, `Suspected, needs human verification`), and put the `--- END OF CUSTOMER-FACING CONTENT ---` marker after the Draft Customer Response. Three more checks the validator enforces on every report:
+
+- Copy both Phase 0 lines (`ASSUMING: ...` and `→ Correct me now or I proceed with these.`) into the Intake section, above the table.
+- Give Evidence Gathered at least one table row, and cite its row numbers (or source IDs) in the Root-Cause Assessment.
+- Embed the full customer reply under Draft Customer Response (40+ words). Do not replace it with a pointer to the separate customer-response file.
+
+Then:
 
 - Run the **anti-hallucination protocol** (claim extraction, source mapping, verification status, contradiction check, unverified-claim review).
 - Run the **pre-send spot check** on the Draft Customer Response and Root-Cause Assessment: re-verify any cited issue, docs link, version, "known bug" claim, "no match found" claim, recommended config option, and any "code does X" / "no error raised" claim.
@@ -315,14 +323,14 @@ The agent must never stall on a tool failure.
 When MCP project tools are absent entirely, confidence is naturally lower. Flag it explicitly: `Confidence limited by lack of project data access.` This is honest and correct, not a failure.
 
 exec
-/bin/zsh -lc "pwd; rg --files -g 'AGENTS.md' -g 'tickets/004-dashboards-blank.md' -g '*SKILL*' -g 'README*'" in <workspace>
+/bin/zsh -lc "pwd; rg --files -g 'AGENTS.md' -g '004-dashboards-blank.md' -g '*dashboard*' -g '*README*'" in <workspace>
  succeeded in 0ms:
 <workspace>
 mock-sources/README.md
 tickets/004-dashboards-blank.md
 
 exec
-/bin/zsh -lc 'cat tickets/004-dashboards-blank.md; rg --files mock-sources; cat mock-sources/README.md' in <workspace>
+/bin/zsh -lc 'cat tickets/004-dashboards-blank.md; cat mock-sources/README.md; rg --files mock-sources' in <workspace>
  succeeded in 0ms:
 # Ticket 004: Dashboards blank for the whole team
 
@@ -336,17 +344,6 @@ URGENT. All our dashboards are blank this morning. Every tile says "No data". Th
 Please fix ASAP.
 
 Sent 2026-05-02 08:40 UTC
-mock-sources/issues/BEACON-118.md
-mock-sources/issues/BEACON-142.md
-mock-sources/issues/BEACON-151.md
-mock-sources/issues/BEACON-097.md
-mock-sources/issues/BEACON-160.md
-mock-sources/README.md
-mock-sources/docs/browser-sdk.md
-mock-sources/docs/exports.md
-mock-sources/docs/webhooks.md
-mock-sources/status/incidents.md
-mock-sources/releases/browser-sdk.md
 # Mock sources (synthetic, read-only)
 
 Offline stand-ins for the connectors a real deployment would wire up (bug tracker, product docs, release notes, status page). They let the demo and the E2E test run with **no credentials and no network connectors**.
@@ -367,9 +364,20 @@ Copy `examples/tickets/` and `examples/mock-sources/` into a working directory (
 The search matrix still applies: hybrid (synonyms and paraphrases), lexical (short noun phrases), exact (quoted error strings and method names) and recent (sort by the `updated` front-matter field).
 
 These files are fixtures. The agent must never edit them.
+mock-sources/issues/BEACON-118.md
+mock-sources/issues/BEACON-142.md
+mock-sources/issues/BEACON-151.md
+mock-sources/issues/BEACON-097.md
+mock-sources/issues/BEACON-160.md
+mock-sources/README.md
+mock-sources/docs/browser-sdk.md
+mock-sources/docs/exports.md
+mock-sources/docs/webhooks.md
+mock-sources/status/incidents.md
+mock-sources/releases/browser-sdk.md
 
 exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/ticket-intake/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/known-issue-search/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/triage-report/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/triage-report/references/triage-report-template.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/response-drafting/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/redaction/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/reproduction-steps/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/escalation/SKILL.md'" in <workspace>
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/ticket-intake/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/known-issue-search/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/triage-report/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/response-drafting/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/redaction/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/reproduction-steps/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/escalation/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/triage-report/references/triage-report-template.md'" in <workspace>
  succeeded in 0ms:
 ---
 name: ticket-intake
@@ -554,157 +562,6 @@ Before considering the report done:
 3. Confirm that known-issue search includes at least two symptom-specific queries for bug-shaped tickets.
 4. Confirm that the recommended next action is specific and minimal.
 
-# Support Triage Report
-
-**Ticket:** [ticket ID or short summary]
-**Customer:** [org / user / unknown]
-**Issue Type:** [Bug / How-to / Feature request / Account / Integration / Data / Performance / Other]
-**Product Area:** [smallest meaningful area]
-**Priority:** [🔴 P1 / 🟠 P2 / 🟡 P3 / 🟢 P4]
-**Plan Tier (if known):** [tier]
-**SLA Target (if applicable):** [response window]
-**Environment:** [browser / SDK / API / backend / mobile / unknown]
-**Investigation Mode:** read-only
-
----
-
-## 📖 Context for Reviewers
-
-> **What the customer is trying to do:** [1–2 sentences in plain English, no jargon.]
->
-> **Which feature is involved:** [Name + link to docs page + one-sentence description.]
->
-> **What's going wrong (in plain English):** [The problem without technical detail.]
->
-> **Customer's stack:** [Key technologies a reviewer will need to know.]
-
-## Issue Summary
-
-[Rewrite the customer's issue clearly in 2–4 sentences.]
-
-## Intake
-
-| Field | Value |
-|---|---|
-| Timeframe | [when it started, ongoing? observed range] |
-| Impact | [who or what is affected, blast radius] |
-| Identifiers | [redacted or safe identifiers only] |
-| Reproduction | [steps, expected vs actual, frequency, or "not provided"] |
-| Missing Context | [smallest next pieces of information needed] |
-
-## Evidence Gathered
-
-| # | Source / Query | Finding | Status |
-|---|---|---|---|
-| 1 | [tool, docs URL, log query, issue search] | [finding] | ✅ Verified / ⚠️ Inferred / ❌ Unverified / 🔍 Searched, no match |
-| 2 | [source] | [finding] | ✅ / ⚠️ / ❌ / 🔍 |
-
-This is the single source of truth for the report. Every claim below references row numbers from this table.
-
-## 🐛 Known-Issue Search
-
-| # | Query type | Repo / tracker | Query | Best Candidate | Conclusion |
-|---|---|---|---|---|---|
-| 1 | Hybrid | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
-| 2 | Lexical | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
-| 3 | Exact | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
-| 4 | Recent | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
-
-**Closest rejected candidates:** [list with one-line rejection reasons]
-**Search gaps:** [if any]
-
-If "no match" is asserted, all four query types must appear above. See the agent's Known-Issue Search Gate for why.
-
-## 🗺️ How It Works (and Where It Breaks)
-
-Include a small Mermaid diagram for any issue that involves data flow, timing, config chains, or multi-step processes. Skip for trivial issues (e.g. typo in a config key). Mark the broken step.
-
-```mermaid
-flowchart LR
-    A[Customer action] --> B[SDK / client]
-    B --> C[Network]
-    C --> D[Ingestion]
-    D --> E{Processing}
-    E --> F[Storage / UI]
-```
-
-## 🎯 Root-Cause Assessment
-
-**Assessment:** [best current explanation, plain English]
-
-**Confidence:** [Confirmed by data | Likely based on pattern match | Suspected, needs human verification]
-
-**Reasoning:** [What evidence rows support the assessment, what remains uncertain, and which caps apply (root-cause unverified → Medium; known-issue search incomplete → Low; etc.).]
-
-**Not explained:** [Symptoms or facts this hypothesis does not account for. Write "Nothing known" only after checking.]
-
-## Recommended Next Action
-
-1. [Action — be specific. Use 🔧 for workaround, 📝 for docs fix, 🚨 for escalation trigger.]
-2. [Action]
-3. [Action]
-
-## Escalation Decision
-
-**Decision:** [No escalation needed | Escalate to engineering]
-
-**Reason:** [Why]
-**Suggested owner if escalated:** [team / component / unknown]
-**Follow-up cadence:** [when to check back]
-
-If escalating, attach an Escalation Brief generated from the `escalation` skill's `references/escalation-brief-template.md`.
-
-## 🔎 Verify This Report
-
-A short checklist a reviewer can follow without deep product knowledge. Each step should be a clickable link, a copy-pasteable command, or a specific thing to look for.
-
-1. [ ] **[Claim being verified]**
-   - [Exact action: open this link / run this command]
-   - [What you should see if the claim is correct]
-
-2. [ ] **[Next claim]**
-   - …
-
-Keep to 3–5 steps. Focus on the root-cause and recommended-fix claims.
-
-## 💬 Draft Customer Response
-
-⚠️ **No emojis in this section.** This block is copy-pasteable into the support tool as-is.
-
-[Ready-to-send response. Acknowledge → finding → next action → smallest missing context ask → expectation-setting close. No internal tool names, no private links, no raw queries, no sensitive data.]
-
---- END OF CUSTOMER-FACING CONTENT ---
-
-## 🔬 Evidence Pack (internal only)
-
-[`✅ Pre-send spot check: all cited references verified.` OR `⛔ SPOT CHECK FAILED: <what was wrong>. CORRECTED: <what changed>.`]
-
-### Engineer TL;DR
-
-[2–4 sentences. What's happening, how sure you are, what needs to happen.]
-
-### Claim-Source Map
-
-| # | Claim | Source (row #) | Status |
-|---|---|---|---|
-| 1 | [claim] | [row from Evidence Gathered] | ✅ / ⚠️ / ❌ |
-
-### Unknowns
-
-- [unknown]
-
-### Confidence Score
-
-**Overall:** [High / Medium / Low]
-
-- Verified claims: [N]
-- Inferred claims: [N]
-- Unverified claims: [N]
-- Caps applied: [list any caps from agent rules — root-cause unverified → Medium; known-issue search gate incomplete → Low; "no match" without full matrix → Low (40%); plausible candidate not ruled out → Medium (70%)]
-
-### Redaction confirmation
-
-- Redaction pass: [N] replacements made across [files].
 ---
 name: response-drafting
 description: Draft customer-facing support responses from verified triage findings.
@@ -892,92 +749,171 @@ Include:
 
 Do not escalate vague uncertainty. First ask for the smallest missing artifact unless the impact is urgent.
 
+# Support Triage Report
+
+**Ticket:** [ticket ID or short summary]
+**Customer:** [org / user / unknown]
+**Issue Type:** [Bug / How-to / Feature request / Account / Integration / Data / Performance / Other]
+**Product Area:** [smallest meaningful area]
+**Priority:** [🔴 P1 / 🟠 P2 / 🟡 P3 / 🟢 P4]
+**Plan Tier (if known):** [tier]
+**SLA Target (if applicable):** [response window]
+**Environment:** [browser / SDK / API / backend / mobile / unknown]
+**Investigation Mode:** read-only
+
+---
+
+## 📖 Context for Reviewers
+
+> **What the customer is trying to do:** [1–2 sentences in plain English, no jargon.]
+>
+> **Which feature is involved:** [Name + link to docs page + one-sentence description.]
+>
+> **What's going wrong (in plain English):** [The problem without technical detail.]
+>
+> **Customer's stack:** [Key technologies a reviewer will need to know.]
+
+## Issue Summary
+
+[Rewrite the customer's issue clearly in 2–4 sentences.]
+
+## Intake
+
+```text
+ASSUMING: [stack], [region], [plan], [single-user vs systemic].
+→ Correct me now or I proceed with these.
+```
+
+| Field | Value |
+|---|---|
+| Timeframe | [when it started, ongoing? observed range] |
+| Impact | [who or what is affected, blast radius] |
+| Identifiers | [redacted or safe identifiers only] |
+| Reproduction | [steps, expected vs actual, frequency, or "not provided"] |
+| Missing Context | [smallest next pieces of information needed] |
+
+## Evidence Gathered
+
+| # | Source / Query | Finding | Status |
+|---|---|---|---|
+| 1 | [tool, docs URL, log query, issue search] | [finding] | ✅ Verified / ⚠️ Inferred / ❌ Unverified / 🔍 Searched, no match |
+| 2 | [source] | [finding] | ✅ / ⚠️ / ❌ / 🔍 |
+
+This is the single source of truth for the report. Every claim below references row numbers from this table.
+
+## 🐛 Known-Issue Search
+
+| # | Query type | Repo / tracker | Query | Best Candidate | Conclusion |
+|---|---|---|---|---|---|
+| 1 | Hybrid | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
+| 2 | Lexical | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
+| 3 | Exact | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
+| 4 | Recent | [repo] | [query] | [issue/release/doc] | match / rejected / no match |
+
+**Closest rejected candidates:** [list with one-line rejection reasons]
+**Search gaps:** [if any]
+
+If "no match" is asserted, all four query types must appear above. See the agent's Known-Issue Search Gate for why.
+
+## 🗺️ How It Works (and Where It Breaks)
+
+Include a small Mermaid diagram for any issue that involves data flow, timing, config chains, or multi-step processes. Skip for trivial issues (e.g. typo in a config key). Mark the broken step.
+
+```mermaid
+flowchart LR
+    A[Customer action] --> B[SDK / client]
+    B --> C[Network]
+    C --> D[Ingestion]
+    D --> E{Processing}
+    E --> F[Storage / UI]
+```
+
+## 🎯 Root-Cause Assessment
+
+**Assessment:** [best current explanation, plain English]
+
+**Confidence:** [Confirmed by data | Likely based on pattern match | Suspected, needs human verification]
+
+**Reasoning:** [What evidence rows support the assessment, what remains uncertain, and which caps apply (root-cause unverified → Medium; known-issue search incomplete → Low; etc.).]
+
+**Not explained:** [Symptoms or facts this hypothesis does not account for. Write "Nothing known" only after checking.]
+
+## Recommended Next Action
+
+1. [Action — be specific. Use 🔧 for workaround, 📝 for docs fix, 🚨 for escalation trigger.]
+2. [Action]
+3. [Action]
+
+## Escalation Decision
+
+**Decision:** [No escalation needed | Escalate to engineering]
+
+**Reason:** [Why]
+**Suggested owner if escalated:** [team / component / unknown]
+**Follow-up cadence:** [when to check back]
+
+If escalating, attach an Escalation Brief generated from the `escalation` skill's `references/escalation-brief-template.md`.
+
+## 🔎 Verify This Report
+
+A short checklist a reviewer can follow without deep product knowledge. Each step should be a clickable link, a copy-pasteable command, or a specific thing to look for.
+
+1. [ ] **[Claim being verified]**
+   - [Exact action: open this link / run this command]
+   - [What you should see if the claim is correct]
+
+2. [ ] **[Next claim]**
+   - …
+
+Keep to 3–5 steps. Focus on the root-cause and recommended-fix claims.
+
+## 💬 Draft Customer Response
+
+⚠️ **No emojis in this section.** This block is copy-pasteable into the support tool as-is.
+
+[The full ready-to-send response, embedded here, not a pointer to the separate file. Acknowledge → finding → next action → smallest missing context ask → expectation-setting close. No internal tool names, no private links, no raw queries, no sensitive data.]
+
+--- END OF CUSTOMER-FACING CONTENT ---
+
+## 🔬 Evidence Pack (internal only)
+
+[`✅ Pre-send spot check: all cited references verified.` OR `⛔ SPOT CHECK FAILED: <what was wrong>. CORRECTED: <what changed>.`]
+
+### Engineer TL;DR
+
+[2–4 sentences. What's happening, how sure you are, what needs to happen.]
+
+### Claim-Source Map
+
+| # | Claim | Source (row #) | Status |
+|---|---|---|---|
+| 1 | [claim] | [row from Evidence Gathered] | ✅ / ⚠️ / ❌ |
+
+### Unknowns
+
+- [unknown]
+
+### Confidence Score
+
+**Overall:** [High / Medium / Low]
+
+- Verified claims: [N]
+- Inferred claims: [N]
+- Unverified claims: [N]
+- Caps applied: [list any caps from agent rules — root-cause unverified → Medium; known-issue search gate incomplete → Low; "no match" without full matrix → Low (40%); plausible candidate not ruled out → Medium (70%)]
+
+### Redaction confirmation
+
+- Redaction pass: [N] replacements made across [files].
 
 codex
-ASSUMING: Beacon dashboards; region, plan and browser unknown; team-wide impact as reported. I’ll compare the ticket’s May 2 timeframe with incident history and known issues.
+ASSUMING: Beacon dashboards, region and plan unknown, whole-team impact as reported.
+→ Correct me now or I proceed with these.
+
+I’m checking incidents around the ticket’s May 2 timestamp and searching known dashboard failures. The ticket doesn’t include a project ID or region, so I’ll distinguish a matching incident from a confirmed customer diagnosis.
 exec
-/bin/zsh -lc "rg -n '"'^(updated:|created:|status:)|dashboard|query'"' mock-sources/issues" in <workspace>
-exec
-/bin/zsh -lc "rg -n -F 'No data' mock-sources/issues" in <workspace>
-exec
-/bin/zsh -lc "rg -n -i 'dashboard|query|region|cache' mock-sources/issues" in <workspace>
-exec
-/bin/zsh -lc "rg -n -i 'blank|empty|no data|outage|unavailable|tiles|dashboard|query' mock-sources/issues" in <workspace>
+/bin/zsh -lc 'cat mock-sources/issues/BEACON-118.md mock-sources/issues/BEACON-142.md mock-sources/issues/BEACON-151.md mock-sources/issues/BEACON-097.md mock-sources/issues/BEACON-160.md' in <workspace>
  succeeded in 0ms:
-mock-sources/issues/BEACON-151.md:4:status: open
-mock-sources/issues/BEACON-151.md:6:created: 2026-03-02
-mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
-mock-sources/issues/BEACON-160.md:4:status: open
-mock-sources/issues/BEACON-160.md:5:labels: [bug, dashboards, eu-region, investigating]
-mock-sources/issues/BEACON-160.md:6:created: 2026-05-02
-mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
-mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
-mock-sources/issues/BEACON-097.md:4:status: open
-mock-sources/issues/BEACON-097.md:6:created: 2025-09-18
-mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
-mock-sources/issues/BEACON-118.md:4:status: closed
-mock-sources/issues/BEACON-118.md:7:created: 2025-11-12
-mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
-mock-sources/issues/BEACON-142.md:4:status: closed
-mock-sources/issues/BEACON-142.md:8:created: 2026-04-29
-mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
-
- succeeded in 0ms:
-mock-sources/issues/BEACON-160.md:3:title: "Dashboards show 'No data' tiles intermittently for EU projects"
-mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
-
- succeeded in 0ms:
-mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
-mock-sources/issues/BEACON-160.md:3:title: "Dashboards show 'No data' tiles intermittently for EU projects"
-mock-sources/issues/BEACON-160.md:5:labels: [bug, dashboards, eu-region, investigating]
-mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
-mock-sources/issues/BEACON-160.md:16:EU region only so far. No US-region reports.
-
- succeeded in 0ms:
-mock-sources/issues/BEACON-160.md:3:title: "Dashboards show 'No data' tiles intermittently for EU projects"
-mock-sources/issues/BEACON-160.md:5:labels: [bug, dashboards, eu-region, investigating]
-mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
-mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
-
-exec
-/bin/zsh -lc "cat mock-sources/status/incidents.md; rg -n -i 'dashboard|query|no data|incident|cache' mock-sources/docs mock-sources/releases" in <workspace>
- succeeded in 0ms:
-# Status page: incident history
-
-## 2026-05-02: Degraded dashboard loading (EU region)
-
-- 08:10 UTC: Investigating reports of dashboard tiles showing "No data" for some EU-region projects. Insights opened directly are unaffected.
-- 09:05 UTC: Identified an unhealthy query-cache node in the EU cluster. Mitigation in progress.
-- Status: **Monitoring**. US region unaffected.
-
-## 2026-04-11: Delayed ingestion (all regions)
-
-- 13:00–13:40 UTC: Event ingestion delayed by up to 25 minutes. No data loss. Resolved.
-mock-sources/docs/exports.md:9:For complete exports, use the Query API with cursor pagination (`GET /api/v2/query` with the `cursor` parameter), or the scheduled warehouse export on plans that include it.
-
-exec
-/bin/zsh -lc 'cat mock-sources/issues/BEACON-097.md mock-sources/issues/BEACON-118.md mock-sources/issues/BEACON-142.md mock-sources/issues/BEACON-151.md mock-sources/issues/BEACON-160.md' in <workspace>
- succeeded in 0ms:
----
-id: BEACON-097
-title: "Feature request: CSV export for more than 10,000 rows"
-status: open
-labels: [feature-request, exports, csv]
-created: 2025-09-18
-updated: 2026-04-22
----
-
-## Summary
-
-Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
-
-## Current guidance
-
-Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
-
-## Status
-
-Open and accepted onto the backlog. No delivery date has been committed.
 ---
 id: BEACON-118
 title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
@@ -1048,6 +984,26 @@ Not a product defect. The webhook guide already states that verification must us
 
 Mount `express.raw({ type: 'application/json' })` on the webhook route only, verify the signature against that `Buffer`, then parse the JSON.
 ---
+id: BEACON-097
+title: "Feature request: CSV export for more than 10,000 rows"
+status: open
+labels: [feature-request, exports, csv]
+created: 2025-09-18
+updated: 2026-04-22
+---
+
+## Summary
+
+Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+
+## Current guidance
+
+Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+
+## Status
+
+Open and accepted onto the backlog. No delivery date has been committed.
+---
 id: BEACON-160
 title: "Dashboards show 'No data' tiles intermittently for EU projects"
 status: open
@@ -1065,7 +1021,7 @@ Some EU-region projects see dashboard tiles render "No data" while the same insi
 EU region only so far. No US-region reports.
 
 exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/escalation/references/escalation-brief-template.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/response-drafting/references/customer-response-template.md'" in <workspace>
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/escalation/references/escalation-brief-template.md'; cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/response-drafting/references/customer-response-template.md'" in <workspace>
  succeeded in 0ms:
 # Escalation Brief
 
@@ -1154,1128 +1110,991 @@ The next best step is [specific action or workaround]. To confirm whether this i
 Thanks,
 [name]
 
+exec
+/bin/zsh -lc "rg -n -i 'dashboard|query|cache|data' mock-sources/issues" in <workspace>
+exec
+/bin/zsh -lc "rg -n -F 'No data' mock-sources/issues" in <workspace>
+exec
+/bin/zsh -lc "rg -n 'updated:|created:|dashboard|blank' mock-sources/issues" in <workspace>
+ succeeded in 0ms:
+mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+mock-sources/issues/BEACON-160.md:3:title: "Dashboards show 'No data' tiles intermittently for EU projects"
+mock-sources/issues/BEACON-160.md:5:labels: [bug, dashboards, eu-region, investigating]
+mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
+
+ succeeded in 0ms:
+mock-sources/issues/BEACON-160.md:3:title: "Dashboards show 'No data' tiles intermittently for EU projects"
+mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
+
+exec
+/bin/zsh -lc "rg -n -i 'blank|empty|missing|no results|outage|dashboard|tile' mock-sources/issues" in <workspace>
+ succeeded in 0ms:
+mock-sources/issues/BEACON-118.md:7:created: 2025-11-12
+mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
+mock-sources/issues/BEACON-142.md:8:created: 2026-04-29
+mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
+mock-sources/issues/BEACON-151.md:6:created: 2026-03-02
+mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
+mock-sources/issues/BEACON-097.md:6:created: 2025-09-18
+mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
+mock-sources/issues/BEACON-160.md:5:labels: [bug, dashboards, eu-region, investigating]
+mock-sources/issues/BEACON-160.md:6:created: 2026-05-02
+mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
+mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
+
+ succeeded in 0ms:
+mock-sources/issues/BEACON-160.md:3:title: "Dashboards show 'No data' tiles intermittently for EU projects"
+mock-sources/issues/BEACON-160.md:5:labels: [bug, dashboards, eu-region, investigating]
+mock-sources/issues/BEACON-160.md:12:Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
+mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
+
+exec
+/bin/zsh -lc "cat mock-sources/status/incidents.md; rg -n -i 'dashboard|no data|query|outage' mock-sources/docs mock-sources/releases" in <workspace>
+ succeeded in 0ms:
+# Status page: incident history
+
+## 2026-05-02: Degraded dashboard loading (EU region)
+
+- 08:10 UTC: Investigating reports of dashboard tiles showing "No data" for some EU-region projects. Insights opened directly are unaffected.
+- 09:05 UTC: Identified an unhealthy query-cache node in the EU cluster. Mitigation in progress.
+- Status: **Monitoring**. US region unaffected.
+
+## 2026-04-11: Delayed ingestion (all regions)
+
+- 13:00–13:40 UTC: Event ingestion delayed by up to 25 minutes. No data loss. Resolved.
+mock-sources/docs/exports.md:9:For complete exports, use the Query API with cursor pagination (`GET /api/v2/query` with the `cursor` parameter), or the scheduled warehouse export on plans that include it.
+
 codex
-A known EU dashboard incident matches the reported “No data” message and timeframe. The customer’s region is still unknown, so the match is likely rather than confirmed; opening an insight directly is the documented workaround to try. I’ll include a P1 escalation brief. The fixture’s “Monitoring” status is historical and does not establish current recovery.
+The fixtures contain a strong match: an EU dashboard incident began at 08:10 UTC, shortly before the ticket, with the same “No data” symptom. Direct insights reportedly remained available, but this customer’s region and results are unverified; I’m preparing a P1 escalation brief and a cautious customer draft.
+
+The status record includes a later 09:05 update and says “Monitoring.” It doesn’t establish that the customer recovered or that the incident is resolved now.
 apply patch
 patch: completed
 <workspace>/reports/20261007-000000-SUP-1004-customer-response.md
-<workspace>/reports/20261007-000000-SUP-1004-escalation.md
 <workspace>/reports/20261007-000000-SUP-1004-triage.md
 diff --git a/reports/20261007-000000-SUP-1004-customer-response.md b/reports/20261007-000000-SUP-1004-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..6076388a71c0686be6bffee18e22dce1b4b67c1d
+index 0000000000000000000000000000000000000000..48dfa524b9e63098b35d8449d69d41bd821c0bd6
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-customer-response.md
-@@ -0,0 +1,5 @@
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
+@@ -0,0 +1,7 @@
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
-diff --git a/reports/20261007-000000-SUP-1004-escalation.md b/reports/20261007-000000-SUP-1004-escalation.md
-new file mode 100644
-index 0000000000000000000000000000000000000000..c76de4263debd7f732cce2d229352feb4281b5cc
---- /dev/null
-+++ b/reports/20261007-000000-SUP-1004-escalation.md
-@@ -0,0 +1,77 @@
-+# Escalation Brief
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
 +
-+**Ticket:** SUP-1004  
-+**Customer Impact:** Whole team unable to use dashboards, per ticket; noon board meeting  
-+**Severity:** Critical / P1  
-+**Suggested Owner:** Dashboard/query-cache incident owner (exact team unknown)  
-+**Filed by support:** Prepared only; not submitted  
-+**Date:** 2026-10-07; ticket/incident date 2026-05-02
-+
-+## Summary
-+
-+Blank dashboards plausibly match BEACON-160 and the May 2 EU incident. Confidence: Likely based on pattern match. Customer region and incident membership are unknown; urgent engineering correlation and present-status verification are needed. Offline evidence cannot confirm recovery.
-+
-+## Customer Impact
-+
-+| Field | Value |
-+|---|---|
-+| Affected customers | One reported organization; incident describes some EU projects |
-+| Estimated blast radius | Entire reporting team and all dashboards per ticket; counts unknown |
-+| First seen | Morning May 2; submitted 08:40 UTC |
-+| Regression vs longstanding | New onset per ticket; no release correlation supplied |
-+| Production-down? | Dashboard functionality unavailable per report; whole-product outage unverified |
-+| Workaround available? | Direct insights work in incident reports; customer outcome untested |
-+
-+## Reproduction
-+
-+Status: not yet run; minimal navigation details absent.
-+
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer.
-+
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident; matching filters are an assumed control).
-+
-+**Control:** Change only viewing surface to direct insight; incident reports results there. Frequency: all tiles/team per report, repeat count unknown. Smallest missing facts: project region/ID and direct-insight outcome.
-+
-+## Expected Behavior
-+
-+Dashboard shows expected figures, per customer expectation; dashboard-specific docs not supplied.
-+
-+## Actual Behavior
-+
-+Every tile shows “No data” across the team, per customer; not independently reproduced.
-+
-+## Evidence
-+
-+| # | Source | Finding | Status |
-+|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1 team-wide blank dashboards at 08:40 May 2 | Verified as report |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md) | Same message, EU projects, ~08:10 onset; direct insights work | Verified fixture |
-+| 3 | [Incident history](../mock-sources/status/incidents.md) | Cache node identified 09:05; recorded Monitoring | Verified historical fixture |
-+| 4 | Customer correlation | Region/incident membership not available | Inferred match; unverified membership |
-+
-+## What Support Already Tried
-+
-+- Completed hybrid-synonym, lexical, exact and recent offline tracker searches; inspected all five full issue bodies.
-+- Compared status timestamps and searched docs/releases; no dashboard remedy documentation returned.
-+- No customer systems accessed, workaround tested, fix applied or message sent.
-+
-+## Closest Known Issues
-+
-+| Issue / PR | State | Match level | Why accepted / rejected |
-+|---|---|---|---|
-+| BEACON-160 | Open in fixture | Strong conditional | Same UI message/time; region unknown, intermittent vs all-tile scope differs |
-+| BEACON-097 | Open | Rejected | CSV export cap |
-+| BEACON-142 | Closed | Rejected | Safari unload-event loss; May 4 update postdates ticket |
-+| BEACON-118 | Closed | Rejected | Identity continuity |
-+| BEACON-151 | Open | Rejected | Webhook signature validation |
-+
-+## Specific Ask
-+
-+Confirm project region and incident membership; inspect dashboard/direct-insight query outcomes for that project; verify present mitigation/recovery status and agree the next customer update time. If region is non-EU or direct insights fail too, investigate as a separate P1. No deadline promise or data-loss conclusion is supported.
-+
-+## Workaround (if any)
-+
-+Try opening the affected insight directly with matching filters/date range. Incident reports say direct insights work; this is not verified for this customer. See [full triage report](20261007-000000-SUP-1004-triage.md) for exact searches and confidence grading.
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 diff --git a/reports/20261007-000000-SUP-1004-triage.md b/reports/20261007-000000-SUP-1004-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..2a7aa233adaf414a0128bf924d1bbedfc669dfa7
+index 0000000000000000000000000000000000000000..5ff2a5175614460965774ca973869c167953ddc3
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-triage.md
-@@ -0,0 +1,168 @@
-+# 🔴 Triage Report: SUP-1004 — Team-wide blank dashboards
+@@ -0,0 +1,200 @@
++# 🔴 Triage Report: SUP-1004 — Whole-team dashboards blank
 +
-+**Ticket:** SUP-1004  
-+**Customer:** [organization withheld]  
-+**Issue Type:** Bug  
-+**Product Area:** Dashboard tile loading  
-+**Priority:** 🔴 P1  
-+**Plan Tier / SLA Target:** Unknown / not supplied  
-+**Environment:** Beacon; region, browser, SDK and hosting unknown  
-+**Investigation Mode:** Read-only, offline synthetic fixtures; investigated 2026-10-07
++**Ticket:** SUP-1004
++**Customer:** Customer organization omitted from saved output
++**Issue Type:** Bug / Data availability
++**Product Area:** Dashboard tile rendering / query results
++**Priority:** 🔴 P1
++**Plan Tier:** Unknown
++**SLA Target:** Not supplied
++**Environment:** Beacon; browser, region, SDK and hosting details unknown
++**Investigation Mode:** Read-only, offline synthetic fixtures; reviewed 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs dashboards for a board meeting at noon on the ticket date. They report that every tile shows “No data” across the whole team [1]. Beacon dashboards display insights; the incident record distinguishes dashboard loading from opening insights directly [3]. Dashboard-specific docs and the customer's stack are not supplied.
++The customer needs dashboard results for a board meeting at noon on the ticket date. Every dashboard tile reportedly displays “No data,” affecting the whole team. The available fixtures describe an EU dashboard incident, but no dedicated dashboard documentation or customer project access is available. Customer stack is unknown.
 +
 +## Issue Summary
 +
-+The customer reported team-wide blank dashboards at 08:40 UTC on May 2, 2026 [1]. An EU incident began at 08:10 that day with the same visible message [2,3]. The customer's region and direct-insight behavior remain unverified; no fix was performed.
++At 08:40 UTC on 2026-05-02 the customer reported all dashboards blank that morning, with every tile showing “No data.” Whole-team impact and the meeting deadline make this P1. A contemporaneous EU incident is a strong candidate, but customer affiliation with that incident remains unverified.
 +
 +## Intake
 +
++ASSUMING: Beacon dashboards, region and plan unknown, whole-team impact as reported.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / dashboard tile loading |
-+| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC; ongoing at submission, current state unknown |
-+| Impact | Whole team, all dashboards per customer; board meeting at noon, timezone unspecified |
-+| Environment | Region, plan, browser, OS, SDK/version and hosting unknown |
-+| Identifiers | SUP-1004; no project, dashboard or request identifiers supplied |
-+| Reproduction | Viewing dashboards yields “No data” on every tile, per customer; no independent run |
-+| Missing Context | Project region and safe project ID; whether one corresponding insight opens directly; whether issue persists |
++| Issue Type / Product Area | Bug / dashboard tiles |
++| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC. Present-day persistence unknown. |
++| Impact | Whole team reportedly affected; board meeting at noon, timezone unspecified. Dashboard unavailability reported, total product outage not established. |
++| Environment | Browser, OS, SDK/version, project region, plan and hosting unknown. |
++| Identifiers | SUP-1004; exact visible copy: “No data.” No project ID supplied. |
++| Reproduction | Open dashboards; all tiles reportedly blank. Independent reproduction not run; frequency/count unspecified. |
++| Missing Context | Project ID and region; whether one affected insight opened directly returns results with identical date range and filters; whether impact persists now. |
++| First investigation paths | Incident history, dashboard tracker search matrix, available docs/releases. |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1; team-wide blank tiles at 08:40 UTC May 2; noon deadline | ✅ Verified as customer report, not independently reproduced |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md), full body | Open EU dashboard issue; “No data” from ~08:10 May 2; direct insights work; query-cache investigation | ✅ Verified fixture contents |
-+| 3 | [Incident history](../mock-sources/status/incidents.md), full body | EU incident at 08:10; unhealthy query-cache node identified 09:05; mitigation in progress; recorded status Monitoring; US unaffected | ✅ Verified historical fixture contents |
-+| 4 | Full bodies: [BEACON-097](../mock-sources/issues/BEACON-097.md), [BEACON-142](../mock-sources/issues/BEACON-142.md) | Export cap and Safari navigation event loss are different symptoms | ✅ Verified; rejected as leading explanations |
-+| 5 | Full bodies: [BEACON-118](../mock-sources/issues/BEACON-118.md), [BEACON-151](../mock-sources/issues/BEACON-151.md) | Identity continuity and webhook signature issues do not match dashboard loading | ✅ Verified; rejected as leading explanations |
-+| 6 | `rg -n -i 'dashboard|query|no data|incident|cache' mock-sources/docs mock-sources/releases` | Only export Query API guidance matched; no dashboard recovery guidance returned | 🔍 Searched, no relevant guidance |
-+| 7 | Customer-to-incident correlation [1–3] | Same symptom/date and close timing suggest incident association, conditional on EU region | ⚠️ Inferred |
-+| 8 | Project telemetry / live status | No project data or live Beacon connectors available in offline demo | ❌ Unverified — tool unavailable; current recovery and customer scope unknown |
++| E1 | tickets/004-dashboards-blank.md, full read | P1 ticket at 2026-05-02 08:40 UTC reports whole-team blank dashboards, every tile “No data,” noon meeting. | ✅ Verified ticket content; customer observation not independently verified |
++| E2 | mock-sources/issues/BEACON-160.md, full read | Open issue, created/updated May 2: some EU projects show “No data” tiles while direct insights return results; reports began about 08:10 UTC; query-cache node under investigation; no US reports recorded. | ✅ Verified fixture |
++| E3 | mock-sources/status/incidents.md, full read | May 2 EU incident: 08:10 investigating; 09:05 unhealthy query-cache node identified, mitigation in progress; fixture status Monitoring; direct insights unaffected and US unaffected in stated scope. | ✅ Verified fixture; historical record, not live status |
++| E4 | mock-sources/issues/BEACON-142.md and BEACON-118.md, full reads | Safari candidates concern final-page event loss and anonymous identity continuity respectively, not dashboard rendering. BEACON-142 includes a May 4 update after this ticket. | ✅ Verified fixture scope; rejected as leading match |
++| E5 | mock-sources/issues/BEACON-151.md and BEACON-097.md, full reads | Webhook signature failure and CSV row-limit request concern different product areas. | ✅ Verified fixture scope; rejected |
++| E6 | Docs/releases search: rg -n -i 'dashboard\|no data\|query\|outage' mock-sources/docs mock-sources/releases | Only export Query API guidance matched; no dashboard troubleshooting or dashboard fix release found in searched fixtures. | 🔍 Searched, no relevant dashboard guidance |
++| E7 | mock-sources/status/incidents.md | April 11 all-region ingestion delay lasted 13:00–13:40, resolved; wrong timeframe for May 2 report. | ✅ Verified fixture; rejected |
++| E8 | Available investigation inputs | No project ID, project-data access, customer logs, browser URL or independently executed reproduction. | ❌ Customer-specific cause unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline synonym search substitutes for hybrid discovery, as prescribed for these fixtures. Entire tracker searched; no real repository or web search applies to fictional Beacon.
++All tracker searches used the complete local tracker mock-sources/issues/. Offline “hybrid” means regex synonym/paraphrase discovery, not semantic ranking.
 +
-+| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
++| # | Query type | Repo / tracker | Executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid | mock-sources/issues | `rg -n -i 'blank|empty|no data|outage|unavailable|tiles|dashboard|query' mock-sources/issues` | BEACON-160; BEACON-097 | 160 accepted as plausible; 097 rejected |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'dashboard|query|region|cache' mock-sources/issues` | BEACON-160 | Strong surface match; region not confirmed |
-+| 3 | Exact | mock-sources/issues | `rg -n -F 'No data' mock-sources/issues` | BEACON-160 | Exact UI message match |
-+| 4 | Recent | mock-sources/issues | `rg -n '^(updated:|created:|status:)|dashboard|query' mock-sources/issues` | BEACON-160 | Created/updated May 2, same date as ticket |
++| 1 | Hybrid | mock-sources/issues/ | rg -n -i 'blank\|empty\|missing\|no results\|outage\|dashboard\|tile' mock-sources/issues | BEACON-160; BEACON-142 | Accept 160 as plausible; 142 is event-delivery scope |
++| 2 | Lexical | mock-sources/issues/ | rg -n -i 'dashboard\|query\|cache\|data' mock-sources/issues | BEACON-160; BEACON-097 | Accept 160 as plausible; 097 is export scope |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F 'No data' mock-sources/issues | BEACON-160 | Exact visible message match |
++| 4 | Recent | mock-sources/issues/ | rg -n 'updated:\|created:\|dashboard\|blank' mock-sources/issues | BEACON-160, May 2 | Dates match incident day. Compared all five issues' dates; May 4 update to 142 is retrospective evidence, not contemporaneous knowledge. |
 +
-+**Accepted candidate:** BEACON-160 is open in the fixture; its intermittent EU symptoms plausibly match, but the customer reports every tile affected and region is unknown [1,2].
++**Matching issue / incident:** mock-sources/issues/BEACON-160.md and mock-sources/status/incidents.md are accepted as a plausible incident association, not proof of this customer's cause.
 +
-+**Closest rejected candidates:** BEACON-097 concerns CSV limits, not blank dashboards; BEACON-142 concerns Safari-only unload events; BEACON-118 concerns anonymous identity; BEACON-151 concerns webhook authentication [4,5]. All full bodies inspected. BEACON-142's May 4 update postdates the ticket and is retrospective evidence, not information available at 08:40 May 2.
++**Closest rejected candidates:** BEACON-142: Safari final-navigation event loss, no browser/version evidence and different symptom scope. BEACON-118: identity counts, explicitly not delivery. BEACON-097: CSV limit. BEACON-151: webhook verification. April 11 ingestion incident: wrong date and resolved.
 +
-+**Search gaps:** No customer telemetry, dashboard-specific docs or live recovery status. All four offline search modes completed; coverage is limited to the supplied tracker fixtures.
++**Search gaps:** Complete search matrix within supplied offline tracker. No live tracker, current incident status, source-code repository or project data available; no web search for fictional Beacon.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+This is a conceptual incident model, not a source-code trace [2,3]. Customer-specific association is unconfirmed.
++The diagram shows the fixture-supported contrast, not a verified internal architecture (E2–E3).
 +
 +```mermaid
 +flowchart LR
-+    A[Open dashboard] --> B[EU query-cache path: incident]
-+    B --> C[Tiles show No data]
-+    D[Open insight directly] --> E[Results available in incident reports]
++    A[Open dashboard] --> B[EU dashboard path]
++    B --> C[No data tiles reported]
++    D[Open same insight directly] --> E[Results reported available]
++    F[Unhealthy EU query-cache node] -. incident association .-> B
 +```
++
++The status fixture identifies an unhealthy EU query-cache node; it does not document the exact failure mechanism or prove that stored customer data is intact.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The May 2 EU dashboard incident is the leading explanation. The incident record identifies an unhealthy query-cache node, but it does not prove that this customer's project was affected [1–3,7,8].
++**Assessment:** The May 2 EU dashboard incident is the leading explanation, conditional on the customer's project being in the affected scope. An unhealthy query-cache node was identified in the incident record; customer-specific attribution is not established.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Exact UI message and same-morning timing support a strong match. Region, project membership and direct-insight results are missing. The 09:05 identification postdates the 08:40 ticket, and “Monitoring” is historical fixture state, not a current recovery guarantee. Confidence is limited by lack of project data access; the plausible candidate cap is Medium (70%).
++**Reasoning:** Exact tile message, dashboard scope and timing match E1–E3: incident reports start 30 minutes before the ticket. The 09:05 identification is later evidence and must not be represented as known at 08:40. E8 leaves region, direct-insight behavior and project involvement unverified. A plausible incident association remains unconfirmed, so overall confidence is capped at Medium (70%).
 +
-+**Not explained:** Whether a regional intermittent incident accounts for every tile across the whole team; whether the customer is in EU; whether direct insights work or data is missing elsewhere. No basis to conclude data loss or its absence for this customer.
++**Not explained:** Whether this customer is in EU; why every dashboard/team member is affected when the issue describes some projects and intermittent tiles; whether direct insights work; whether the customer recovered; whether any ingestion/storage issue also exists. No data-loss conclusion is supported.
 +
 +## Recommended Next Action
 +
-+1. 🚨 Route this P1 packet to the dashboard/query-cache incident owner for customer correlation and current mitigation verification. Escalation is recommended, not sent.
-+2. 🔧 Ask the customer to open one affected insight directly; results there would offer a temporary way to view figures, as reported in the incident [2,3]. Do not guarantee this succeeds for their project.
-+3. Obtain project region and a safe project ID plus whether the problem persists. If non-EU or direct insights also fail, investigate as a separate P1 rather than assuming BEACON-160.
++1. 🚨 Have the operator route this P1 brief immediately to the dashboard/query-cache incident owner. Confirm affected project membership, mitigation outcome and current status; do not wait for all customer details before routing urgent impact.
++2. Ask for project ID and region, and a single direct-insight comparison with unchanged date range and filters.
++3. 🔧 If the direct insight returns results, offer it as conditional temporary access for the meeting. This is grounded in E2–E3, not a guaranteed workaround. If it also shows no data or the project is outside EU, engineering must investigate beyond the known incident.
++4. Obtain a recovery check before telling the customer the issue is resolved. Do not change settings, deploy SDK updates or claim a fix ETA based on these fixtures.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer [1].
++**Environment:** Beacon project; customer browser, region and plan unknown.
++**Preconditions:** A synthetic test project in the incident's affected scope with an insight expected to contain results; engineer must verify these conditions.
 +
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident [2,3]; matching filters are an assumed control).
++1. Open an affected dashboard (source: ticket).
++2. Record the tile result, date range and filters (source: assumed diagnostic step).
++3. Open the same insight directly, retaining date range and filters (source: issue/status comparison).
 +
-+**Expected:** Dashboard shows the expected figures, per customer expectation [1].  
-+**Actual:** Every tile says “No data,” per customer [1].  
-+**Control:** Change only the viewing surface to direct insight. Incident records report results there; customer outcome unknown [2,3].  
-+**Frequency:** Team-wide and all tiles per report; repeat counts unknown.
++**Expected:** Dashboard presents the insight's results when data exists (inferred from E2 contrast; dedicated dashboard docs unavailable).
++**Actual:** Customer reports every tile “No data” (E1), not independently reproduced.
++**Control:** Same insight, date range and filters, with only entry path changed from dashboard to direct insight; incident fixtures predict results on the direct path (E2–E3).
++**Frequency:** Whole-team/all-tiles report; counts and repeated-run frequency unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Escalate to engineering.  
-+**Reason:** P1 team-wide impact and a plausible regional incident cannot be resolved or confirmed with fixtures alone [1–3,8].  
-+**Suggested owner if escalated:** Dashboard/query-cache incident owner; exact team unknown.  
-+**Follow-up cadence:** Operator should confirm the next update time with the incident owner immediately; no SLA or recovery deadline established.  
-+**Attached brief:** [Engineering escalation brief](20261007-000000-SUP-1004-escalation.md). No external escalation performed.
++**Decision:** Escalate to engineering.
++**Reason:** P1 whole-team dashboard unavailability and a plausible active-at-ticket-time product incident require customer-specific verification.
++**Suggested owner:** Dashboard/query-cache incident responder; exact team unknown.
++**Follow-up cadence:** Operator should obtain current incident status immediately and agree the next customer update time; no SLA or ETA is supplied.
++**Delivery status:** Brief prepared below; nothing sent, filed or changed in any external system.
++
++### Escalation Brief
++
++**Ticket:** SUP-1004  
++**Customer Impact:** Whole team cannot use dashboard tiles before noon meeting, per customer report.  
++**Severity:** Critical / P1  
++**Suggested Owner:** Dashboard/query-cache incident responder  
++**Filed by support:** Not filed; draft only  
++**Date:** 2026-10-07 review of 2026-05-02 ticket
++
++**Summary:** Blank dashboard tiles match BEACON-160 and the May 2 EU incident. Customer region and incident membership are unknown; support cannot confirm cause or recovery without project evidence.
++
++**Customer Impact:** One reporting organization; all team members according to ticket; wider affected customer count unknown. First seen morning May 2, reported 08:40 UTC. Sudden onset reported, no deploy correlation. Dashboard unavailable, broader production outage unknown. Conditional direct-insight access is the only fixture-supported mitigation.
++
++**Reproduction:** Use the unrun three-step reproduction above unchanged. Smallest missing artifacts: project ID/region and same-insight direct-path result.
++
++**Expected Behavior:** Dashboard shows results for an insight with data.
++**Actual Behavior:** All tiles reportedly say “No data.”
++**Evidence:** E1 customer report; E2 matching open issue; E3 historical incident; E8 customer-specific verification gap.
++**What Support Already Tried:** Read-only full tracker matrix, five candidate bodies, status history and docs/releases search. No customer-side operations or reproduction performed.
++**Closest Known Issues:** BEACON-160 open, strong symptom/time match but conditional region; BEACON-142 closed in fixture, rejected as Safari navigation event-loss scope.
++**Specific Ask:** Confirm project scope against the May 2 EU incident; inspect dashboard versus direct-insight request outcomes; confirm whether the unhealthy query-cache node explains this project and whether mitigation restored results. If region/direct-path results disagree, investigate a separate P1 cause.
++**Workaround:** Direct insight with identical date range/filters only if it actually returns results; no guaranteed restoration or fix time.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [the ticket](../tickets/004-dashboards-blank.md): verify 08:40 UTC May 2, whole-team impact and “No data.”
-+2. Open [BEACON-160](../mock-sources/issues/BEACON-160.md): verify EU scope, ~08:10 onset and direct-insight distinction.
-+3. Open [incident history](../mock-sources/status/incidents.md): verify 09:05 identification and historical Monitoring state; do not treat it as live recovery.
-+4. Obtain customer region/project ID and compare one tile with the same insight directly. Engineering must check customer incident membership and present status before confirming the cause.
++1. Read tickets/004-dashboards-blank.md: confirm 08:40 UTC, “No data,” whole-team scope and noon deadline.
++2. Read mock-sources/issues/BEACON-160.md: verify May 2 08:10 onset, EU scope and dashboard/direct-insight contrast.
++3. Read mock-sources/status/incidents.md: verify 09:05 identification is later than ticket and Monitoring does not establish present recovery.
++4. Obtain project region and compare one dashboard tile with its direct insight using identical date range/filters; no comparison has been run here.
++5. Have the incident owner verify current customer impact before communicating resolution.
 +
 +## 💬 Draft Customer Response
 +
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
++
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
 +## 🔬 Evidence Pack (internal only)
 +
 +Pre-send spot check: all cited references verified.
++Redaction pass: 1 replacement made across outputs (customer organization omitted from report); no secrets, raw person properties or private links included. Customer draft contains no internal tracker IDs, tool names or fixture paths.
 +
 +### Engineer TL;DR
 +
-+Likely BEACON-160/May 2 EU cache incident, not customer-confirmed. Check region and incident membership; use direct insight comparison; confirm present status. No production action or external communication occurred.
++Strong symptom/time match to May 2 EU dashboard incident. The unhealthy node is confirmed in the historical incident fixture, not confirmed as this project's cause. Route P1 to the incident responder and obtain region plus direct-insight comparison. No external escalation or fix has been performed.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source (row #) | Status |
++| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Customer reports team-wide blank tiles at 08:40 | 1 | Verified as report |
-+| 2 | EU issue has exact message and ~08:10 onset | 2 | Verified |
-+| 3 | Incident identifies unhealthy cache node at 09:05 | 3 | Verified |
-+| 4 | Direct insights work in incident reports | 2,3 | Verified, not customer-confirmed |
-+| 5 | Other tracker candidates address different symptoms | 4,5 | Verified |
-+| 6 | This customer likely shares the incident | 7 | Inferred |
-+| 7 | This customer's recovery/current scope | 8 | Unverified |
-+
-+**Contradiction check:** Issue says intermittent/some EU projects; ticket says all dashboards/whole team. This is a scope uncertainty, not proof of the same cause. Issue investigating versus incident Monitoring reflects different fixture snapshots; no resolution inferred. No stale version or feature claim used as a remedy.
++| C1 | Ticket reports whole-team “No data” at 08:40 with noon meeting | E1 | Verified as report |
++| C2 | Matching issue describes EU onset 08:10 and direct insights returning results | E2 | Verified fixture |
++| C3 | Later status identifies unhealthy node and records Monitoring | E3 | Verified fixture |
++| C4 | This customer likely belongs to that incident | E1–E3, E8 | Inferred |
++| C5 | Direct insight may offer this customer temporary access | E2–E3, E8 | Inferred |
++| C6 | Region, project cause and present recovery are not verified | E1, E8 | Verified evidence gap |
 +
 +### Unknowns
 +
-+- Region, project ID, direct-insight outcome, current persistence and incident membership.
-+- Exact onset, browser/version, affected dashboard IDs, meeting timezone and SLA.
-+- Customer data integrity; no telemetry was inspected.
++Project ID, region, browser/OS, plan, filters/date range, direct-insight result, impact duration, mitigation outcome, current status and exact failure mechanism. Confidence limited by lack of project data access.
 +
 +### Confidence Score
 +
 +**Overall:** Medium, 70% after cap.
++- Verified claims: 4.
++- Inferred claims: 2.
++- Unverified claims: 0 in scored claims; customer-specific attribution is intentionally only inferred.
++- Arithmetic: (4 + 2 × 0.5) / 6 × 100 = 83.3%.
++- Caps applied: Plausible candidate association not confirmed → Medium, maximum 70%.
++- Root assessment remains Likely, not Confirmed; scoring verified fixture statements does not prove customer attribution.
 +
-+- Verified claims: 5
-+- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (5 + 0.5) / 7 × 100 = 78.6%.
-+- Caps applied: plausible matching issue not ruled out → Medium (70%). Customer-specific cause unconfirmed; full offline gate completed.
++### Anti-hallucination protocol
 +
-+### Redaction confirmation
++Claim extraction/source mapping completed above. No API/version/config fix claims used. Contradiction review: intermittent/some-project issue scope versus customer's all-tiles scope is retained as a gap. Temporal review: historical May 2 ticket and later 09:05 update kept distinct; present-day status not inferred. Unverified-claim review: no guarantee of data integrity, customer membership, recovery or ETA. Draft escalation phrasing says review is needed, not that a message was sent.
 +
-+- Redaction pass: 1 organization-name omission across 3 generated files; no tokens, personal properties, private URLs or admin links retained. Customer draft contains no internal tools, raw queries, private links or emojis.
 
 diff --git a/reports/20261007-000000-SUP-1004-customer-response.md b/reports/20261007-000000-SUP-1004-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..6076388a71c0686be6bffee18e22dce1b4b67c1d
+index 0000000000000000000000000000000000000000..48dfa524b9e63098b35d8449d69d41bd821c0bd6
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-customer-response.md
-@@ -0,0 +1,5 @@
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
+@@ -0,0 +1,7 @@
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
-diff --git a/reports/20261007-000000-SUP-1004-escalation.md b/reports/20261007-000000-SUP-1004-escalation.md
-new file mode 100644
-index 0000000000000000000000000000000000000000..c76de4263debd7f732cce2d229352feb4281b5cc
---- /dev/null
-+++ b/reports/20261007-000000-SUP-1004-escalation.md
-@@ -0,0 +1,77 @@
-+# Escalation Brief
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
 +
-+**Ticket:** SUP-1004  
-+**Customer Impact:** Whole team unable to use dashboards, per ticket; noon board meeting  
-+**Severity:** Critical / P1  
-+**Suggested Owner:** Dashboard/query-cache incident owner (exact team unknown)  
-+**Filed by support:** Prepared only; not submitted  
-+**Date:** 2026-10-07; ticket/incident date 2026-05-02
-+
-+## Summary
-+
-+Blank dashboards plausibly match BEACON-160 and the May 2 EU incident. Confidence: Likely based on pattern match. Customer region and incident membership are unknown; urgent engineering correlation and present-status verification are needed. Offline evidence cannot confirm recovery.
-+
-+## Customer Impact
-+
-+| Field | Value |
-+|---|---|
-+| Affected customers | One reported organization; incident describes some EU projects |
-+| Estimated blast radius | Entire reporting team and all dashboards per ticket; counts unknown |
-+| First seen | Morning May 2; submitted 08:40 UTC |
-+| Regression vs longstanding | New onset per ticket; no release correlation supplied |
-+| Production-down? | Dashboard functionality unavailable per report; whole-product outage unverified |
-+| Workaround available? | Direct insights work in incident reports; customer outcome untested |
-+
-+## Reproduction
-+
-+Status: not yet run; minimal navigation details absent.
-+
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer.
-+
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident; matching filters are an assumed control).
-+
-+**Control:** Change only viewing surface to direct insight; incident reports results there. Frequency: all tiles/team per report, repeat count unknown. Smallest missing facts: project region/ID and direct-insight outcome.
-+
-+## Expected Behavior
-+
-+Dashboard shows expected figures, per customer expectation; dashboard-specific docs not supplied.
-+
-+## Actual Behavior
-+
-+Every tile shows “No data” across the team, per customer; not independently reproduced.
-+
-+## Evidence
-+
-+| # | Source | Finding | Status |
-+|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1 team-wide blank dashboards at 08:40 May 2 | Verified as report |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md) | Same message, EU projects, ~08:10 onset; direct insights work | Verified fixture |
-+| 3 | [Incident history](../mock-sources/status/incidents.md) | Cache node identified 09:05; recorded Monitoring | Verified historical fixture |
-+| 4 | Customer correlation | Region/incident membership not available | Inferred match; unverified membership |
-+
-+## What Support Already Tried
-+
-+- Completed hybrid-synonym, lexical, exact and recent offline tracker searches; inspected all five full issue bodies.
-+- Compared status timestamps and searched docs/releases; no dashboard remedy documentation returned.
-+- No customer systems accessed, workaround tested, fix applied or message sent.
-+
-+## Closest Known Issues
-+
-+| Issue / PR | State | Match level | Why accepted / rejected |
-+|---|---|---|---|
-+| BEACON-160 | Open in fixture | Strong conditional | Same UI message/time; region unknown, intermittent vs all-tile scope differs |
-+| BEACON-097 | Open | Rejected | CSV export cap |
-+| BEACON-142 | Closed | Rejected | Safari unload-event loss; May 4 update postdates ticket |
-+| BEACON-118 | Closed | Rejected | Identity continuity |
-+| BEACON-151 | Open | Rejected | Webhook signature validation |
-+
-+## Specific Ask
-+
-+Confirm project region and incident membership; inspect dashboard/direct-insight query outcomes for that project; verify present mitigation/recovery status and agree the next customer update time. If region is non-EU or direct insights fail too, investigate as a separate P1. No deadline promise or data-loss conclusion is supported.
-+
-+## Workaround (if any)
-+
-+Try opening the affected insight directly with matching filters/date range. Incident reports say direct insights work; this is not verified for this customer. See [full triage report](20261007-000000-SUP-1004-triage.md) for exact searches and confidence grading.
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 diff --git a/reports/20261007-000000-SUP-1004-triage.md b/reports/20261007-000000-SUP-1004-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..2a7aa233adaf414a0128bf924d1bbedfc669dfa7
+index 0000000000000000000000000000000000000000..5ff2a5175614460965774ca973869c167953ddc3
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-triage.md
-@@ -0,0 +1,168 @@
-+# 🔴 Triage Report: SUP-1004 — Team-wide blank dashboards
+@@ -0,0 +1,200 @@
++# 🔴 Triage Report: SUP-1004 — Whole-team dashboards blank
 +
-+**Ticket:** SUP-1004  
-+**Customer:** [organization withheld]  
-+**Issue Type:** Bug  
-+**Product Area:** Dashboard tile loading  
-+**Priority:** 🔴 P1  
-+**Plan Tier / SLA Target:** Unknown / not supplied  
-+**Environment:** Beacon; region, browser, SDK and hosting unknown  
-+**Investigation Mode:** Read-only, offline synthetic fixtures; investigated 2026-10-07
++**Ticket:** SUP-1004
++**Customer:** Customer organization omitted from saved output
++**Issue Type:** Bug / Data availability
++**Product Area:** Dashboard tile rendering / query results
++**Priority:** 🔴 P1
++**Plan Tier:** Unknown
++**SLA Target:** Not supplied
++**Environment:** Beacon; browser, region, SDK and hosting details unknown
++**Investigation Mode:** Read-only, offline synthetic fixtures; reviewed 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs dashboards for a board meeting at noon on the ticket date. They report that every tile shows “No data” across the whole team [1]. Beacon dashboards display insights; the incident record distinguishes dashboard loading from opening insights directly [3]. Dashboard-specific docs and the customer's stack are not supplied.
++The customer needs dashboard results for a board meeting at noon on the ticket date. Every dashboard tile reportedly displays “No data,” affecting the whole team. The available fixtures describe an EU dashboard incident, but no dedicated dashboard documentation or customer project access is available. Customer stack is unknown.
 +
 +## Issue Summary
 +
-+The customer reported team-wide blank dashboards at 08:40 UTC on May 2, 2026 [1]. An EU incident began at 08:10 that day with the same visible message [2,3]. The customer's region and direct-insight behavior remain unverified; no fix was performed.
++At 08:40 UTC on 2026-05-02 the customer reported all dashboards blank that morning, with every tile showing “No data.” Whole-team impact and the meeting deadline make this P1. A contemporaneous EU incident is a strong candidate, but customer affiliation with that incident remains unverified.
 +
 +## Intake
 +
++ASSUMING: Beacon dashboards, region and plan unknown, whole-team impact as reported.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / dashboard tile loading |
-+| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC; ongoing at submission, current state unknown |
-+| Impact | Whole team, all dashboards per customer; board meeting at noon, timezone unspecified |
-+| Environment | Region, plan, browser, OS, SDK/version and hosting unknown |
-+| Identifiers | SUP-1004; no project, dashboard or request identifiers supplied |
-+| Reproduction | Viewing dashboards yields “No data” on every tile, per customer; no independent run |
-+| Missing Context | Project region and safe project ID; whether one corresponding insight opens directly; whether issue persists |
++| Issue Type / Product Area | Bug / dashboard tiles |
++| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC. Present-day persistence unknown. |
++| Impact | Whole team reportedly affected; board meeting at noon, timezone unspecified. Dashboard unavailability reported, total product outage not established. |
++| Environment | Browser, OS, SDK/version, project region, plan and hosting unknown. |
++| Identifiers | SUP-1004; exact visible copy: “No data.” No project ID supplied. |
++| Reproduction | Open dashboards; all tiles reportedly blank. Independent reproduction not run; frequency/count unspecified. |
++| Missing Context | Project ID and region; whether one affected insight opened directly returns results with identical date range and filters; whether impact persists now. |
++| First investigation paths | Incident history, dashboard tracker search matrix, available docs/releases. |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1; team-wide blank tiles at 08:40 UTC May 2; noon deadline | ✅ Verified as customer report, not independently reproduced |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md), full body | Open EU dashboard issue; “No data” from ~08:10 May 2; direct insights work; query-cache investigation | ✅ Verified fixture contents |
-+| 3 | [Incident history](../mock-sources/status/incidents.md), full body | EU incident at 08:10; unhealthy query-cache node identified 09:05; mitigation in progress; recorded status Monitoring; US unaffected | ✅ Verified historical fixture contents |
-+| 4 | Full bodies: [BEACON-097](../mock-sources/issues/BEACON-097.md), [BEACON-142](../mock-sources/issues/BEACON-142.md) | Export cap and Safari navigation event loss are different symptoms | ✅ Verified; rejected as leading explanations |
-+| 5 | Full bodies: [BEACON-118](../mock-sources/issues/BEACON-118.md), [BEACON-151](../mock-sources/issues/BEACON-151.md) | Identity continuity and webhook signature issues do not match dashboard loading | ✅ Verified; rejected as leading explanations |
-+| 6 | `rg -n -i 'dashboard|query|no data|incident|cache' mock-sources/docs mock-sources/releases` | Only export Query API guidance matched; no dashboard recovery guidance returned | 🔍 Searched, no relevant guidance |
-+| 7 | Customer-to-incident correlation [1–3] | Same symptom/date and close timing suggest incident association, conditional on EU region | ⚠️ Inferred |
-+| 8 | Project telemetry / live status | No project data or live Beacon connectors available in offline demo | ❌ Unverified — tool unavailable; current recovery and customer scope unknown |
++| E1 | tickets/004-dashboards-blank.md, full read | P1 ticket at 2026-05-02 08:40 UTC reports whole-team blank dashboards, every tile “No data,” noon meeting. | ✅ Verified ticket content; customer observation not independently verified |
++| E2 | mock-sources/issues/BEACON-160.md, full read | Open issue, created/updated May 2: some EU projects show “No data” tiles while direct insights return results; reports began about 08:10 UTC; query-cache node under investigation; no US reports recorded. | ✅ Verified fixture |
++| E3 | mock-sources/status/incidents.md, full read | May 2 EU incident: 08:10 investigating; 09:05 unhealthy query-cache node identified, mitigation in progress; fixture status Monitoring; direct insights unaffected and US unaffected in stated scope. | ✅ Verified fixture; historical record, not live status |
++| E4 | mock-sources/issues/BEACON-142.md and BEACON-118.md, full reads | Safari candidates concern final-page event loss and anonymous identity continuity respectively, not dashboard rendering. BEACON-142 includes a May 4 update after this ticket. | ✅ Verified fixture scope; rejected as leading match |
++| E5 | mock-sources/issues/BEACON-151.md and BEACON-097.md, full reads | Webhook signature failure and CSV row-limit request concern different product areas. | ✅ Verified fixture scope; rejected |
++| E6 | Docs/releases search: rg -n -i 'dashboard\|no data\|query\|outage' mock-sources/docs mock-sources/releases | Only export Query API guidance matched; no dashboard troubleshooting or dashboard fix release found in searched fixtures. | 🔍 Searched, no relevant dashboard guidance |
++| E7 | mock-sources/status/incidents.md | April 11 all-region ingestion delay lasted 13:00–13:40, resolved; wrong timeframe for May 2 report. | ✅ Verified fixture; rejected |
++| E8 | Available investigation inputs | No project ID, project-data access, customer logs, browser URL or independently executed reproduction. | ❌ Customer-specific cause unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline synonym search substitutes for hybrid discovery, as prescribed for these fixtures. Entire tracker searched; no real repository or web search applies to fictional Beacon.
++All tracker searches used the complete local tracker mock-sources/issues/. Offline “hybrid” means regex synonym/paraphrase discovery, not semantic ranking.
 +
-+| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
++| # | Query type | Repo / tracker | Executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid | mock-sources/issues | `rg -n -i 'blank|empty|no data|outage|unavailable|tiles|dashboard|query' mock-sources/issues` | BEACON-160; BEACON-097 | 160 accepted as plausible; 097 rejected |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'dashboard|query|region|cache' mock-sources/issues` | BEACON-160 | Strong surface match; region not confirmed |
-+| 3 | Exact | mock-sources/issues | `rg -n -F 'No data' mock-sources/issues` | BEACON-160 | Exact UI message match |
-+| 4 | Recent | mock-sources/issues | `rg -n '^(updated:|created:|status:)|dashboard|query' mock-sources/issues` | BEACON-160 | Created/updated May 2, same date as ticket |
++| 1 | Hybrid | mock-sources/issues/ | rg -n -i 'blank\|empty\|missing\|no results\|outage\|dashboard\|tile' mock-sources/issues | BEACON-160; BEACON-142 | Accept 160 as plausible; 142 is event-delivery scope |
++| 2 | Lexical | mock-sources/issues/ | rg -n -i 'dashboard\|query\|cache\|data' mock-sources/issues | BEACON-160; BEACON-097 | Accept 160 as plausible; 097 is export scope |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F 'No data' mock-sources/issues | BEACON-160 | Exact visible message match |
++| 4 | Recent | mock-sources/issues/ | rg -n 'updated:\|created:\|dashboard\|blank' mock-sources/issues | BEACON-160, May 2 | Dates match incident day. Compared all five issues' dates; May 4 update to 142 is retrospective evidence, not contemporaneous knowledge. |
 +
-+**Accepted candidate:** BEACON-160 is open in the fixture; its intermittent EU symptoms plausibly match, but the customer reports every tile affected and region is unknown [1,2].
++**Matching issue / incident:** mock-sources/issues/BEACON-160.md and mock-sources/status/incidents.md are accepted as a plausible incident association, not proof of this customer's cause.
 +
-+**Closest rejected candidates:** BEACON-097 concerns CSV limits, not blank dashboards; BEACON-142 concerns Safari-only unload events; BEACON-118 concerns anonymous identity; BEACON-151 concerns webhook authentication [4,5]. All full bodies inspected. BEACON-142's May 4 update postdates the ticket and is retrospective evidence, not information available at 08:40 May 2.
++**Closest rejected candidates:** BEACON-142: Safari final-navigation event loss, no browser/version evidence and different symptom scope. BEACON-118: identity counts, explicitly not delivery. BEACON-097: CSV limit. BEACON-151: webhook verification. April 11 ingestion incident: wrong date and resolved.
 +
-+**Search gaps:** No customer telemetry, dashboard-specific docs or live recovery status. All four offline search modes completed; coverage is limited to the supplied tracker fixtures.
++**Search gaps:** Complete search matrix within supplied offline tracker. No live tracker, current incident status, source-code repository or project data available; no web search for fictional Beacon.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+This is a conceptual incident model, not a source-code trace [2,3]. Customer-specific association is unconfirmed.
++The diagram shows the fixture-supported contrast, not a verified internal architecture (E2–E3).
 +
 +```mermaid
 +flowchart LR
-+    A[Open dashboard] --> B[EU query-cache path: incident]
-+    B --> C[Tiles show No data]
-+    D[Open insight directly] --> E[Results available in incident reports]
++    A[Open dashboard] --> B[EU dashboard path]
++    B --> C[No data tiles reported]
++    D[Open same insight directly] --> E[Results reported available]
++    F[Unhealthy EU query-cache node] -. incident association .-> B
 +```
++
++The status fixture identifies an unhealthy EU query-cache node; it does not document the exact failure mechanism or prove that stored customer data is intact.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The May 2 EU dashboard incident is the leading explanation. The incident record identifies an unhealthy query-cache node, but it does not prove that this customer's project was affected [1–3,7,8].
++**Assessment:** The May 2 EU dashboard incident is the leading explanation, conditional on the customer's project being in the affected scope. An unhealthy query-cache node was identified in the incident record; customer-specific attribution is not established.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Exact UI message and same-morning timing support a strong match. Region, project membership and direct-insight results are missing. The 09:05 identification postdates the 08:40 ticket, and “Monitoring” is historical fixture state, not a current recovery guarantee. Confidence is limited by lack of project data access; the plausible candidate cap is Medium (70%).
++**Reasoning:** Exact tile message, dashboard scope and timing match E1–E3: incident reports start 30 minutes before the ticket. The 09:05 identification is later evidence and must not be represented as known at 08:40. E8 leaves region, direct-insight behavior and project involvement unverified. A plausible incident association remains unconfirmed, so overall confidence is capped at Medium (70%).
 +
-+**Not explained:** Whether a regional intermittent incident accounts for every tile across the whole team; whether the customer is in EU; whether direct insights work or data is missing elsewhere. No basis to conclude data loss or its absence for this customer.
++**Not explained:** Whether this customer is in EU; why every dashboard/team member is affected when the issue describes some projects and intermittent tiles; whether direct insights work; whether the customer recovered; whether any ingestion/storage issue also exists. No data-loss conclusion is supported.
 +
 +## Recommended Next Action
 +
-+1. 🚨 Route this P1 packet to the dashboard/query-cache incident owner for customer correlation and current mitigation verification. Escalation is recommended, not sent.
-+2. 🔧 Ask the customer to open one affected insight directly; results there would offer a temporary way to view figures, as reported in the incident [2,3]. Do not guarantee this succeeds for their project.
-+3. Obtain project region and a safe project ID plus whether the problem persists. If non-EU or direct insights also fail, investigate as a separate P1 rather than assuming BEACON-160.
++1. 🚨 Have the operator route this P1 brief immediately to the dashboard/query-cache incident owner. Confirm affected project membership, mitigation outcome and current status; do not wait for all customer details before routing urgent impact.
++2. Ask for project ID and region, and a single direct-insight comparison with unchanged date range and filters.
++3. 🔧 If the direct insight returns results, offer it as conditional temporary access for the meeting. This is grounded in E2–E3, not a guaranteed workaround. If it also shows no data or the project is outside EU, engineering must investigate beyond the known incident.
++4. Obtain a recovery check before telling the customer the issue is resolved. Do not change settings, deploy SDK updates or claim a fix ETA based on these fixtures.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer [1].
++**Environment:** Beacon project; customer browser, region and plan unknown.
++**Preconditions:** A synthetic test project in the incident's affected scope with an insight expected to contain results; engineer must verify these conditions.
 +
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident [2,3]; matching filters are an assumed control).
++1. Open an affected dashboard (source: ticket).
++2. Record the tile result, date range and filters (source: assumed diagnostic step).
++3. Open the same insight directly, retaining date range and filters (source: issue/status comparison).
 +
-+**Expected:** Dashboard shows the expected figures, per customer expectation [1].  
-+**Actual:** Every tile says “No data,” per customer [1].  
-+**Control:** Change only the viewing surface to direct insight. Incident records report results there; customer outcome unknown [2,3].  
-+**Frequency:** Team-wide and all tiles per report; repeat counts unknown.
++**Expected:** Dashboard presents the insight's results when data exists (inferred from E2 contrast; dedicated dashboard docs unavailable).
++**Actual:** Customer reports every tile “No data” (E1), not independently reproduced.
++**Control:** Same insight, date range and filters, with only entry path changed from dashboard to direct insight; incident fixtures predict results on the direct path (E2–E3).
++**Frequency:** Whole-team/all-tiles report; counts and repeated-run frequency unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Escalate to engineering.  
-+**Reason:** P1 team-wide impact and a plausible regional incident cannot be resolved or confirmed with fixtures alone [1–3,8].  
-+**Suggested owner if escalated:** Dashboard/query-cache incident owner; exact team unknown.  
-+**Follow-up cadence:** Operator should confirm the next update time with the incident owner immediately; no SLA or recovery deadline established.  
-+**Attached brief:** [Engineering escalation brief](20261007-000000-SUP-1004-escalation.md). No external escalation performed.
++**Decision:** Escalate to engineering.
++**Reason:** P1 whole-team dashboard unavailability and a plausible active-at-ticket-time product incident require customer-specific verification.
++**Suggested owner:** Dashboard/query-cache incident responder; exact team unknown.
++**Follow-up cadence:** Operator should obtain current incident status immediately and agree the next customer update time; no SLA or ETA is supplied.
++**Delivery status:** Brief prepared below; nothing sent, filed or changed in any external system.
++
++### Escalation Brief
++
++**Ticket:** SUP-1004  
++**Customer Impact:** Whole team cannot use dashboard tiles before noon meeting, per customer report.  
++**Severity:** Critical / P1  
++**Suggested Owner:** Dashboard/query-cache incident responder  
++**Filed by support:** Not filed; draft only  
++**Date:** 2026-10-07 review of 2026-05-02 ticket
++
++**Summary:** Blank dashboard tiles match BEACON-160 and the May 2 EU incident. Customer region and incident membership are unknown; support cannot confirm cause or recovery without project evidence.
++
++**Customer Impact:** One reporting organization; all team members according to ticket; wider affected customer count unknown. First seen morning May 2, reported 08:40 UTC. Sudden onset reported, no deploy correlation. Dashboard unavailable, broader production outage unknown. Conditional direct-insight access is the only fixture-supported mitigation.
++
++**Reproduction:** Use the unrun three-step reproduction above unchanged. Smallest missing artifacts: project ID/region and same-insight direct-path result.
++
++**Expected Behavior:** Dashboard shows results for an insight with data.
++**Actual Behavior:** All tiles reportedly say “No data.”
++**Evidence:** E1 customer report; E2 matching open issue; E3 historical incident; E8 customer-specific verification gap.
++**What Support Already Tried:** Read-only full tracker matrix, five candidate bodies, status history and docs/releases search. No customer-side operations or reproduction performed.
++**Closest Known Issues:** BEACON-160 open, strong symptom/time match but conditional region; BEACON-142 closed in fixture, rejected as Safari navigation event-loss scope.
++**Specific Ask:** Confirm project scope against the May 2 EU incident; inspect dashboard versus direct-insight request outcomes; confirm whether the unhealthy query-cache node explains this project and whether mitigation restored results. If region/direct-path results disagree, investigate a separate P1 cause.
++**Workaround:** Direct insight with identical date range/filters only if it actually returns results; no guaranteed restoration or fix time.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [the ticket](../tickets/004-dashboards-blank.md): verify 08:40 UTC May 2, whole-team impact and “No data.”
-+2. Open [BEACON-160](../mock-sources/issues/BEACON-160.md): verify EU scope, ~08:10 onset and direct-insight distinction.
-+3. Open [incident history](../mock-sources/status/incidents.md): verify 09:05 identification and historical Monitoring state; do not treat it as live recovery.
-+4. Obtain customer region/project ID and compare one tile with the same insight directly. Engineering must check customer incident membership and present status before confirming the cause.
++1. Read tickets/004-dashboards-blank.md: confirm 08:40 UTC, “No data,” whole-team scope and noon deadline.
++2. Read mock-sources/issues/BEACON-160.md: verify May 2 08:10 onset, EU scope and dashboard/direct-insight contrast.
++3. Read mock-sources/status/incidents.md: verify 09:05 identification is later than ticket and Monitoring does not establish present recovery.
++4. Obtain project region and compare one dashboard tile with its direct insight using identical date range/filters; no comparison has been run here.
++5. Have the incident owner verify current customer impact before communicating resolution.
 +
 +## 💬 Draft Customer Response
 +
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
++
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
 +## 🔬 Evidence Pack (internal only)
 +
 +Pre-send spot check: all cited references verified.
++Redaction pass: 1 replacement made across outputs (customer organization omitted from report); no secrets, raw person properties or private links included. Customer draft contains no internal tracker IDs, tool names or fixture paths.
 +
 +### Engineer TL;DR
 +
-+Likely BEACON-160/May 2 EU cache incident, not customer-confirmed. Check region and incident membership; use direct insight comparison; confirm present status. No production action or external communication occurred.
++Strong symptom/time match to May 2 EU dashboard incident. The unhealthy node is confirmed in the historical incident fixture, not confirmed as this project's cause. Route P1 to the incident responder and obtain region plus direct-insight comparison. No external escalation or fix has been performed.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source (row #) | Status |
++| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Customer reports team-wide blank tiles at 08:40 | 1 | Verified as report |
-+| 2 | EU issue has exact message and ~08:10 onset | 2 | Verified |
-+| 3 | Incident identifies unhealthy cache node at 09:05 | 3 | Verified |
-+| 4 | Direct insights work in incident reports | 2,3 | Verified, not customer-confirmed |
-+| 5 | Other tracker candidates address different symptoms | 4,5 | Verified |
-+| 6 | This customer likely shares the incident | 7 | Inferred |
-+| 7 | This customer's recovery/current scope | 8 | Unverified |
-+
-+**Contradiction check:** Issue says intermittent/some EU projects; ticket says all dashboards/whole team. This is a scope uncertainty, not proof of the same cause. Issue investigating versus incident Monitoring reflects different fixture snapshots; no resolution inferred. No stale version or feature claim used as a remedy.
++| C1 | Ticket reports whole-team “No data” at 08:40 with noon meeting | E1 | Verified as report |
++| C2 | Matching issue describes EU onset 08:10 and direct insights returning results | E2 | Verified fixture |
++| C3 | Later status identifies unhealthy node and records Monitoring | E3 | Verified fixture |
++| C4 | This customer likely belongs to that incident | E1–E3, E8 | Inferred |
++| C5 | Direct insight may offer this customer temporary access | E2–E3, E8 | Inferred |
++| C6 | Region, project cause and present recovery are not verified | E1, E8 | Verified evidence gap |
 +
 +### Unknowns
 +
-+- Region, project ID, direct-insight outcome, current persistence and incident membership.
-+- Exact onset, browser/version, affected dashboard IDs, meeting timezone and SLA.
-+- Customer data integrity; no telemetry was inspected.
++Project ID, region, browser/OS, plan, filters/date range, direct-insight result, impact duration, mitigation outcome, current status and exact failure mechanism. Confidence limited by lack of project data access.
 +
 +### Confidence Score
 +
 +**Overall:** Medium, 70% after cap.
++- Verified claims: 4.
++- Inferred claims: 2.
++- Unverified claims: 0 in scored claims; customer-specific attribution is intentionally only inferred.
++- Arithmetic: (4 + 2 × 0.5) / 6 × 100 = 83.3%.
++- Caps applied: Plausible candidate association not confirmed → Medium, maximum 70%.
++- Root assessment remains Likely, not Confirmed; scoring verified fixture statements does not prove customer attribution.
 +
-+- Verified claims: 5
-+- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (5 + 0.5) / 7 × 100 = 78.6%.
-+- Caps applied: plausible matching issue not ruled out → Medium (70%). Customer-specific cause unconfirmed; full offline gate completed.
++### Anti-hallucination protocol
 +
-+### Redaction confirmation
++Claim extraction/source mapping completed above. No API/version/config fix claims used. Contradiction review: intermittent/some-project issue scope versus customer's all-tiles scope is retained as a gap. Temporal review: historical May 2 ticket and later 09:05 update kept distinct; present-day status not inferred. Unverified-claim review: no guarantee of data integrity, customer membership, recovery or ETA. Draft escalation phrasing says review is needed, not that a message was sent.
 +
-+- Redaction pass: 1 organization-name omission across 3 generated files; no tokens, personal properties, private URLs or admin links retained. Customer draft contains no internal tools, raw queries, private links or emojis.
 
 exec
-/bin/zsh -lc "rg -n '"'^## |''^'"\\*\\*Confidence:\\*\\*|END OF CUSTOMER|Pre-send spot|Redaction pass' reports/20261007-000000-SUP-1004-triage.md; rg -n -i 'bearer\\s|[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}|go/admin|https?://' reports/20261007-000000-SUP-1004-*.md; cat reports/20261007-000000-SUP-1004-customer-response.md" in <workspace>
+/bin/zsh -lc "rg -n '"'^## |''^'"\\*\\*Confidence:\\*\\*|"'^ASSUMING:|''^→|END OF CUSTOMER|Pre-send|Redaction pass'"' reports/20261007-000000-SUP-1004-triage.md; cat reports/20261007-000000-SUP-1004-customer-response.md" in <workspace>
  succeeded in 0ms:
-12:## 📖 Context for Reviewers
-16:## Issue Summary
-20:## Intake
-32:## Evidence Gathered
-45:## 🐛 Known-Issue Search
-62:## 🗺️ How It Works (and Where It Breaks)
-73:## 🎯 Root-Cause Assessment
-77:**Confidence:** Likely based on pattern match
-83:## Recommended Next Action
-103:## Escalation Decision
-111:## 🔎 Verify This Report
-118:## 💬 Draft Customer Response
-126:--- END OF CUSTOMER-FACING CONTENT ---
-128:## 🔬 Evidence Pack (internal only)
-130:Pre-send spot check: all cited references verified.
-168:- Redaction pass: 1 organization-name omission across 3 generated files; no tokens, personal properties, private URLs or admin links retained. Customer draft contains no internal tools, raw queries, private links or emojis.
-I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
+13:## 📖 Context for Reviewers
+17:## Issue Summary
+21:## Intake
+23:ASSUMING: Beacon dashboards, region and plan unknown, whole-team impact as reported.
+24:→ Correct me now or I proceed with these.
+37:## Evidence Gathered
+50:## 🐛 Known-Issue Search
+67:## 🗺️ How It Works (and Where It Breaks)
+81:## 🎯 Root-Cause Assessment
+85:**Confidence:** Likely based on pattern match
+91:## Recommended Next Action
+112:## Escalation Decision
+143:## 🔎 Verify This Report
+151:## 💬 Draft Customer Response
+161:--- END OF CUSTOMER-FACING CONTENT ---
+163:## 🔬 Evidence Pack (internal only)
+165:Pre-send spot check: all cited references verified.
+166:Redaction pass: 1 replacement made across outputs (customer organization omitted from report); no secrets, raw person properties or private links included. Customer draft contains no internal tracker IDs, tool names or fixture paths.
+We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 
-Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
+A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 
-This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
+Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
+
+This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 
 diff --git a/reports/20261007-000000-SUP-1004-customer-response.md b/reports/20261007-000000-SUP-1004-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..6076388a71c0686be6bffee18e22dce1b4b67c1d
+index 0000000000000000000000000000000000000000..48dfa524b9e63098b35d8449d69d41bd821c0bd6
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-customer-response.md
-@@ -0,0 +1,5 @@
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
+@@ -0,0 +1,7 @@
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
-diff --git a/reports/20261007-000000-SUP-1004-escalation.md b/reports/20261007-000000-SUP-1004-escalation.md
-new file mode 100644
-index 0000000000000000000000000000000000000000..c76de4263debd7f732cce2d229352feb4281b5cc
---- /dev/null
-+++ b/reports/20261007-000000-SUP-1004-escalation.md
-@@ -0,0 +1,77 @@
-+# Escalation Brief
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
 +
-+**Ticket:** SUP-1004  
-+**Customer Impact:** Whole team unable to use dashboards, per ticket; noon board meeting  
-+**Severity:** Critical / P1  
-+**Suggested Owner:** Dashboard/query-cache incident owner (exact team unknown)  
-+**Filed by support:** Prepared only; not submitted  
-+**Date:** 2026-10-07; ticket/incident date 2026-05-02
-+
-+## Summary
-+
-+Blank dashboards plausibly match BEACON-160 and the May 2 EU incident. Confidence: Likely based on pattern match. Customer region and incident membership are unknown; urgent engineering correlation and present-status verification are needed. Offline evidence cannot confirm recovery.
-+
-+## Customer Impact
-+
-+| Field | Value |
-+|---|---|
-+| Affected customers | One reported organization; incident describes some EU projects |
-+| Estimated blast radius | Entire reporting team and all dashboards per ticket; counts unknown |
-+| First seen | Morning May 2; submitted 08:40 UTC |
-+| Regression vs longstanding | New onset per ticket; no release correlation supplied |
-+| Production-down? | Dashboard functionality unavailable per report; whole-product outage unverified |
-+| Workaround available? | Direct insights work in incident reports; customer outcome untested |
-+
-+## Reproduction
-+
-+Status: not yet run; minimal navigation details absent.
-+
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer.
-+
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident; matching filters are an assumed control).
-+
-+**Control:** Change only viewing surface to direct insight; incident reports results there. Frequency: all tiles/team per report, repeat count unknown. Smallest missing facts: project region/ID and direct-insight outcome.
-+
-+## Expected Behavior
-+
-+Dashboard shows expected figures, per customer expectation; dashboard-specific docs not supplied.
-+
-+## Actual Behavior
-+
-+Every tile shows “No data” across the team, per customer; not independently reproduced.
-+
-+## Evidence
-+
-+| # | Source | Finding | Status |
-+|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1 team-wide blank dashboards at 08:40 May 2 | Verified as report |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md) | Same message, EU projects, ~08:10 onset; direct insights work | Verified fixture |
-+| 3 | [Incident history](../mock-sources/status/incidents.md) | Cache node identified 09:05; recorded Monitoring | Verified historical fixture |
-+| 4 | Customer correlation | Region/incident membership not available | Inferred match; unverified membership |
-+
-+## What Support Already Tried
-+
-+- Completed hybrid-synonym, lexical, exact and recent offline tracker searches; inspected all five full issue bodies.
-+- Compared status timestamps and searched docs/releases; no dashboard remedy documentation returned.
-+- No customer systems accessed, workaround tested, fix applied or message sent.
-+
-+## Closest Known Issues
-+
-+| Issue / PR | State | Match level | Why accepted / rejected |
-+|---|---|---|---|
-+| BEACON-160 | Open in fixture | Strong conditional | Same UI message/time; region unknown, intermittent vs all-tile scope differs |
-+| BEACON-097 | Open | Rejected | CSV export cap |
-+| BEACON-142 | Closed | Rejected | Safari unload-event loss; May 4 update postdates ticket |
-+| BEACON-118 | Closed | Rejected | Identity continuity |
-+| BEACON-151 | Open | Rejected | Webhook signature validation |
-+
-+## Specific Ask
-+
-+Confirm project region and incident membership; inspect dashboard/direct-insight query outcomes for that project; verify present mitigation/recovery status and agree the next customer update time. If region is non-EU or direct insights fail too, investigate as a separate P1. No deadline promise or data-loss conclusion is supported.
-+
-+## Workaround (if any)
-+
-+Try opening the affected insight directly with matching filters/date range. Incident reports say direct insights work; this is not verified for this customer. See [full triage report](20261007-000000-SUP-1004-triage.md) for exact searches and confidence grading.
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 diff --git a/reports/20261007-000000-SUP-1004-triage.md b/reports/20261007-000000-SUP-1004-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..2a7aa233adaf414a0128bf924d1bbedfc669dfa7
+index 0000000000000000000000000000000000000000..5ff2a5175614460965774ca973869c167953ddc3
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-triage.md
-@@ -0,0 +1,168 @@
-+# 🔴 Triage Report: SUP-1004 — Team-wide blank dashboards
+@@ -0,0 +1,200 @@
++# 🔴 Triage Report: SUP-1004 — Whole-team dashboards blank
 +
-+**Ticket:** SUP-1004  
-+**Customer:** [organization withheld]  
-+**Issue Type:** Bug  
-+**Product Area:** Dashboard tile loading  
-+**Priority:** 🔴 P1  
-+**Plan Tier / SLA Target:** Unknown / not supplied  
-+**Environment:** Beacon; region, browser, SDK and hosting unknown  
-+**Investigation Mode:** Read-only, offline synthetic fixtures; investigated 2026-10-07
++**Ticket:** SUP-1004
++**Customer:** Customer organization omitted from saved output
++**Issue Type:** Bug / Data availability
++**Product Area:** Dashboard tile rendering / query results
++**Priority:** 🔴 P1
++**Plan Tier:** Unknown
++**SLA Target:** Not supplied
++**Environment:** Beacon; browser, region, SDK and hosting details unknown
++**Investigation Mode:** Read-only, offline synthetic fixtures; reviewed 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs dashboards for a board meeting at noon on the ticket date. They report that every tile shows “No data” across the whole team [1]. Beacon dashboards display insights; the incident record distinguishes dashboard loading from opening insights directly [3]. Dashboard-specific docs and the customer's stack are not supplied.
++The customer needs dashboard results for a board meeting at noon on the ticket date. Every dashboard tile reportedly displays “No data,” affecting the whole team. The available fixtures describe an EU dashboard incident, but no dedicated dashboard documentation or customer project access is available. Customer stack is unknown.
 +
 +## Issue Summary
 +
-+The customer reported team-wide blank dashboards at 08:40 UTC on May 2, 2026 [1]. An EU incident began at 08:10 that day with the same visible message [2,3]. The customer's region and direct-insight behavior remain unverified; no fix was performed.
++At 08:40 UTC on 2026-05-02 the customer reported all dashboards blank that morning, with every tile showing “No data.” Whole-team impact and the meeting deadline make this P1. A contemporaneous EU incident is a strong candidate, but customer affiliation with that incident remains unverified.
 +
 +## Intake
 +
++ASSUMING: Beacon dashboards, region and plan unknown, whole-team impact as reported.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / dashboard tile loading |
-+| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC; ongoing at submission, current state unknown |
-+| Impact | Whole team, all dashboards per customer; board meeting at noon, timezone unspecified |
-+| Environment | Region, plan, browser, OS, SDK/version and hosting unknown |
-+| Identifiers | SUP-1004; no project, dashboard or request identifiers supplied |
-+| Reproduction | Viewing dashboards yields “No data” on every tile, per customer; no independent run |
-+| Missing Context | Project region and safe project ID; whether one corresponding insight opens directly; whether issue persists |
++| Issue Type / Product Area | Bug / dashboard tiles |
++| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC. Present-day persistence unknown. |
++| Impact | Whole team reportedly affected; board meeting at noon, timezone unspecified. Dashboard unavailability reported, total product outage not established. |
++| Environment | Browser, OS, SDK/version, project region, plan and hosting unknown. |
++| Identifiers | SUP-1004; exact visible copy: “No data.” No project ID supplied. |
++| Reproduction | Open dashboards; all tiles reportedly blank. Independent reproduction not run; frequency/count unspecified. |
++| Missing Context | Project ID and region; whether one affected insight opened directly returns results with identical date range and filters; whether impact persists now. |
++| First investigation paths | Incident history, dashboard tracker search matrix, available docs/releases. |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1; team-wide blank tiles at 08:40 UTC May 2; noon deadline | ✅ Verified as customer report, not independently reproduced |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md), full body | Open EU dashboard issue; “No data” from ~08:10 May 2; direct insights work; query-cache investigation | ✅ Verified fixture contents |
-+| 3 | [Incident history](../mock-sources/status/incidents.md), full body | EU incident at 08:10; unhealthy query-cache node identified 09:05; mitigation in progress; recorded status Monitoring; US unaffected | ✅ Verified historical fixture contents |
-+| 4 | Full bodies: [BEACON-097](../mock-sources/issues/BEACON-097.md), [BEACON-142](../mock-sources/issues/BEACON-142.md) | Export cap and Safari navigation event loss are different symptoms | ✅ Verified; rejected as leading explanations |
-+| 5 | Full bodies: [BEACON-118](../mock-sources/issues/BEACON-118.md), [BEACON-151](../mock-sources/issues/BEACON-151.md) | Identity continuity and webhook signature issues do not match dashboard loading | ✅ Verified; rejected as leading explanations |
-+| 6 | `rg -n -i 'dashboard|query|no data|incident|cache' mock-sources/docs mock-sources/releases` | Only export Query API guidance matched; no dashboard recovery guidance returned | 🔍 Searched, no relevant guidance |
-+| 7 | Customer-to-incident correlation [1–3] | Same symptom/date and close timing suggest incident association, conditional on EU region | ⚠️ Inferred |
-+| 8 | Project telemetry / live status | No project data or live Beacon connectors available in offline demo | ❌ Unverified — tool unavailable; current recovery and customer scope unknown |
++| E1 | tickets/004-dashboards-blank.md, full read | P1 ticket at 2026-05-02 08:40 UTC reports whole-team blank dashboards, every tile “No data,” noon meeting. | ✅ Verified ticket content; customer observation not independently verified |
++| E2 | mock-sources/issues/BEACON-160.md, full read | Open issue, created/updated May 2: some EU projects show “No data” tiles while direct insights return results; reports began about 08:10 UTC; query-cache node under investigation; no US reports recorded. | ✅ Verified fixture |
++| E3 | mock-sources/status/incidents.md, full read | May 2 EU incident: 08:10 investigating; 09:05 unhealthy query-cache node identified, mitigation in progress; fixture status Monitoring; direct insights unaffected and US unaffected in stated scope. | ✅ Verified fixture; historical record, not live status |
++| E4 | mock-sources/issues/BEACON-142.md and BEACON-118.md, full reads | Safari candidates concern final-page event loss and anonymous identity continuity respectively, not dashboard rendering. BEACON-142 includes a May 4 update after this ticket. | ✅ Verified fixture scope; rejected as leading match |
++| E5 | mock-sources/issues/BEACON-151.md and BEACON-097.md, full reads | Webhook signature failure and CSV row-limit request concern different product areas. | ✅ Verified fixture scope; rejected |
++| E6 | Docs/releases search: rg -n -i 'dashboard\|no data\|query\|outage' mock-sources/docs mock-sources/releases | Only export Query API guidance matched; no dashboard troubleshooting or dashboard fix release found in searched fixtures. | 🔍 Searched, no relevant dashboard guidance |
++| E7 | mock-sources/status/incidents.md | April 11 all-region ingestion delay lasted 13:00–13:40, resolved; wrong timeframe for May 2 report. | ✅ Verified fixture; rejected |
++| E8 | Available investigation inputs | No project ID, project-data access, customer logs, browser URL or independently executed reproduction. | ❌ Customer-specific cause unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline synonym search substitutes for hybrid discovery, as prescribed for these fixtures. Entire tracker searched; no real repository or web search applies to fictional Beacon.
++All tracker searches used the complete local tracker mock-sources/issues/. Offline “hybrid” means regex synonym/paraphrase discovery, not semantic ranking.
 +
-+| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
++| # | Query type | Repo / tracker | Executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid | mock-sources/issues | `rg -n -i 'blank|empty|no data|outage|unavailable|tiles|dashboard|query' mock-sources/issues` | BEACON-160; BEACON-097 | 160 accepted as plausible; 097 rejected |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'dashboard|query|region|cache' mock-sources/issues` | BEACON-160 | Strong surface match; region not confirmed |
-+| 3 | Exact | mock-sources/issues | `rg -n -F 'No data' mock-sources/issues` | BEACON-160 | Exact UI message match |
-+| 4 | Recent | mock-sources/issues | `rg -n '^(updated:|created:|status:)|dashboard|query' mock-sources/issues` | BEACON-160 | Created/updated May 2, same date as ticket |
++| 1 | Hybrid | mock-sources/issues/ | rg -n -i 'blank\|empty\|missing\|no results\|outage\|dashboard\|tile' mock-sources/issues | BEACON-160; BEACON-142 | Accept 160 as plausible; 142 is event-delivery scope |
++| 2 | Lexical | mock-sources/issues/ | rg -n -i 'dashboard\|query\|cache\|data' mock-sources/issues | BEACON-160; BEACON-097 | Accept 160 as plausible; 097 is export scope |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F 'No data' mock-sources/issues | BEACON-160 | Exact visible message match |
++| 4 | Recent | mock-sources/issues/ | rg -n 'updated:\|created:\|dashboard\|blank' mock-sources/issues | BEACON-160, May 2 | Dates match incident day. Compared all five issues' dates; May 4 update to 142 is retrospective evidence, not contemporaneous knowledge. |
 +
-+**Accepted candidate:** BEACON-160 is open in the fixture; its intermittent EU symptoms plausibly match, but the customer reports every tile affected and region is unknown [1,2].
++**Matching issue / incident:** mock-sources/issues/BEACON-160.md and mock-sources/status/incidents.md are accepted as a plausible incident association, not proof of this customer's cause.
 +
-+**Closest rejected candidates:** BEACON-097 concerns CSV limits, not blank dashboards; BEACON-142 concerns Safari-only unload events; BEACON-118 concerns anonymous identity; BEACON-151 concerns webhook authentication [4,5]. All full bodies inspected. BEACON-142's May 4 update postdates the ticket and is retrospective evidence, not information available at 08:40 May 2.
++**Closest rejected candidates:** BEACON-142: Safari final-navigation event loss, no browser/version evidence and different symptom scope. BEACON-118: identity counts, explicitly not delivery. BEACON-097: CSV limit. BEACON-151: webhook verification. April 11 ingestion incident: wrong date and resolved.
 +
-+**Search gaps:** No customer telemetry, dashboard-specific docs or live recovery status. All four offline search modes completed; coverage is limited to the supplied tracker fixtures.
++**Search gaps:** Complete search matrix within supplied offline tracker. No live tracker, current incident status, source-code repository or project data available; no web search for fictional Beacon.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+This is a conceptual incident model, not a source-code trace [2,3]. Customer-specific association is unconfirmed.
++The diagram shows the fixture-supported contrast, not a verified internal architecture (E2–E3).
 +
 +```mermaid
 +flowchart LR
-+    A[Open dashboard] --> B[EU query-cache path: incident]
-+    B --> C[Tiles show No data]
-+    D[Open insight directly] --> E[Results available in incident reports]
++    A[Open dashboard] --> B[EU dashboard path]
++    B --> C[No data tiles reported]
++    D[Open same insight directly] --> E[Results reported available]
++    F[Unhealthy EU query-cache node] -. incident association .-> B
 +```
++
++The status fixture identifies an unhealthy EU query-cache node; it does not document the exact failure mechanism or prove that stored customer data is intact.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The May 2 EU dashboard incident is the leading explanation. The incident record identifies an unhealthy query-cache node, but it does not prove that this customer's project was affected [1–3,7,8].
++**Assessment:** The May 2 EU dashboard incident is the leading explanation, conditional on the customer's project being in the affected scope. An unhealthy query-cache node was identified in the incident record; customer-specific attribution is not established.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Exact UI message and same-morning timing support a strong match. Region, project membership and direct-insight results are missing. The 09:05 identification postdates the 08:40 ticket, and “Monitoring” is historical fixture state, not a current recovery guarantee. Confidence is limited by lack of project data access; the plausible candidate cap is Medium (70%).
++**Reasoning:** Exact tile message, dashboard scope and timing match E1–E3: incident reports start 30 minutes before the ticket. The 09:05 identification is later evidence and must not be represented as known at 08:40. E8 leaves region, direct-insight behavior and project involvement unverified. A plausible incident association remains unconfirmed, so overall confidence is capped at Medium (70%).
 +
-+**Not explained:** Whether a regional intermittent incident accounts for every tile across the whole team; whether the customer is in EU; whether direct insights work or data is missing elsewhere. No basis to conclude data loss or its absence for this customer.
++**Not explained:** Whether this customer is in EU; why every dashboard/team member is affected when the issue describes some projects and intermittent tiles; whether direct insights work; whether the customer recovered; whether any ingestion/storage issue also exists. No data-loss conclusion is supported.
 +
 +## Recommended Next Action
 +
-+1. 🚨 Route this P1 packet to the dashboard/query-cache incident owner for customer correlation and current mitigation verification. Escalation is recommended, not sent.
-+2. 🔧 Ask the customer to open one affected insight directly; results there would offer a temporary way to view figures, as reported in the incident [2,3]. Do not guarantee this succeeds for their project.
-+3. Obtain project region and a safe project ID plus whether the problem persists. If non-EU or direct insights also fail, investigate as a separate P1 rather than assuming BEACON-160.
++1. 🚨 Have the operator route this P1 brief immediately to the dashboard/query-cache incident owner. Confirm affected project membership, mitigation outcome and current status; do not wait for all customer details before routing urgent impact.
++2. Ask for project ID and region, and a single direct-insight comparison with unchanged date range and filters.
++3. 🔧 If the direct insight returns results, offer it as conditional temporary access for the meeting. This is grounded in E2–E3, not a guaranteed workaround. If it also shows no data or the project is outside EU, engineering must investigate beyond the known incident.
++4. Obtain a recovery check before telling the customer the issue is resolved. Do not change settings, deploy SDK updates or claim a fix ETA based on these fixtures.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer [1].
++**Environment:** Beacon project; customer browser, region and plan unknown.
++**Preconditions:** A synthetic test project in the incident's affected scope with an insight expected to contain results; engineer must verify these conditions.
 +
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident [2,3]; matching filters are an assumed control).
++1. Open an affected dashboard (source: ticket).
++2. Record the tile result, date range and filters (source: assumed diagnostic step).
++3. Open the same insight directly, retaining date range and filters (source: issue/status comparison).
 +
-+**Expected:** Dashboard shows the expected figures, per customer expectation [1].  
-+**Actual:** Every tile says “No data,” per customer [1].  
-+**Control:** Change only the viewing surface to direct insight. Incident records report results there; customer outcome unknown [2,3].  
-+**Frequency:** Team-wide and all tiles per report; repeat counts unknown.
++**Expected:** Dashboard presents the insight's results when data exists (inferred from E2 contrast; dedicated dashboard docs unavailable).
++**Actual:** Customer reports every tile “No data” (E1), not independently reproduced.
++**Control:** Same insight, date range and filters, with only entry path changed from dashboard to direct insight; incident fixtures predict results on the direct path (E2–E3).
++**Frequency:** Whole-team/all-tiles report; counts and repeated-run frequency unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Escalate to engineering.  
-+**Reason:** P1 team-wide impact and a plausible regional incident cannot be resolved or confirmed with fixtures alone [1–3,8].  
-+**Suggested owner if escalated:** Dashboard/query-cache incident owner; exact team unknown.  
-+**Follow-up cadence:** Operator should confirm the next update time with the incident owner immediately; no SLA or recovery deadline established.  
-+**Attached brief:** [Engineering escalation brief](20261007-000000-SUP-1004-escalation.md). No external escalation performed.
++**Decision:** Escalate to engineering.
++**Reason:** P1 whole-team dashboard unavailability and a plausible active-at-ticket-time product incident require customer-specific verification.
++**Suggested owner:** Dashboard/query-cache incident responder; exact team unknown.
++**Follow-up cadence:** Operator should obtain current incident status immediately and agree the next customer update time; no SLA or ETA is supplied.
++**Delivery status:** Brief prepared below; nothing sent, filed or changed in any external system.
++
++### Escalation Brief
++
++**Ticket:** SUP-1004  
++**Customer Impact:** Whole team cannot use dashboard tiles before noon meeting, per customer report.  
++**Severity:** Critical / P1  
++**Suggested Owner:** Dashboard/query-cache incident responder  
++**Filed by support:** Not filed; draft only  
++**Date:** 2026-10-07 review of 2026-05-02 ticket
++
++**Summary:** Blank dashboard tiles match BEACON-160 and the May 2 EU incident. Customer region and incident membership are unknown; support cannot confirm cause or recovery without project evidence.
++
++**Customer Impact:** One reporting organization; all team members according to ticket; wider affected customer count unknown. First seen morning May 2, reported 08:40 UTC. Sudden onset reported, no deploy correlation. Dashboard unavailable, broader production outage unknown. Conditional direct-insight access is the only fixture-supported mitigation.
++
++**Reproduction:** Use the unrun three-step reproduction above unchanged. Smallest missing artifacts: project ID/region and same-insight direct-path result.
++
++**Expected Behavior:** Dashboard shows results for an insight with data.
++**Actual Behavior:** All tiles reportedly say “No data.”
++**Evidence:** E1 customer report; E2 matching open issue; E3 historical incident; E8 customer-specific verification gap.
++**What Support Already Tried:** Read-only full tracker matrix, five candidate bodies, status history and docs/releases search. No customer-side operations or reproduction performed.
++**Closest Known Issues:** BEACON-160 open, strong symptom/time match but conditional region; BEACON-142 closed in fixture, rejected as Safari navigation event-loss scope.
++**Specific Ask:** Confirm project scope against the May 2 EU incident; inspect dashboard versus direct-insight request outcomes; confirm whether the unhealthy query-cache node explains this project and whether mitigation restored results. If region/direct-path results disagree, investigate a separate P1 cause.
++**Workaround:** Direct insight with identical date range/filters only if it actually returns results; no guaranteed restoration or fix time.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [the ticket](../tickets/004-dashboards-blank.md): verify 08:40 UTC May 2, whole-team impact and “No data.”
-+2. Open [BEACON-160](../mock-sources/issues/BEACON-160.md): verify EU scope, ~08:10 onset and direct-insight distinction.
-+3. Open [incident history](../mock-sources/status/incidents.md): verify 09:05 identification and historical Monitoring state; do not treat it as live recovery.
-+4. Obtain customer region/project ID and compare one tile with the same insight directly. Engineering must check customer incident membership and present status before confirming the cause.
++1. Read tickets/004-dashboards-blank.md: confirm 08:40 UTC, “No data,” whole-team scope and noon deadline.
++2. Read mock-sources/issues/BEACON-160.md: verify May 2 08:10 onset, EU scope and dashboard/direct-insight contrast.
++3. Read mock-sources/status/incidents.md: verify 09:05 identification is later than ticket and Monitoring does not establish present recovery.
++4. Obtain project region and compare one dashboard tile with its direct insight using identical date range/filters; no comparison has been run here.
++5. Have the incident owner verify current customer impact before communicating resolution.
 +
 +## 💬 Draft Customer Response
 +
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
++
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
 +## 🔬 Evidence Pack (internal only)
 +
 +Pre-send spot check: all cited references verified.
++Redaction pass: 1 replacement made across outputs (customer organization omitted from report); no secrets, raw person properties or private links included. Customer draft contains no internal tracker IDs, tool names or fixture paths.
 +
 +### Engineer TL;DR
 +
-+Likely BEACON-160/May 2 EU cache incident, not customer-confirmed. Check region and incident membership; use direct insight comparison; confirm present status. No production action or external communication occurred.
++Strong symptom/time match to May 2 EU dashboard incident. The unhealthy node is confirmed in the historical incident fixture, not confirmed as this project's cause. Route P1 to the incident responder and obtain region plus direct-insight comparison. No external escalation or fix has been performed.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source (row #) | Status |
++| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Customer reports team-wide blank tiles at 08:40 | 1 | Verified as report |
-+| 2 | EU issue has exact message and ~08:10 onset | 2 | Verified |
-+| 3 | Incident identifies unhealthy cache node at 09:05 | 3 | Verified |
-+| 4 | Direct insights work in incident reports | 2,3 | Verified, not customer-confirmed |
-+| 5 | Other tracker candidates address different symptoms | 4,5 | Verified |
-+| 6 | This customer likely shares the incident | 7 | Inferred |
-+| 7 | This customer's recovery/current scope | 8 | Unverified |
-+
-+**Contradiction check:** Issue says intermittent/some EU projects; ticket says all dashboards/whole team. This is a scope uncertainty, not proof of the same cause. Issue investigating versus incident Monitoring reflects different fixture snapshots; no resolution inferred. No stale version or feature claim used as a remedy.
++| C1 | Ticket reports whole-team “No data” at 08:40 with noon meeting | E1 | Verified as report |
++| C2 | Matching issue describes EU onset 08:10 and direct insights returning results | E2 | Verified fixture |
++| C3 | Later status identifies unhealthy node and records Monitoring | E3 | Verified fixture |
++| C4 | This customer likely belongs to that incident | E1–E3, E8 | Inferred |
++| C5 | Direct insight may offer this customer temporary access | E2–E3, E8 | Inferred |
++| C6 | Region, project cause and present recovery are not verified | E1, E8 | Verified evidence gap |
 +
 +### Unknowns
 +
-+- Region, project ID, direct-insight outcome, current persistence and incident membership.
-+- Exact onset, browser/version, affected dashboard IDs, meeting timezone and SLA.
-+- Customer data integrity; no telemetry was inspected.
++Project ID, region, browser/OS, plan, filters/date range, direct-insight result, impact duration, mitigation outcome, current status and exact failure mechanism. Confidence limited by lack of project data access.
 +
 +### Confidence Score
 +
 +**Overall:** Medium, 70% after cap.
++- Verified claims: 4.
++- Inferred claims: 2.
++- Unverified claims: 0 in scored claims; customer-specific attribution is intentionally only inferred.
++- Arithmetic: (4 + 2 × 0.5) / 6 × 100 = 83.3%.
++- Caps applied: Plausible candidate association not confirmed → Medium, maximum 70%.
++- Root assessment remains Likely, not Confirmed; scoring verified fixture statements does not prove customer attribution.
 +
-+- Verified claims: 5
-+- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (5 + 0.5) / 7 × 100 = 78.6%.
-+- Caps applied: plausible matching issue not ruled out → Medium (70%). Customer-specific cause unconfirmed; full offline gate completed.
++### Anti-hallucination protocol
 +
-+### Redaction confirmation
++Claim extraction/source mapping completed above. No API/version/config fix claims used. Contradiction review: intermittent/some-project issue scope versus customer's all-tiles scope is retained as a gap. Temporal review: historical May 2 ticket and later 09:05 update kept distinct; present-day status not inferred. Unverified-claim review: no guarantee of data integrity, customer membership, recovery or ETA. Draft escalation phrasing says review is needed, not that a message was sent.
 +
-+- Redaction pass: 1 organization-name omission across 3 generated files; no tokens, personal properties, private URLs or admin links retained. Customer draft contains no internal tools, raw queries, private links or emojis.
 
 codex
-Likely matches the May 2 EU dashboard incident, BEACON-160. Confirm the customer’s region and try opening an insight directly. P1 escalation recommended; nothing sent externally.
+Likely match to the May 2 EU dashboard incident. Customer region and incident involvement remain unverified; P1 escalation recommended.
 
 Saved:
-
-- [Triage report](reports/20261007-000000-SUP-1004-triage.md)
+- [Triage report and escalation brief](reports/20261007-000000-SUP-1004-triage.md)
 - [Customer response draft](reports/20261007-000000-SUP-1004-customer-response.md)
-- [Escalation brief](reports/20261007-000000-SUP-1004-escalation.md)
+
+Nothing sent or changed externally.
 diff --git a/reports/20261007-000000-SUP-1004-customer-response.md b/reports/20261007-000000-SUP-1004-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..6076388a71c0686be6bffee18e22dce1b4b67c1d
+index 0000000000000000000000000000000000000000..48dfa524b9e63098b35d8449d69d41bd821c0bd6
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-customer-response.md
-@@ -0,0 +1,5 @@
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
+@@ -0,0 +1,7 @@
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
-diff --git a/reports/20261007-000000-SUP-1004-escalation.md b/reports/20261007-000000-SUP-1004-escalation.md
-new file mode 100644
-index 0000000000000000000000000000000000000000..c76de4263debd7f732cce2d229352feb4281b5cc
---- /dev/null
-+++ b/reports/20261007-000000-SUP-1004-escalation.md
-@@ -0,0 +1,77 @@
-+# Escalation Brief
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
 +
-+**Ticket:** SUP-1004  
-+**Customer Impact:** Whole team unable to use dashboards, per ticket; noon board meeting  
-+**Severity:** Critical / P1  
-+**Suggested Owner:** Dashboard/query-cache incident owner (exact team unknown)  
-+**Filed by support:** Prepared only; not submitted  
-+**Date:** 2026-10-07; ticket/incident date 2026-05-02
-+
-+## Summary
-+
-+Blank dashboards plausibly match BEACON-160 and the May 2 EU incident. Confidence: Likely based on pattern match. Customer region and incident membership are unknown; urgent engineering correlation and present-status verification are needed. Offline evidence cannot confirm recovery.
-+
-+## Customer Impact
-+
-+| Field | Value |
-+|---|---|
-+| Affected customers | One reported organization; incident describes some EU projects |
-+| Estimated blast radius | Entire reporting team and all dashboards per ticket; counts unknown |
-+| First seen | Morning May 2; submitted 08:40 UTC |
-+| Regression vs longstanding | New onset per ticket; no release correlation supplied |
-+| Production-down? | Dashboard functionality unavailable per report; whole-product outage unverified |
-+| Workaround available? | Direct insights work in incident reports; customer outcome untested |
-+
-+## Reproduction
-+
-+Status: not yet run; minimal navigation details absent.
-+
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer.
-+
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident; matching filters are an assumed control).
-+
-+**Control:** Change only viewing surface to direct insight; incident reports results there. Frequency: all tiles/team per report, repeat count unknown. Smallest missing facts: project region/ID and direct-insight outcome.
-+
-+## Expected Behavior
-+
-+Dashboard shows expected figures, per customer expectation; dashboard-specific docs not supplied.
-+
-+## Actual Behavior
-+
-+Every tile shows “No data” across the team, per customer; not independently reproduced.
-+
-+## Evidence
-+
-+| # | Source | Finding | Status |
-+|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1 team-wide blank dashboards at 08:40 May 2 | Verified as report |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md) | Same message, EU projects, ~08:10 onset; direct insights work | Verified fixture |
-+| 3 | [Incident history](../mock-sources/status/incidents.md) | Cache node identified 09:05; recorded Monitoring | Verified historical fixture |
-+| 4 | Customer correlation | Region/incident membership not available | Inferred match; unverified membership |
-+
-+## What Support Already Tried
-+
-+- Completed hybrid-synonym, lexical, exact and recent offline tracker searches; inspected all five full issue bodies.
-+- Compared status timestamps and searched docs/releases; no dashboard remedy documentation returned.
-+- No customer systems accessed, workaround tested, fix applied or message sent.
-+
-+## Closest Known Issues
-+
-+| Issue / PR | State | Match level | Why accepted / rejected |
-+|---|---|---|---|
-+| BEACON-160 | Open in fixture | Strong conditional | Same UI message/time; region unknown, intermittent vs all-tile scope differs |
-+| BEACON-097 | Open | Rejected | CSV export cap |
-+| BEACON-142 | Closed | Rejected | Safari unload-event loss; May 4 update postdates ticket |
-+| BEACON-118 | Closed | Rejected | Identity continuity |
-+| BEACON-151 | Open | Rejected | Webhook signature validation |
-+
-+## Specific Ask
-+
-+Confirm project region and incident membership; inspect dashboard/direct-insight query outcomes for that project; verify present mitigation/recovery status and agree the next customer update time. If region is non-EU or direct insights fail too, investigate as a separate P1. No deadline promise or data-loss conclusion is supported.
-+
-+## Workaround (if any)
-+
-+Try opening the affected insight directly with matching filters/date range. Incident reports say direct insights work; this is not verified for this customer. See [full triage report](20261007-000000-SUP-1004-triage.md) for exact searches and confidence grading.
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 diff --git a/reports/20261007-000000-SUP-1004-triage.md b/reports/20261007-000000-SUP-1004-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..2a7aa233adaf414a0128bf924d1bbedfc669dfa7
+index 0000000000000000000000000000000000000000..5ff2a5175614460965774ca973869c167953ddc3
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1004-triage.md
-@@ -0,0 +1,168 @@
-+# 🔴 Triage Report: SUP-1004 — Team-wide blank dashboards
+@@ -0,0 +1,200 @@
++# 🔴 Triage Report: SUP-1004 — Whole-team dashboards blank
 +
-+**Ticket:** SUP-1004  
-+**Customer:** [organization withheld]  
-+**Issue Type:** Bug  
-+**Product Area:** Dashboard tile loading  
-+**Priority:** 🔴 P1  
-+**Plan Tier / SLA Target:** Unknown / not supplied  
-+**Environment:** Beacon; region, browser, SDK and hosting unknown  
-+**Investigation Mode:** Read-only, offline synthetic fixtures; investigated 2026-10-07
++**Ticket:** SUP-1004
++**Customer:** Customer organization omitted from saved output
++**Issue Type:** Bug / Data availability
++**Product Area:** Dashboard tile rendering / query results
++**Priority:** 🔴 P1
++**Plan Tier:** Unknown
++**SLA Target:** Not supplied
++**Environment:** Beacon; browser, region, SDK and hosting details unknown
++**Investigation Mode:** Read-only, offline synthetic fixtures; reviewed 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs dashboards for a board meeting at noon on the ticket date. They report that every tile shows “No data” across the whole team [1]. Beacon dashboards display insights; the incident record distinguishes dashboard loading from opening insights directly [3]. Dashboard-specific docs and the customer's stack are not supplied.
++The customer needs dashboard results for a board meeting at noon on the ticket date. Every dashboard tile reportedly displays “No data,” affecting the whole team. The available fixtures describe an EU dashboard incident, but no dedicated dashboard documentation or customer project access is available. Customer stack is unknown.
 +
 +## Issue Summary
 +
-+The customer reported team-wide blank dashboards at 08:40 UTC on May 2, 2026 [1]. An EU incident began at 08:10 that day with the same visible message [2,3]. The customer's region and direct-insight behavior remain unverified; no fix was performed.
++At 08:40 UTC on 2026-05-02 the customer reported all dashboards blank that morning, with every tile showing “No data.” Whole-team impact and the meeting deadline make this P1. A contemporaneous EU incident is a strong candidate, but customer affiliation with that incident remains unverified.
 +
 +## Intake
 +
++ASSUMING: Beacon dashboards, region and plan unknown, whole-team impact as reported.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / dashboard tile loading |
-+| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC; ongoing at submission, current state unknown |
-+| Impact | Whole team, all dashboards per customer; board meeting at noon, timezone unspecified |
-+| Environment | Region, plan, browser, OS, SDK/version and hosting unknown |
-+| Identifiers | SUP-1004; no project, dashboard or request identifiers supplied |
-+| Reproduction | Viewing dashboards yields “No data” on every tile, per customer; no independent run |
-+| Missing Context | Project region and safe project ID; whether one corresponding insight opens directly; whether issue persists |
++| Issue Type / Product Area | Bug / dashboard tiles |
++| Timeframe | Morning of 2026-05-02; ticket sent 08:40 UTC. Present-day persistence unknown. |
++| Impact | Whole team reportedly affected; board meeting at noon, timezone unspecified. Dashboard unavailability reported, total product outage not established. |
++| Environment | Browser, OS, SDK/version, project region, plan and hosting unknown. |
++| Identifiers | SUP-1004; exact visible copy: “No data.” No project ID supplied. |
++| Reproduction | Open dashboards; all tiles reportedly blank. Independent reproduction not run; frequency/count unspecified. |
++| Missing Context | Project ID and region; whether one affected insight opened directly returns results with identical date range and filters; whether impact persists now. |
++| First investigation paths | Incident history, dashboard tracker search matrix, available docs/releases. |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| 1 | [Ticket](../tickets/004-dashboards-blank.md) | P1; team-wide blank tiles at 08:40 UTC May 2; noon deadline | ✅ Verified as customer report, not independently reproduced |
-+| 2 | [BEACON-160](../mock-sources/issues/BEACON-160.md), full body | Open EU dashboard issue; “No data” from ~08:10 May 2; direct insights work; query-cache investigation | ✅ Verified fixture contents |
-+| 3 | [Incident history](../mock-sources/status/incidents.md), full body | EU incident at 08:10; unhealthy query-cache node identified 09:05; mitigation in progress; recorded status Monitoring; US unaffected | ✅ Verified historical fixture contents |
-+| 4 | Full bodies: [BEACON-097](../mock-sources/issues/BEACON-097.md), [BEACON-142](../mock-sources/issues/BEACON-142.md) | Export cap and Safari navigation event loss are different symptoms | ✅ Verified; rejected as leading explanations |
-+| 5 | Full bodies: [BEACON-118](../mock-sources/issues/BEACON-118.md), [BEACON-151](../mock-sources/issues/BEACON-151.md) | Identity continuity and webhook signature issues do not match dashboard loading | ✅ Verified; rejected as leading explanations |
-+| 6 | `rg -n -i 'dashboard|query|no data|incident|cache' mock-sources/docs mock-sources/releases` | Only export Query API guidance matched; no dashboard recovery guidance returned | 🔍 Searched, no relevant guidance |
-+| 7 | Customer-to-incident correlation [1–3] | Same symptom/date and close timing suggest incident association, conditional on EU region | ⚠️ Inferred |
-+| 8 | Project telemetry / live status | No project data or live Beacon connectors available in offline demo | ❌ Unverified — tool unavailable; current recovery and customer scope unknown |
++| E1 | tickets/004-dashboards-blank.md, full read | P1 ticket at 2026-05-02 08:40 UTC reports whole-team blank dashboards, every tile “No data,” noon meeting. | ✅ Verified ticket content; customer observation not independently verified |
++| E2 | mock-sources/issues/BEACON-160.md, full read | Open issue, created/updated May 2: some EU projects show “No data” tiles while direct insights return results; reports began about 08:10 UTC; query-cache node under investigation; no US reports recorded. | ✅ Verified fixture |
++| E3 | mock-sources/status/incidents.md, full read | May 2 EU incident: 08:10 investigating; 09:05 unhealthy query-cache node identified, mitigation in progress; fixture status Monitoring; direct insights unaffected and US unaffected in stated scope. | ✅ Verified fixture; historical record, not live status |
++| E4 | mock-sources/issues/BEACON-142.md and BEACON-118.md, full reads | Safari candidates concern final-page event loss and anonymous identity continuity respectively, not dashboard rendering. BEACON-142 includes a May 4 update after this ticket. | ✅ Verified fixture scope; rejected as leading match |
++| E5 | mock-sources/issues/BEACON-151.md and BEACON-097.md, full reads | Webhook signature failure and CSV row-limit request concern different product areas. | ✅ Verified fixture scope; rejected |
++| E6 | Docs/releases search: rg -n -i 'dashboard\|no data\|query\|outage' mock-sources/docs mock-sources/releases | Only export Query API guidance matched; no dashboard troubleshooting or dashboard fix release found in searched fixtures. | 🔍 Searched, no relevant dashboard guidance |
++| E7 | mock-sources/status/incidents.md | April 11 all-region ingestion delay lasted 13:00–13:40, resolved; wrong timeframe for May 2 report. | ✅ Verified fixture; rejected |
++| E8 | Available investigation inputs | No project ID, project-data access, customer logs, browser URL or independently executed reproduction. | ❌ Customer-specific cause unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline synonym search substitutes for hybrid discovery, as prescribed for these fixtures. Entire tracker searched; no real repository or web search applies to fictional Beacon.
++All tracker searches used the complete local tracker mock-sources/issues/. Offline “hybrid” means regex synonym/paraphrase discovery, not semantic ranking.
 +
-+| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
++| # | Query type | Repo / tracker | Executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid | mock-sources/issues | `rg -n -i 'blank|empty|no data|outage|unavailable|tiles|dashboard|query' mock-sources/issues` | BEACON-160; BEACON-097 | 160 accepted as plausible; 097 rejected |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'dashboard|query|region|cache' mock-sources/issues` | BEACON-160 | Strong surface match; region not confirmed |
-+| 3 | Exact | mock-sources/issues | `rg -n -F 'No data' mock-sources/issues` | BEACON-160 | Exact UI message match |
-+| 4 | Recent | mock-sources/issues | `rg -n '^(updated:|created:|status:)|dashboard|query' mock-sources/issues` | BEACON-160 | Created/updated May 2, same date as ticket |
++| 1 | Hybrid | mock-sources/issues/ | rg -n -i 'blank\|empty\|missing\|no results\|outage\|dashboard\|tile' mock-sources/issues | BEACON-160; BEACON-142 | Accept 160 as plausible; 142 is event-delivery scope |
++| 2 | Lexical | mock-sources/issues/ | rg -n -i 'dashboard\|query\|cache\|data' mock-sources/issues | BEACON-160; BEACON-097 | Accept 160 as plausible; 097 is export scope |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F 'No data' mock-sources/issues | BEACON-160 | Exact visible message match |
++| 4 | Recent | mock-sources/issues/ | rg -n 'updated:\|created:\|dashboard\|blank' mock-sources/issues | BEACON-160, May 2 | Dates match incident day. Compared all five issues' dates; May 4 update to 142 is retrospective evidence, not contemporaneous knowledge. |
 +
-+**Accepted candidate:** BEACON-160 is open in the fixture; its intermittent EU symptoms plausibly match, but the customer reports every tile affected and region is unknown [1,2].
++**Matching issue / incident:** mock-sources/issues/BEACON-160.md and mock-sources/status/incidents.md are accepted as a plausible incident association, not proof of this customer's cause.
 +
-+**Closest rejected candidates:** BEACON-097 concerns CSV limits, not blank dashboards; BEACON-142 concerns Safari-only unload events; BEACON-118 concerns anonymous identity; BEACON-151 concerns webhook authentication [4,5]. All full bodies inspected. BEACON-142's May 4 update postdates the ticket and is retrospective evidence, not information available at 08:40 May 2.
++**Closest rejected candidates:** BEACON-142: Safari final-navigation event loss, no browser/version evidence and different symptom scope. BEACON-118: identity counts, explicitly not delivery. BEACON-097: CSV limit. BEACON-151: webhook verification. April 11 ingestion incident: wrong date and resolved.
 +
-+**Search gaps:** No customer telemetry, dashboard-specific docs or live recovery status. All four offline search modes completed; coverage is limited to the supplied tracker fixtures.
++**Search gaps:** Complete search matrix within supplied offline tracker. No live tracker, current incident status, source-code repository or project data available; no web search for fictional Beacon.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+This is a conceptual incident model, not a source-code trace [2,3]. Customer-specific association is unconfirmed.
++The diagram shows the fixture-supported contrast, not a verified internal architecture (E2–E3).
 +
 +```mermaid
 +flowchart LR
-+    A[Open dashboard] --> B[EU query-cache path: incident]
-+    B --> C[Tiles show No data]
-+    D[Open insight directly] --> E[Results available in incident reports]
++    A[Open dashboard] --> B[EU dashboard path]
++    B --> C[No data tiles reported]
++    D[Open same insight directly] --> E[Results reported available]
++    F[Unhealthy EU query-cache node] -. incident association .-> B
 +```
++
++The status fixture identifies an unhealthy EU query-cache node; it does not document the exact failure mechanism or prove that stored customer data is intact.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The May 2 EU dashboard incident is the leading explanation. The incident record identifies an unhealthy query-cache node, but it does not prove that this customer's project was affected [1–3,7,8].
++**Assessment:** The May 2 EU dashboard incident is the leading explanation, conditional on the customer's project being in the affected scope. An unhealthy query-cache node was identified in the incident record; customer-specific attribution is not established.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Exact UI message and same-morning timing support a strong match. Region, project membership and direct-insight results are missing. The 09:05 identification postdates the 08:40 ticket, and “Monitoring” is historical fixture state, not a current recovery guarantee. Confidence is limited by lack of project data access; the plausible candidate cap is Medium (70%).
++**Reasoning:** Exact tile message, dashboard scope and timing match E1–E3: incident reports start 30 minutes before the ticket. The 09:05 identification is later evidence and must not be represented as known at 08:40. E8 leaves region, direct-insight behavior and project involvement unverified. A plausible incident association remains unconfirmed, so overall confidence is capped at Medium (70%).
 +
-+**Not explained:** Whether a regional intermittent incident accounts for every tile across the whole team; whether the customer is in EU; whether direct insights work or data is missing elsewhere. No basis to conclude data loss or its absence for this customer.
++**Not explained:** Whether this customer is in EU; why every dashboard/team member is affected when the issue describes some projects and intermittent tiles; whether direct insights work; whether the customer recovered; whether any ingestion/storage issue also exists. No data-loss conclusion is supported.
 +
 +## Recommended Next Action
 +
-+1. 🚨 Route this P1 packet to the dashboard/query-cache incident owner for customer correlation and current mitigation verification. Escalation is recommended, not sent.
-+2. 🔧 Ask the customer to open one affected insight directly; results there would offer a temporary way to view figures, as reported in the incident [2,3]. Do not guarantee this succeeds for their project.
-+3. Obtain project region and a safe project ID plus whether the problem persists. If non-EU or direct insights also fail, investigate as a separate P1 rather than assuming BEACON-160.
++1. 🚨 Have the operator route this P1 brief immediately to the dashboard/query-cache incident owner. Confirm affected project membership, mitigation outcome and current status; do not wait for all customer details before routing urgent impact.
++2. Ask for project ID and region, and a single direct-insight comparison with unchanged date range and filters.
++3. 🔧 If the direct insight returns results, offer it as conditional temporary access for the meeting. This is grounded in E2–E3, not a guaranteed workaround. If it also shows no data or the project is outside EU, engineering must investigate beyond the known incident.
++4. Obtain a recovery check before telling the customer the issue is resolved. Do not change settings, deploy SDK updates or claim a fix ETA based on these fixtures.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon; region/browser/version unknown.  
-+**Preconditions:** Access to an affected dashboard; existing data expected by the customer [1].
++**Environment:** Beacon project; customer browser, region and plan unknown.
++**Preconditions:** A synthetic test project in the incident's affected scope with an insight expected to contain results; engineer must verify these conditions.
 +
-+1. View an affected dashboard (source: ticket; exact navigation not supplied).
-+2. Observe tile output (source: ticket reports “No data”; not independently run).
-+3. Open the same insight directly with the same filters and date range (source: incident [2,3]; matching filters are an assumed control).
++1. Open an affected dashboard (source: ticket).
++2. Record the tile result, date range and filters (source: assumed diagnostic step).
++3. Open the same insight directly, retaining date range and filters (source: issue/status comparison).
 +
-+**Expected:** Dashboard shows the expected figures, per customer expectation [1].  
-+**Actual:** Every tile says “No data,” per customer [1].  
-+**Control:** Change only the viewing surface to direct insight. Incident records report results there; customer outcome unknown [2,3].  
-+**Frequency:** Team-wide and all tiles per report; repeat counts unknown.
++**Expected:** Dashboard presents the insight's results when data exists (inferred from E2 contrast; dedicated dashboard docs unavailable).
++**Actual:** Customer reports every tile “No data” (E1), not independently reproduced.
++**Control:** Same insight, date range and filters, with only entry path changed from dashboard to direct insight; incident fixtures predict results on the direct path (E2–E3).
++**Frequency:** Whole-team/all-tiles report; counts and repeated-run frequency unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Escalate to engineering.  
-+**Reason:** P1 team-wide impact and a plausible regional incident cannot be resolved or confirmed with fixtures alone [1–3,8].  
-+**Suggested owner if escalated:** Dashboard/query-cache incident owner; exact team unknown.  
-+**Follow-up cadence:** Operator should confirm the next update time with the incident owner immediately; no SLA or recovery deadline established.  
-+**Attached brief:** [Engineering escalation brief](20261007-000000-SUP-1004-escalation.md). No external escalation performed.
++**Decision:** Escalate to engineering.
++**Reason:** P1 whole-team dashboard unavailability and a plausible active-at-ticket-time product incident require customer-specific verification.
++**Suggested owner:** Dashboard/query-cache incident responder; exact team unknown.
++**Follow-up cadence:** Operator should obtain current incident status immediately and agree the next customer update time; no SLA or ETA is supplied.
++**Delivery status:** Brief prepared below; nothing sent, filed or changed in any external system.
++
++### Escalation Brief
++
++**Ticket:** SUP-1004  
++**Customer Impact:** Whole team cannot use dashboard tiles before noon meeting, per customer report.  
++**Severity:** Critical / P1  
++**Suggested Owner:** Dashboard/query-cache incident responder  
++**Filed by support:** Not filed; draft only  
++**Date:** 2026-10-07 review of 2026-05-02 ticket
++
++**Summary:** Blank dashboard tiles match BEACON-160 and the May 2 EU incident. Customer region and incident membership are unknown; support cannot confirm cause or recovery without project evidence.
++
++**Customer Impact:** One reporting organization; all team members according to ticket; wider affected customer count unknown. First seen morning May 2, reported 08:40 UTC. Sudden onset reported, no deploy correlation. Dashboard unavailable, broader production outage unknown. Conditional direct-insight access is the only fixture-supported mitigation.
++
++**Reproduction:** Use the unrun three-step reproduction above unchanged. Smallest missing artifacts: project ID/region and same-insight direct-path result.
++
++**Expected Behavior:** Dashboard shows results for an insight with data.
++**Actual Behavior:** All tiles reportedly say “No data.”
++**Evidence:** E1 customer report; E2 matching open issue; E3 historical incident; E8 customer-specific verification gap.
++**What Support Already Tried:** Read-only full tracker matrix, five candidate bodies, status history and docs/releases search. No customer-side operations or reproduction performed.
++**Closest Known Issues:** BEACON-160 open, strong symptom/time match but conditional region; BEACON-142 closed in fixture, rejected as Safari navigation event-loss scope.
++**Specific Ask:** Confirm project scope against the May 2 EU incident; inspect dashboard versus direct-insight request outcomes; confirm whether the unhealthy query-cache node explains this project and whether mitigation restored results. If region/direct-path results disagree, investigate a separate P1 cause.
++**Workaround:** Direct insight with identical date range/filters only if it actually returns results; no guaranteed restoration or fix time.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [the ticket](../tickets/004-dashboards-blank.md): verify 08:40 UTC May 2, whole-team impact and “No data.”
-+2. Open [BEACON-160](../mock-sources/issues/BEACON-160.md): verify EU scope, ~08:10 onset and direct-insight distinction.
-+3. Open [incident history](../mock-sources/status/incidents.md): verify 09:05 identification and historical Monitoring state; do not treat it as live recovery.
-+4. Obtain customer region/project ID and compare one tile with the same insight directly. Engineering must check customer incident membership and present status before confirming the cause.
++1. Read tickets/004-dashboards-blank.md: confirm 08:40 UTC, “No data,” whole-team scope and noon deadline.
++2. Read mock-sources/issues/BEACON-160.md: verify May 2 08:10 onset, EU scope and dashboard/direct-insight contrast.
++3. Read mock-sources/status/incidents.md: verify 09:05 identification is later than ticket and Monitoring does not establish present recovery.
++4. Obtain project region and compare one dashboard tile with its direct insight using identical date range/filters; no comparison has been run here.
++5. Have the incident owner verify current customer impact before communicating resolution.
 +
 +## 💬 Draft Customer Response
 +
-+I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
++We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 +
-+Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
++A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 +
-+This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
++Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
++
++This needs urgent engineering review. We cannot yet confirm recovery or a fix time.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
 +## 🔬 Evidence Pack (internal only)
 +
 +Pre-send spot check: all cited references verified.
++Redaction pass: 1 replacement made across outputs (customer organization omitted from report); no secrets, raw person properties or private links included. Customer draft contains no internal tracker IDs, tool names or fixture paths.
 +
 +### Engineer TL;DR
 +
-+Likely BEACON-160/May 2 EU cache incident, not customer-confirmed. Check region and incident membership; use direct insight comparison; confirm present status. No production action or external communication occurred.
++Strong symptom/time match to May 2 EU dashboard incident. The unhealthy node is confirmed in the historical incident fixture, not confirmed as this project's cause. Route P1 to the incident responder and obtain region plus direct-insight comparison. No external escalation or fix has been performed.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source (row #) | Status |
++| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Customer reports team-wide blank tiles at 08:40 | 1 | Verified as report |
-+| 2 | EU issue has exact message and ~08:10 onset | 2 | Verified |
-+| 3 | Incident identifies unhealthy cache node at 09:05 | 3 | Verified |
-+| 4 | Direct insights work in incident reports | 2,3 | Verified, not customer-confirmed |
-+| 5 | Other tracker candidates address different symptoms | 4,5 | Verified |
-+| 6 | This customer likely shares the incident | 7 | Inferred |
-+| 7 | This customer's recovery/current scope | 8 | Unverified |
-+
-+**Contradiction check:** Issue says intermittent/some EU projects; ticket says all dashboards/whole team. This is a scope uncertainty, not proof of the same cause. Issue investigating versus incident Monitoring reflects different fixture snapshots; no resolution inferred. No stale version or feature claim used as a remedy.
++| C1 | Ticket reports whole-team “No data” at 08:40 with noon meeting | E1 | Verified as report |
++| C2 | Matching issue describes EU onset 08:10 and direct insights returning results | E2 | Verified fixture |
++| C3 | Later status identifies unhealthy node and records Monitoring | E3 | Verified fixture |
++| C4 | This customer likely belongs to that incident | E1–E3, E8 | Inferred |
++| C5 | Direct insight may offer this customer temporary access | E2–E3, E8 | Inferred |
++| C6 | Region, project cause and present recovery are not verified | E1, E8 | Verified evidence gap |
 +
 +### Unknowns
 +
-+- Region, project ID, direct-insight outcome, current persistence and incident membership.
-+- Exact onset, browser/version, affected dashboard IDs, meeting timezone and SLA.
-+- Customer data integrity; no telemetry was inspected.
++Project ID, region, browser/OS, plan, filters/date range, direct-insight result, impact duration, mitigation outcome, current status and exact failure mechanism. Confidence limited by lack of project data access.
 +
 +### Confidence Score
 +
 +**Overall:** Medium, 70% after cap.
++- Verified claims: 4.
++- Inferred claims: 2.
++- Unverified claims: 0 in scored claims; customer-specific attribution is intentionally only inferred.
++- Arithmetic: (4 + 2 × 0.5) / 6 × 100 = 83.3%.
++- Caps applied: Plausible candidate association not confirmed → Medium, maximum 70%.
++- Root assessment remains Likely, not Confirmed; scoring verified fixture statements does not prove customer attribution.
 +
-+- Verified claims: 5
-+- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (5 + 0.5) / 7 × 100 = 78.6%.
-+- Caps applied: plausible matching issue not ruled out → Medium (70%). Customer-specific cause unconfirmed; full offline gate completed.
++### Anti-hallucination protocol
 +
-+### Redaction confirmation
++Claim extraction/source mapping completed above. No API/version/config fix claims used. Contradiction review: intermittent/some-project issue scope versus customer's all-tiles scope is retained as a gap. Temporal review: historical May 2 ticket and later 09:05 update kept distinct; present-day status not inferred. Unverified-claim review: no guarantee of data integrity, customer membership, recovery or ETA. Draft escalation phrasing says review is needed, not that a message was sent.
 +
-+- Redaction pass: 1 organization-name omission across 3 generated files; no tokens, personal properties, private URLs or admin links retained. Customer draft contains no internal tools, raw queries, private links or emojis.
 
 tokens used
-40,435
-Likely matches the May 2 EU dashboard incident, BEACON-160. Confirm the customer’s region and try opening an insight directly. P1 escalation recommended; nothing sent externally.
+31,794
+Likely match to the May 2 EU dashboard incident. Customer region and incident involvement remain unverified; P1 escalation recommended.
 
 Saved:
-
-- [Triage report](reports/20261007-000000-SUP-1004-triage.md)
+- [Triage report and escalation brief](reports/20261007-000000-SUP-1004-triage.md)
 - [Customer response draft](reports/20261007-000000-SUP-1004-customer-response.md)
-- [Escalation brief](reports/20261007-000000-SUP-1004-escalation.md)
+
+Nothing sent or changed externally.

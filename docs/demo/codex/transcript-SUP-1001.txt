@@ -1,23 +1,24 @@
-2026-10-07T12:34:03.216077Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T12:34:03.216539Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T12:34:03.216546Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T21:40:32.037932Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T21:40:32.038617Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T21:40:32.038632Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
 OpenAI Codex v0.160.1
 --------
 workdir: <workspace>
 model: gpt-6.1-sol
 provider: openai
 approval: never
-sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+sandbox: custom permissions
 reasoning effort: none
 reasoning summaries: none
-session id: 01a1165b-44ae-74b1-bf27-0d2885ca0379
+session id: 01a1184f-9694-7e11-b823-44c710164fdd
 --------
 user
 $support-triage tickets/001-safari-checkout-events.md
 codex
-I’m using the support-triage skill to investigate the ticket and save an evidence-based report plus a draft customer response.
+I’ll use the support-triage skill to investigate the ticket and save an evidence-based report and draft response under `reports/`.
+
 exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/support-triage/SKILL.md'" in <workspace>
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/support-triage/SKILL.md'" in <workspace>
  succeeded in 0ms:
 ---
 name: support-triage
@@ -204,6 +205,8 @@ After research returns, write the triage report in one pass using the template s
 ## 📖 Context for Reviewers
 ## Issue Summary
 ## Intake
+ASSUMING: <stack>, <region>, <plan>, <single-user vs systemic>.
+→ Correct me now or I proceed with these.
 ## Evidence Gathered
 ## 🐛 Known-Issue Search
 ## 🗺️ How It Works (and Where It Breaks)
@@ -220,7 +223,13 @@ After research returns, write the triage report in one pass using the template s
 ## 🔬 Evidence Pack (internal only)
 ```
 
-Do not rename or drop headings; the budget limits how deep you investigate, not the report shape. For a P4, short sections are fine ("Not needed" under Escalation Decision). Keep exactly one `**Confidence:**` line under Root-Cause Assessment using one of the three labels verbatim (`Confirmed by data`, `Likely based on pattern match`, `Suspected, needs human verification`), and put the `--- END OF CUSTOMER-FACING CONTENT ---` marker after the Draft Customer Response. Then:
+Do not rename or drop headings; the budget limits how deep you investigate, not the report shape. For a P4, short sections are fine ("Not needed" under Escalation Decision). Keep exactly one `**Confidence:**` line under Root-Cause Assessment using one of the three labels verbatim (`Confirmed by data`, `Likely based on pattern match`, `Suspected, needs human verification`), and put the `--- END OF CUSTOMER-FACING CONTENT ---` marker after the Draft Customer Response. Three more checks the validator enforces on every report:
+
+- Copy both Phase 0 lines (`ASSUMING: ...` and `→ Correct me now or I proceed with these.`) into the Intake section, above the table.
+- Give Evidence Gathered at least one table row, and cite its row numbers (or source IDs) in the Root-Cause Assessment.
+- Embed the full customer reply under Draft Customer Response (40+ words). Do not replace it with a pointer to the separate customer-response file.
+
+Then:
 
 - Run the **anti-hallucination protocol** (claim extraction, source mapping, verification status, contradiction check, unverified-claim review).
 - Run the **pre-send spot check** on the Draft Customer Response and Root-Cause Assessment: re-verify any cited issue, docs link, version, "known bug" claim, "no match found" claim, recommended config option, and any "code does X" / "no error raised" claim.
@@ -315,17 +324,14 @@ The agent must never stall on a tool failure.
 When MCP project tools are absent entirely, confidence is naturally lower. Flag it explicitly: `Confidence limited by lack of project data access.` This is honest and correct, not a failure.
 
 exec
-/bin/zsh -lc "pwd; rg --files -g 'AGENTS.md' -g 'tickets/**' -g 'README*'" in <workspace>
+/bin/zsh -lc "pwd; rg --files -g 'AGENTS.md' -g 'tickets/001*' -g '*README*'" in <workspace>
  succeeded in 0ms:
 <workspace>
 mock-sources/README.md
-tickets/002-webhook-signature-failures.md
-tickets/003-csv-export-truncated.md
 tickets/001-safari-checkout-events.md
-tickets/004-dashboards-blank.md
 
 exec
-/bin/zsh -lc 'cat tickets/001-safari-checkout-events.md; rg --files mock-sources; ls -la' in <workspace>
+/bin/zsh -lc 'cat tickets/001-safari-checkout-events.md; cat mock-sources/README.md; rg --files mock-sources' in <workspace>
  succeeded in 0ms:
 # Ticket 001: Safari checkout events missing
 
@@ -350,6 +356,26 @@ Environment:
 
 Could this be related to the SDK upgrade?
 
+# Mock sources (synthetic, read-only)
+
+Offline stand-ins for the connectors a real deployment would wire up (bug tracker, product docs, release notes, status page). They let the demo and the E2E test run with **no credentials and no network connectors**.
+
+Everything here describes **Beacon**, a fictional product analytics SaaS. No real company, customer or person is represented.
+
+| Folder | Stands in for | How the agent searches it |
+|---|---|---|
+| `issues/` | Bug tracker (GitHub Issues, Linear, Jira) | Grep over titles, bodies and front matter (`status`, `created`, `updated`, `labels`) |
+| `docs/` | Product documentation | Grep / Read |
+| `releases/` | Release notes and changelogs | Grep / Read, version-range matching |
+| `status/` | Public status page / incident history | Grep / Read, time-window matching |
+
+## Using it
+
+Copy `examples/tickets/` and `examples/mock-sources/` into a working directory (the E2E script does this for you), then run `/triage tickets/<file>.md`. When a `mock-sources/` folder is present in the working directory, the agent treats it as the evidence source for the fictional Beacon product and does not search the web for it.
+
+The search matrix still applies: hybrid (synonyms and paraphrases), lexical (short noun phrases), exact (quoted error strings and method names) and recent (sort by the `updated` front-matter field).
+
+These files are fixtures. The agent must never edit them.
 mock-sources/issues/BEACON-118.md
 mock-sources/issues/BEACON-142.md
 mock-sources/issues/BEACON-151.md
@@ -361,19 +387,9 @@ mock-sources/docs/exports.md
 mock-sources/docs/webhooks.md
 mock-sources/status/incidents.md
 mock-sources/releases/browser-sdk.md
-total 4096
-drwxr-xr-x@   9 conormongan  staff      288 Oct  7 13:34 .
-drwxr-xr-x@ 637 conormongan  staff    20384 Oct  7 13:33 ..
--rw-r--r--@   1 conormongan  staff  1013442 Oct  7 13:34 e2e.log
--rw-r--r--@   1 conormongan  staff     1133 Oct  7 13:33 fixtures.sha
-drwxr-xr-x@   7 conormongan  staff      224 Oct  7 13:33 mock-sources
--rw-r--r--@   1 conormongan  staff  1012544 Oct  7 13:34 plugins.txt
-drwxr-xr-x@   2 conormongan  staff       64 Oct  7 13:33 reports
-drwxr-xr-x@   6 conormongan  staff      192 Oct  7 13:33 tickets
--rw-r--r--@   1 conormongan  staff    21689 Oct  7 13:34 transcript-SUP-1001.txt
 
 exec
-/bin/zsh -lc 'cat /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/{ticket-intake,known-issue-search,log-evidence,reproduction-steps,triage-report,response-drafting,escalation,redaction}/SKILL.md' in <workspace>
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/ticket-intake/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/known-issue-search/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/log-evidence/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/redaction/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/triage-report/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/triage-report/references/triage-report-template.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/response-drafting/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/reproduction-steps/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/escalation/SKILL.md'" in <workspace>
  succeeded in 0ms:
 ---
 name: ticket-intake
@@ -568,149 +584,6 @@ Add one Evidence Gathered row per finding, citing the artifact name and line or 
 
 If an artifact you need is missing, ask for the smallest one that would settle the question, for example "one HAR capture from Safari for a single affected checkout, with the Preserve log option on".
 ---
-name: reproduction-steps
-description: Write a minimal, numbered reproduction for a support ticket, with environment, expected and actual results, so an engineer can confirm a suspected bug. Use for bug-shaped tickets and before escalating.
----
-
-# Reproduction Steps
-
-A good reproduction is the cheapest way to move a hypothesis from Suspected to Confirmed. Write it so another engineer can follow it without reading the ticket.
-
-## Rules
-
-- Write the steps; do not run them. This workflow has no shell and must not touch customer systems. A human or a sandbox runs the reproduction.
-- Use synthetic or sanitized data only. Never put customer identifiers, tokens or real payloads in the steps.
-- Change one variable at a time. If the hypothesis is "SDK 3.12.0 drops events on navigation", the control run is the same steps on the previous SDK version.
-- Mark each step's source: from the ticket, from docs, or assumed. Assumed steps lower confidence until confirmed.
-
-## Format
-
-```markdown
-### Reproduction (status: not yet run | confirmed | not reproduced)
-
-**Environment:** <product version / SDK version / runtime / browser + OS / region / plan>
-**Preconditions:** <account state, feature flags, config, test data>
-
-1. <action> (source: ticket)
-2. <action> (source: docs)
-3. <action> (source: assumed)
-
-**Expected:** <documented or previously observed behavior, with evidence row>
-**Actual:** <what the customer reports, with evidence row>
-**Control:** <the same steps with one variable changed, and its expected result>
-**Frequency:** <always | intermittent (n of m) | once>
-```
-
-## Minimizing
-
-Remove any step that does not change the outcome. Stop when every remaining step is necessary. If you cannot reduce it below about ten steps, say so and list which steps you are unsure about.
-
-## Using it
-
-- In the triage report, put the reproduction under Recommended Next Action and reference it from Escalation Decision.
-- In an escalation brief, paste it into the Reproduction section unchanged.
-- In the customer reply, ask only for the facts needed to fill gaps (for example the exact SDK version), not for the whole reproduction.
----
-name: triage-report
-description: Produce a structured, evidence-graded support triage report.
----
-
-# Triage Report
-
-Use [`references/triage-report-template.md`](references/triage-report-template.md) (in this skill's directory) as the canonical report structure. Keep its section headings unchanged: the CI structure check and downstream tooling rely on them.
-
-## Rules
-
-- Every important claim must map to a source.
-- Separate customer-provided facts from facts independently verified by tools.
-- Include rejected hypotheses when they prevent repeated work.
-- Include unknowns instead of hiding uncertainty.
-- Keep the customer response free of internal-only detail.
-- Escalate when support cannot verify or resolve the issue with available evidence.
-
-## Confidence
-
-- **Confirmed by data:** direct evidence proves the cause.
-- **Likely based on pattern match:** the evidence points strongly to one cause, but one or more facts remain unverified.
-- **Suspected, needs human verification:** plausible, but not enough evidence to act as if true.
-
-## Pre-Send Check
-
-Before considering the report done:
-
-1. Verify that the root-cause confidence matches the evidence.
-2. Check that all sensitive data is redacted.
-3. Confirm that known-issue search includes at least two symptom-specific queries for bug-shaped tickets.
-4. Confirm that the recommended next action is specific and minimal.
-
----
-name: response-drafting
-description: Draft customer-facing support responses from verified triage findings.
----
-
-# Response Drafting
-
-Customer responses should be clear, calm, specific, and honest about uncertainty.
-
-Start from [`references/customer-response-template.md`](references/customer-response-template.md) in this skill's directory.
-
-## Structure
-
-1. Acknowledge the report and useful details.
-2. State the finding in plain language.
-3. Give the next action or workaround.
-4. Ask for the smallest missing context if needed.
-5. Set expectations for escalation or follow-up.
-
-## Do Not Include
-
-- Internal tool names.
-- Raw database queries or logs.
-- Private URLs.
-- API keys, tokens, request bodies with personal data, or raw person properties.
-- Overconfident claims not supported by the evidence pack.
-
-## Tone
-
-- For customer misconfiguration: collaborative, not blaming.
-- For confirmed product bugs: empathetic and direct.
-- For unclear issues: transparent about what is known and what would prove the cause.
-- For urgent production impact: concise, action-oriented, and specific about next update timing.
-
----
-name: escalation
-description: Package support investigations into engineering-ready escalation briefs.
----
-
-# Escalation
-
-Escalate when support cannot resolve the issue with available evidence, when customer impact is high, or when evidence points to a product defect.
-
-## Escalation Triggers
-
-- Accepted requests or successful operations do not produce expected product state.
-- A minimal reproduction suggests a regression.
-- Multiple customers report the same issue.
-- Security, billing, data loss, or production-down impact is plausible.
-- Required evidence is available but contradicts documented behavior.
-
-## Brief Requirements
-
-Use [`references/escalation-brief-template.md`](references/escalation-brief-template.md) in this skill's directory.
-
-Include:
-
-- Customer impact.
-- Reproduction steps.
-- Expected vs actual behavior.
-- Evidence table.
-- What support already checked.
-- Closest known issues.
-- A specific ask for engineering.
-
-Do not escalate vague uncertainty. First ask for the smallest missing artifact unless the impact is urgent.
-
----
 name: redaction
 description: Strip secrets, tokens, raw person properties, private URLs, and internal admin links before saving any triage output to disk or copying into customer-facing text. Use this skill before Phase 3 of the triage workflow, before posting to any channel, and before sharing any saved report outside the immediate operator.
 ---
@@ -787,105 +660,39 @@ Almost never. Two narrow exceptions:
 - A user identifier may stay in the report if both (a) the customer provided it themselves and (b) it appears in the customer response only as "the user with ID X you mentioned". Prefer "the affected user" wording when possible.
 
 If you are unsure, redact. The cost of an over-redacted report is a follow-up question. The cost of a leaked secret is a security incident.
+---
+name: triage-report
+description: Produce a structured, evidence-graded support triage report.
+---
 
-codex
-ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, plan unknown, affecting multiple Safari users as reported. I’m checking the local demo tracker, SDK documentation, release notes, and incident history for a matching regression.
-exec
-/bin/zsh -lc 'cat mock-sources/README.md mock-sources/docs/browser-sdk.md mock-sources/releases/browser-sdk.md mock-sources/status/incidents.md' in <workspace>
-exec
-/bin/zsh -lc "rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'sendBeacon' mock-sources/issues" in <workspace>
- succeeded in 0ms:
-# Mock sources (synthetic, read-only)
+# Triage Report
 
-Offline stand-ins for the connectors a real deployment would wire up (bug tracker, product docs, release notes, status page). They let the demo and the E2E test run with **no credentials and no network connectors**.
+Use [`references/triage-report-template.md`](references/triage-report-template.md) (in this skill's directory) as the canonical report structure. Keep its section headings unchanged: the CI structure check and downstream tooling rely on them.
 
-Everything here describes **Beacon**, a fictional product analytics SaaS. No real company, customer or person is represented.
+## Rules
 
-| Folder | Stands in for | How the agent searches it |
-|---|---|---|
-| `issues/` | Bug tracker (GitHub Issues, Linear, Jira) | Grep over titles, bodies and front matter (`status`, `created`, `updated`, `labels`) |
-| `docs/` | Product documentation | Grep / Read |
-| `releases/` | Release notes and changelogs | Grep / Read, version-range matching |
-| `status/` | Public status page / incident history | Grep / Read, time-window matching |
+- Every important claim must map to a source.
+- Separate customer-provided facts from facts independently verified by tools.
+- Include rejected hypotheses when they prevent repeated work.
+- Include unknowns instead of hiding uncertainty.
+- Keep the customer response free of internal-only detail.
+- Escalate when support cannot verify or resolve the issue with available evidence.
 
-## Using it
+## Confidence
 
-Copy `examples/tickets/` and `examples/mock-sources/` into a working directory (the E2E script does this for you), then run `/triage tickets/<file>.md`. When a `mock-sources/` folder is present in the working directory, the agent treats it as the evidence source for the fictional Beacon product and does not search the web for it.
+- **Confirmed by data:** direct evidence proves the cause.
+- **Likely based on pattern match:** the evidence points strongly to one cause, but one or more facts remain unverified.
+- **Suspected, needs human verification:** plausible, but not enough evidence to act as if true.
 
-The search matrix still applies: hybrid (synonyms and paraphrases), lexical (short noun phrases), exact (quoted error strings and method names) and recent (sort by the `updated` front-matter field).
+## Pre-Send Check
 
-These files are fixtures. The agent must never edit them.
-# Browser SDK: delivery and page lifecycle
+Before considering the report done:
 
-Beacon's browser SDK batches events and flushes them every 3 seconds, when the batch reaches 20 events, and when the page is being hidden.
+1. Verify that the root-cause confidence matches the evidence.
+2. Check that all sensitive data is redacted.
+3. Confirm that known-issue search includes at least two symptom-specific queries for bug-shaped tickets.
+4. Confirm that the recommended next action is specific and minimal.
 
-## Events fired before navigation
-
-Events tracked immediately before a redirect, route change or tab close are delivered with an unload-safe transport. If you redirect straight after `beacon.track()`, either:
-
-- pass `{ transport: 'beacon' }` for that call, or
-- `await beacon.flush()` before navigating.
-
-## Supported browsers
-
-The two latest major versions of Chrome, Edge, Firefox and Safari.
-
-## Checking the SDK version
-
-Run `beacon.version` in the browser console.
-# Browser SDK release notes
-
-## 3.12.2 (2026-05-04)
-
-- Fixed: events tracked immediately before navigation were dropped in Safari 17 and 18 (BEACON-142). Unload-time flushes use `sendBeacon` again in WebKit browsers.
-
-## 3.12.1 (2026-04-30)
-
-- Fixed: TypeScript type for `beacon.identify()` traits.
-
-## 3.12.0 (2026-04-24)
-
-- Changed: unload-time flushes now use `fetch` with `keepalive` and are triggered on `visibilitychange` instead of `pagehide`.
-- Added: `beacon.flush()` returns a promise.
-
-## 3.11.4 (2026-03-30)
-
-- Fixed: duplicate `$pageview` on hash-only route changes.
-# Status page: incident history
-
-## 2026-05-02: Degraded dashboard loading (EU region)
-
-- 08:10 UTC: Investigating reports of dashboard tiles showing "No data" for some EU-region projects. Insights opened directly are unaffected.
-- 09:05 UTC: Identified an unhealthy query-cache node in the EU cluster. Mitigation in progress.
-- Status: **Monitoring**. US region unaffected.
-
-## 2026-04-11: Delayed ingestion (all regions)
-
-- 13:00–13:40 UTC: Event ingestion delayed by up to 25 minutes. No data loss. Resolved.
-
- succeeded in 0ms:
-mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
-mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
-mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
-mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
-
-exec
-/bin/zsh -lc "rg -n -i 'Safari|WebKit|missing|drop|navigation|confirmation|checkout' mock-sources/issues" in <workspace>
-exec
-/bin/zsh -lc 'cat /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.1HJAfgqKcn/plugins/cache/support-triage-agent-template/support-triage-agent/1.1.0/skills/{triage-report/references/triage-report-template.md,response-drafting/references/customer-response-template.md,escalation/references/escalation-brief-template.md}' in <workspace>
- succeeded in 0ms:
-mock-sources/issues/BEACON-118.md:3:title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
-mock-sources/issues/BEACON-118.md:6:labels: [browser-sdk, safari, identity, itp]
-mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
-mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
-mock-sources/issues/BEACON-142.md:7:labels: [bug, browser-sdk, safari, delivery, regression]
-mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
-mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
-mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
-mock-sources/issues/BEACON-142.md:28:Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
-mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
-
- succeeded in 0ms:
 # Support Triage Report
 
 **Ticket:** [ticket ID or short summary]
@@ -915,6 +722,11 @@ mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restor
 [Rewrite the customer's issue clearly in 2–4 sentences.]
 
 ## Intake
+
+```text
+ASSUMING: [stack], [region], [plan], [single-user vs systemic].
+→ Correct me now or I proceed with these.
+```
 
 | Field | Value |
 |---|---|
@@ -1003,7 +815,7 @@ Keep to 3–5 steps. Focus on the root-cause and recommended-fix claims.
 
 ⚠️ **No emojis in this section.** This block is copy-pasteable into the support tool as-is.
 
-[Ready-to-send response. Acknowledge → finding → next action → smallest missing context ask → expectation-setting close. No internal tool names, no private links, no raw queries, no sensitive data.]
+[The full ready-to-send response, embedded here, not a pointer to the separate file. Acknowledge → finding → next action → smallest missing context ask → expectation-setting close. No internal tool names, no private links, no raw queries, no sensitive data.]
 
 --- END OF CUSTOMER-FACING CONTENT ---
 
@@ -1037,28 +849,335 @@ Keep to 3–5 steps. Focus on the root-cause and recommended-fix claims.
 ### Redaction confirmation
 
 - Redaction pass: [N] replacements made across [files].
-# Customer Response
+---
+name: response-drafting
+description: Draft customer-facing support responses from verified triage findings.
+---
 
-> No emojis. No internal tool names. No private links. No raw queries. No sensitive data. This file is the copy-pasteable customer-facing reply only.
+# Response Drafting
 
-Hi [name],
+Customer responses should be clear, calm, specific, and honest about uncertainty.
 
-Thanks for the detail here — [acknowledge one specific useful piece of context they provided].
+Start from [`references/customer-response-template.md`](references/customer-response-template.md) in this skill's directory.
 
-What appears to be happening:
+## Structure
 
-- [finding 1, plain English]
-- [finding 2]
-- [finding 3, if needed]
+1. Acknowledge the report and useful details.
+2. State the finding in plain language.
+3. Give the next action or workaround.
+4. Ask for the smallest missing context if needed.
+5. Set expectations for escalation or follow-up.
 
-The next best step is [specific action or workaround]. To confirm whether this is the same issue or a separate configuration problem, could you also share [smallest missing context — for example: a network log from the affected browser, the exact code that fires the event, the SDK version output from `<runtime check>`]?
+## Do Not Include
 
-[If escalating: "I'm passing this to our engineering team to check [specific thing]. I'll come back to you within [timeframe] with what they find."]
+- Internal tool names.
+- Raw database queries or logs.
+- Private URLs.
+- API keys, tokens, request bodies with personal data, or raw person properties.
+- Overconfident claims not supported by the evidence pack.
 
-[If a workaround exists: "In the meantime, [workaround] should restore the behavior you were seeing before."]
+## Tone
 
-Thanks,
-[name]
+- For customer misconfiguration: collaborative, not blaming.
+- For confirmed product bugs: empathetic and direct.
+- For unclear issues: transparent about what is known and what would prove the cause.
+- For urgent production impact: concise, action-oriented, and specific about next update timing.
+
+---
+name: reproduction-steps
+description: Write a minimal, numbered reproduction for a support ticket, with environment, expected and actual results, so an engineer can confirm a suspected bug. Use for bug-shaped tickets and before escalating.
+---
+
+# Reproduction Steps
+
+A good reproduction is the cheapest way to move a hypothesis from Suspected to Confirmed. Write it so another engineer can follow it without reading the ticket.
+
+## Rules
+
+- Write the steps; do not run them. This workflow has no shell and must not touch customer systems. A human or a sandbox runs the reproduction.
+- Use synthetic or sanitized data only. Never put customer identifiers, tokens or real payloads in the steps.
+- Change one variable at a time. If the hypothesis is "SDK 3.12.0 drops events on navigation", the control run is the same steps on the previous SDK version.
+- Mark each step's source: from the ticket, from docs, or assumed. Assumed steps lower confidence until confirmed.
+
+## Format
+
+```markdown
+### Reproduction (status: not yet run | confirmed | not reproduced)
+
+**Environment:** <product version / SDK version / runtime / browser + OS / region / plan>
+**Preconditions:** <account state, feature flags, config, test data>
+
+1. <action> (source: ticket)
+2. <action> (source: docs)
+3. <action> (source: assumed)
+
+**Expected:** <documented or previously observed behavior, with evidence row>
+**Actual:** <what the customer reports, with evidence row>
+**Control:** <the same steps with one variable changed, and its expected result>
+**Frequency:** <always | intermittent (n of m) | once>
+```
+
+## Minimizing
+
+Remove any step that does not change the outcome. Stop when every remaining step is necessary. If you cannot reduce it below about ten steps, say so and list which steps you are unsure about.
+
+## Using it
+
+- In the triage report, put the reproduction under Recommended Next Action and reference it from Escalation Decision.
+- In an escalation brief, paste it into the Reproduction section unchanged.
+- In the customer reply, ask only for the facts needed to fill gaps (for example the exact SDK version), not for the whole reproduction.
+---
+name: escalation
+description: Package support investigations into engineering-ready escalation briefs.
+---
+
+# Escalation
+
+Escalate when support cannot resolve the issue with available evidence, when customer impact is high, or when evidence points to a product defect.
+
+## Escalation Triggers
+
+- Accepted requests or successful operations do not produce expected product state.
+- A minimal reproduction suggests a regression.
+- Multiple customers report the same issue.
+- Security, billing, data loss, or production-down impact is plausible.
+- Required evidence is available but contradicts documented behavior.
+
+## Brief Requirements
+
+Use [`references/escalation-brief-template.md`](references/escalation-brief-template.md) in this skill's directory.
+
+Include:
+
+- Customer impact.
+- Reproduction steps.
+- Expected vs actual behavior.
+- Evidence table.
+- What support already checked.
+- Closest known issues.
+- A specific ask for engineering.
+
+Do not escalate vague uncertainty. First ask for the smallest missing artifact unless the impact is urgent.
+
+
+codex
+ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, unknown plan, multiple Safari users affected.
+
+The report describes missing checkout events after a frontend deploy, with Chrome unaffected. I’ll check the supplied offline bug tracker, SDK docs, release notes, and incident history.
+
+exec
+/bin/zsh -lc 'cat mock-sources/docs/browser-sdk.md mock-sources/releases/browser-sdk.md mock-sources/status/incidents.md' in <workspace>
+ succeeded in 0ms:
+# Browser SDK: delivery and page lifecycle
+
+Beacon's browser SDK batches events and flushes them every 3 seconds, when the batch reaches 20 events, and when the page is being hidden.
+
+## Events fired before navigation
+
+Events tracked immediately before a redirect, route change or tab close are delivered with an unload-safe transport. If you redirect straight after `beacon.track()`, either:
+
+- pass `{ transport: 'beacon' }` for that call, or
+- `await beacon.flush()` before navigating.
+
+## Supported browsers
+
+The two latest major versions of Chrome, Edge, Firefox and Safari.
+
+## Checking the SDK version
+
+Run `beacon.version` in the browser console.
+# Browser SDK release notes
+
+## 3.12.2 (2026-05-04)
+
+- Fixed: events tracked immediately before navigation were dropped in Safari 17 and 18 (BEACON-142). Unload-time flushes use `sendBeacon` again in WebKit browsers.
+
+## 3.12.1 (2026-04-30)
+
+- Fixed: TypeScript type for `beacon.identify()` traits.
+
+## 3.12.0 (2026-04-24)
+
+- Changed: unload-time flushes now use `fetch` with `keepalive` and are triggered on `visibilitychange` instead of `pagehide`.
+- Added: `beacon.flush()` returns a promise.
+
+## 3.11.4 (2026-03-30)
+
+- Fixed: duplicate `$pageview` on hash-only route changes.
+# Status page: incident history
+
+## 2026-05-02: Degraded dashboard loading (EU region)
+
+- 08:10 UTC: Investigating reports of dashboard tiles showing "No data" for some EU-region projects. Insights opened directly are unaffected.
+- 09:05 UTC: Identified an unhealthy query-cache node in the EU cluster. Mitigation in progress.
+- Status: **Monitoring**. US region unaffected.
+
+## 2026-04-11: Delayed ingestion (all regions)
+
+- 13:00–13:40 UTC: Event ingestion delayed by up to 25 minutes. No data loss. Resolved.
+
+exec
+/bin/zsh -lc "rg -n -i 'safari|navigation|unload|missing|drop|confirmation' mock-sources/issues" in <workspace>
+exec
+/bin/zsh -lc "rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'pagehide' mock-sources/issues" in <workspace>
+ succeeded in 0ms:
+mock-sources/issues/BEACON-118.md:3:title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
+mock-sources/issues/BEACON-118.md:6:labels: [browser-sdk, safari, identity, itp]
+mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
+mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
+mock-sources/issues/BEACON-142.md:7:labels: [bug, browser-sdk, safari, delivery, regression]
+mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
+mock-sources/issues/BEACON-142.md:28:Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
+mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
+
+ succeeded in 0ms:
+mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
+mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+
+exec
+/bin/zsh -lc "rg -n -e '"'^updated:'"' -e '"'^created:'"' -e 'Safari' -e 'navigation' mock-sources/issues" in <workspace>
+exec
+/bin/zsh -lc "rg -n -i 'checkout|sendBeacon|flush|batch' mock-sources/issues" in <workspace>
+ succeeded in 0ms:
+mock-sources/issues/BEACON-160.md:6:created: 2026-05-02
+mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
+mock-sources/issues/BEACON-151.md:6:created: 2026-03-02
+mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
+mock-sources/issues/BEACON-118.md:3:title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
+mock-sources/issues/BEACON-118.md:7:created: 2025-11-12
+mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
+mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
+mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
+mock-sources/issues/BEACON-142.md:8:created: 2026-04-29
+mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
+mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
+mock-sources/issues/BEACON-142.md:28:Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
+mock-sources/issues/BEACON-097.md:6:created: 2025-09-18
+mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
+
+ succeeded in 0ms:
+mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+mock-sources/issues/BEACON-142.md:28:Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
+mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
+
+exec
+/bin/zsh -lc 'cat mock-sources/issues/BEACON-142.md mock-sources/issues/BEACON-118.md mock-sources/issues/BEACON-151.md mock-sources/issues/BEACON-097.md mock-sources/issues/BEACON-160.md' in <workspace>
+ succeeded in 0ms:
+---
+id: BEACON-142
+title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
+status: closed
+resolution: fixed
+fixed_in: browser-sdk 3.12.2
+labels: [bug, browser-sdk, safari, delivery, regression]
+created: 2026-04-29
+updated: 2026-05-04
+---
+
+## Summary
+
+Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+
+## Details
+
+3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+
+Reported symptoms:
+
+- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
+- Events fired earlier on the same page arrive normally.
+- Server-side ingestion logs show no rejected requests; the requests are never received.
+
+## Workaround
+
+Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
+
+## Fix
+
+Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
+---
+id: BEACON-118
+title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
+status: closed
+resolution: wont-fix
+labels: [browser-sdk, safari, identity, itp]
+created: 2025-11-12
+updated: 2026-01-08
+---
+
+## Summary
+
+Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
+
+## Notes
+
+This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
+---
+id: BEACON-151
+title: "Webhook signature verification fails when the request body is parsed before verification"
+status: open
+labels: [webhooks, docs, signature, express]
+created: 2026-03-02
+updated: 2026-05-01
+---
+
+## Summary
+
+Several customers report `401 invalid signature` on every webhook after adding a JSON body parser (for example `express.json()` mounted globally). The signature is computed over the exact raw bytes Beacon sent. Re-serialising parsed JSON changes whitespace and key order, so the computed HMAC never matches.
+
+## Status
+
+Not a product defect. The webhook guide already states that verification must use the raw body. This issue tracks making that warning more prominent and adding framework-specific examples.
+
+## Workaround
+
+Mount `express.raw({ type: 'application/json' })` on the webhook route only, verify the signature against that `Buffer`, then parse the JSON.
+---
+id: BEACON-097
+title: "Feature request: CSV export for more than 10,000 rows"
+status: open
+labels: [feature-request, exports, csv]
+created: 2025-09-18
+updated: 2026-04-22
+---
+
+## Summary
+
+Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+
+## Current guidance
+
+Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+
+## Status
+
+Open and accepted onto the backlog. No delivery date has been committed.
+---
+id: BEACON-160
+title: "Dashboards show 'No data' tiles intermittently for EU projects"
+status: open
+labels: [bug, dashboards, eu-region, investigating]
+created: 2026-05-02
+updated: 2026-05-02
+---
+
+## Summary
+
+Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
+
+## Scope
+
+EU region only so far. No US-region reports.
+
+exec
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/escalation/references/escalation-brief-template.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/response-drafting/references/customer-response-template.md'" in <workspace>
+ succeeded in 0ms:
 # Escalation Brief
 
 **Ticket:** [ticket]
@@ -1123,325 +1242,184 @@ If a minimal repro is not yet available, say so explicitly and list the smallest
 ## Workaround (if any)
 
 [If a workaround exists, document it here so the support engineer can give it to the customer immediately while engineering investigates.]
+# Customer Response
 
-exec
-/bin/zsh -lc "rg -n -i 'Safari|flush|batch|keepalive' mock-sources/issues" in <workspace>
- succeeded in 0ms:
-mock-sources/issues/BEACON-118.md:3:title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
-mock-sources/issues/BEACON-118.md:6:labels: [browser-sdk, safari, identity, itp]
-mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
-mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
-mock-sources/issues/BEACON-142.md:7:labels: [bug, browser-sdk, safari, delivery, regression]
-mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
-mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
-mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
-mock-sources/issues/BEACON-142.md:28:Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
-mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
-mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+> No emojis. No internal tool names. No private links. No raw queries. No sensitive data. This file is the copy-pasteable customer-facing reply only.
 
-exec
-/bin/zsh -lc "rg -n 'updated:|created:|Safari|3.12' mock-sources/issues" in <workspace>
- succeeded in 0ms:
-mock-sources/issues/BEACON-118.md:3:title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
-mock-sources/issues/BEACON-118.md:7:created: 2025-11-12
-mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
-mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
-mock-sources/issues/BEACON-151.md:6:created: 2026-03-02
-mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
-mock-sources/issues/BEACON-160.md:6:created: 2026-05-02
-mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
-mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
-mock-sources/issues/BEACON-142.md:6:fixed_in: browser-sdk 3.12.2
-mock-sources/issues/BEACON-142.md:8:created: 2026-04-29
-mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
-mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
-mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
-mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
-mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
-mock-sources/issues/BEACON-097.md:6:created: 2025-09-18
-mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
+Hi [name],
 
-exec
-/bin/zsh -lc 'cat mock-sources/issues/BEACON-142.md mock-sources/issues/BEACON-118.md mock-sources/issues/BEACON-160.md mock-sources/issues/BEACON-151.md mock-sources/issues/BEACON-097.md' in <workspace>
- succeeded in 0ms:
----
-id: BEACON-142
-title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
-status: closed
-resolution: fixed
-fixed_in: browser-sdk 3.12.2
-labels: [bug, browser-sdk, safari, delivery, regression]
-created: 2026-04-29
-updated: 2026-05-04
----
+Thanks for the detail here — [acknowledge one specific useful piece of context they provided].
 
-## Summary
+What appears to be happening:
 
-Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+- [finding 1, plain English]
+- [finding 2]
+- [finding 3, if needed]
 
-## Details
+The next best step is [specific action or workaround]. To confirm whether this is the same issue or a separate configuration problem, could you also share [smallest missing context — for example: a network log from the affected browser, the exact code that fires the event, the SDK version output from `<runtime check>`]?
 
-3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+[If escalating: "I'm passing this to our engineering team to check [specific thing]. I'll come back to you within [timeframe] with what they find."]
 
-Reported symptoms:
+[If a workaround exists: "In the meantime, [workaround] should restore the behavior you were seeing before."]
 
-- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
-- Events fired earlier on the same page arrive normally.
-- Server-side ingestion logs show no rejected requests; the requests are never received.
-
-## Workaround
-
-Pass `{ transport: 'beacon' }` to `beacon.track()` for events fired immediately before navigation, or call `await beacon.flush()` before redirecting.
-
-## Fix
-
-Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
----
-id: BEACON-118
-title: "Safari ITP: anonymous users reset after 7 days, inflating unique user counts"
-status: closed
-resolution: wont-fix
-labels: [browser-sdk, safari, identity, itp]
-created: 2025-11-12
-updated: 2026-01-08
----
-
-## Summary
-
-Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
-
-## Notes
-
-This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
----
-id: BEACON-160
-title: "Dashboards show 'No data' tiles intermittently for EU projects"
-status: open
-labels: [bug, dashboards, eu-region, investigating]
-created: 2026-05-02
-updated: 2026-05-02
----
-
-## Summary
-
-Some EU-region projects see dashboard tiles render "No data" while the same insight opened directly shows results. Reports started 2026-05-02 around 08:10 UTC. Engineering is investigating a query-cache node in the EU cluster.
-
-## Scope
-
-EU region only so far. No US-region reports.
----
-id: BEACON-151
-title: "Webhook signature verification fails when the request body is parsed before verification"
-status: open
-labels: [webhooks, docs, signature, express]
-created: 2026-03-02
-updated: 2026-05-01
----
-
-## Summary
-
-Several customers report `401 invalid signature` on every webhook after adding a JSON body parser (for example `express.json()` mounted globally). The signature is computed over the exact raw bytes Beacon sent. Re-serialising parsed JSON changes whitespace and key order, so the computed HMAC never matches.
-
-## Status
-
-Not a product defect. The webhook guide already states that verification must use the raw body. This issue tracks making that warning more prominent and adding framework-specific examples.
-
-## Workaround
-
-Mount `express.raw({ type: 'application/json' })` on the webhook route only, verify the signature against that `Buffer`, then parse the JSON.
----
-id: BEACON-097
-title: "Feature request: CSV export for more than 10,000 rows"
-status: open
-labels: [feature-request, exports, csv]
-created: 2025-09-18
-updated: 2026-04-22
----
-
-## Summary
-
-Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
-
-## Current guidance
-
-Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
-
-## Status
-
-Open and accepted onto the backlog. No delivery date has been committed.
+Thanks,
+[name]
 
 codex
-The tracker contains a strong match: a Safari 17/18 delivery regression in SDK 3.12.0, documented as fixed in 3.12.2. The customer-specific cause remains likely because the ticket doesn’t say whether navigation follows the event; I’ll include the documented workaround and a focused verification request.
+BEACON-142 closely matches the reported SDK version, Safari versions, and missing-event rate. The supplied release notes list a fix in v3.12.2, but we still need to confirm whether the event fires immediately before navigation—the trigger for that bug.
+
+I’ll mark the cause as likely, include the documented workaround, and prepare an engineering brief. No customer changes or messages have been sent.
+
 apply patch
 patch: completed
 <workspace>/reports/20261007-000000-SUP-1001-customer-response.md
 <workspace>/reports/20261007-000000-SUP-1001-triage.md
 diff --git a/reports/20261007-000000-SUP-1001-customer-response.md b/reports/20261007-000000-SUP-1001-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..c5d6bebdc5e5aaff21d508f76063a40a8febedd0
+index 0000000000000000000000000000000000000000..9271ee3e0778546d29cedfb13935db03772f162b
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1001-customer-response.md
-@@ -0,0 +1,8 @@
-+Hi,
+@@ -0,0 +1,6 @@
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 +
-+The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 +
-+The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-+
-+Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 +
 diff --git a/reports/20261007-000000-SUP-1001-triage.md b/reports/20261007-000000-SUP-1001-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..fea4f9092cbae2b8f77190cb0274799414f42916
+index 0000000000000000000000000000000000000000..7e020f6a977740419fdaf41f08b97ca723916c0e
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1001-triage.md
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,215 @@
 +# 🟠 Triage Report: SUP-1001 — Safari checkout events missing
 +
-+**Ticket:** SUP-1001  
-+**Customer:** Acme Analytics (synthetic organization)  
-+**Issue Type:** Bug  
-+**Product Area:** Browser SDK event delivery during page lifecycle transitions  
-+**Priority:** 🟠 P2  
-+**Plan Tier / SLA:** Unknown  
-+**Environment:** Next.js, Safari 17/18, browser SDK 3.12.0, US  
-+**Investigation Mode:** Read-only, offline fictional Beacon fixtures; reviewed 2026-10-07
++**Ticket:** SUP-1001
++**Issue Type:** Bug
++**Product Area:** Browser SDK event delivery during navigation
++**Priority:** 🟠 P2
++**Plan Tier:** Unknown
++**Environment:** Next.js; Safari 17/18; browser SDK 3.12.0; US
++**Investigation Mode:** Read-only, synthetic offline fixtures; investigated 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer wants successful payments to appear as `checkout_completed` events. The [browser delivery guide](../mock-sources/docs/browser-sdk.md) describes batching and flushing events around navigation. About half of Safari users reportedly reach the confirmation page without a corresponding analytics event; Chrome appears normal. No customer logs or project access were provided.
++The customer wants completed payments counted in analytics. The [browser SDK](../mock-sources/docs/browser-sdk.md) batches events and sends them to Beacon. Roughly half of Safari checkout events reportedly disappear while Chrome looks normal. Successful payment and confirmation-page display do not prove analytics delivery.
 +
 +## Issue Summary
 +
-+The customer reports Safari-only missing checkout events since frontend deployment `2026.04.28.2` at 2026-04-28 14:00 UTC. SDK 3.12.0 and Safari 17/18 align closely with BEACON-142, but the required navigation timing has not been verified (E1–E3).
++The customer reports missing `checkout_completed` events after frontend deploy `2026.04.28.2` around 2026-04-28 14:00 UTC. The environment closely matches a documented Safari delivery regression, but navigation timing and actual network behavior have not been verified. The ticket's “yesterday” is relative to its original submission; current persistence is unknown.
 +
 +## Intake
 +
++ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, unknown plan, multiple Safari users affected.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / browser event delivery |
-+| Timeframe | Reported onset 2026-04-28 14:00 UTC after deployment; current persistence unknown. “Yesterday” is ticket wording, not relative to investigation date. |
-+| Impact | Reportedly about half of Safari users; Chrome normal. Payment succeeds; analytics visibility is impaired. |
-+| Environment | Next.js; Safari 17/18; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown. |
++| Issue Type / Product Area | Bug / browser SDK navigation-time delivery |
++| Timeframe | Reported onset 2026-04-28 14:00 UTC after frontend deploy; ongoing at submission, current status unknown |
++| Impact | About half of Safari users' checkout completion events reportedly missing; Chrome normal; payment completion unaffected per ticket |
++| Environment | Safari 17/18; Next.js; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown |
 +| Identifiers | SUP-1001; checkout_completed; frontend 2026.04.28.2 |
-+| Reproduction | Payment succeeds → confirmation page sends event → dashboard lacks event for roughly half of Safari users. Customer report only. |
-+| Missing Context | Sanitized event/navigation code; deployed runtime SDK version; one sanitized Safari network capture; whether earlier events arrive. |
++| Reproduction | Payment succeeds → confirmation page → event sent → absent from dashboard for affected Safari sessions; not independently reproduced |
++| Missing Context | Sanitized event/redirect snippet; runtime SDK version; one sanitized Safari network capture; prior SDK version; current persistence |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | [Ticket](../tickets/001-safari-checkout-events.md), full read | Browser, version, event, onset and impact above are customer-reported, not independently measured. | ✅ Verified as ticket content |
-+| E2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | Closed/fixed in 3.12.2; Safari 17/18 events before transitions dropped since 3.12.0; reported 30–60% confirmation/conversion loss. Describes cancelled keepalive requests and no client error for that issue. | ✅ Verified fixture |
-+| E3 | [SDK releases](../mock-sources/releases/browser-sdk.md), full read | 3.12.0 released April 24 changed unload transport/lifecycle trigger; 3.12.2 released May 4 fixes Safari navigation losses. 3.12.1 fixes identify types. | ✅ Verified fixture |
-+| E4 | [Delivery guide](../mock-sources/docs/browser-sdk.md), full read | Flush every 3 seconds, at 20 events, or on page hiding; documented beacon transport override or awaited flush before navigation; runtime version check is beacon.version. | ✅ Verified fixture |
-+| E5 | [BEACON-118](../mock-sources/issues/BEACON-118.md), full body | Identity continuity issue explicitly does not prevent event delivery. | ✅ Verified fixture |
-+| E6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status history](../mock-sources/status/incidents.md), full reads | May 2 dashboard incident scoped to EU; April 11 ingestion delay resolved, with no data loss. Neither matches reported US April 28 Safari-specific onset. | ✅ Sources verified; exclusion is pattern-based |
-+| E7 | Customer evidence unavailable | Navigation after capture, cancellation in this customer flow, ingestion receipt and fix effectiveness have not been observed. | ❌ Unverified |
-+| E8 | [BEACON-151](../mock-sources/issues/BEACON-151.md), [BEACON-097](../mock-sources/issues/BEACON-097.md), full reads | Webhook signature and CSV cap topics do not match browser event delivery. | ✅ Verified fixture |
++| 1 | [Ticket](../tickets/001-safari-checkout-events.md) | Safari-only loss around half of users after deploy, SDK 3.12.0, US | ✅ Verified as customer report; occurrence not independently verified |
++| 2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | SDK 3.12.0 navigation-time regression in Safari 17/18; 30–60% confirmation/conversion events missing; Chrome unaffected. Issue attributes cancellation before ingestion to keepalive fetch and lifecycle change; no client error logged in that issue | ✅ Verified fixture description; not customer telemetry |
++| 3 | [Release notes](../mock-sources/releases/browser-sdk.md) | 3.12.0 changed unload transport/lifecycle; 3.12.2 dated May 4 restores sendBeacon in WebKit and fixes BEACON-142; 3.12.1 addresses identify typing only | ✅ Verified fixture |
++| 4 | [Browser SDK docs](../mock-sources/docs/browser-sdk.md) | Flush every 3 seconds, at 20 events and when hidden; documented navigation workarounds: transport beacon or await flush; version check beacon.version | ✅ Verified fixture |
++| 5 | [BEACON-118](../mock-sources/issues/BEACON-118.md) | Safari identity reset after seven days; explicitly not event delivery loss | ✅ Verified fixture; rejected candidate |
++| 6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status](../mock-sources/status/incidents.md) | EU dashboard incident May 2 excludes US; April 11 ingestion delay predates onset and says no data loss | ✅ Verified fixture; poor matches |
++| 7 | Search matrix below; full bodies of all five issue fixtures inspected | BEACON-142 strongest match; webhook/export issues do not concern this event delivery path | ✅ Verified search coverage |
++| 8 | Ticket versus BEACON-142 | Customer event may coincide with navigation; no snippet, HAR, ingestion data or runtime version check supplied | ⚠️ Inferred applicability; trigger unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+All commands below were executed this session against `mock-sources/issues/`; offline hybrid means synonym/paraphrase grep, not a semantic search service.
++Tracker searched: `mock-sources/issues/` (offline equivalent of all related product repositories). These exact read-only commands were executed; no web lookup for fictional Beacon.
 +
-+| # | Query type | Tracker | Exact executed query | Candidate / conclusion |
-+|---|---|---|---|---|
-+| 1 | Hybrid | Local issues | `rg -n -i 'Safari\|WebKit\|missing\|drop\|navigation\|confirmation\|checkout' mock-sources/issues` | BEACON-142 accepted as likely match; BEACON-118 rejected for delivery symptoms |
-+| 2 | Lexical | Local issues | `rg -n -i 'Safari\|flush\|batch\|keepalive' mock-sources/issues` | BEACON-142 strongest; CSV batching in BEACON-097 unrelated |
-+| 3 | Exact | Local issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'sendBeacon' mock-sources/issues` | Version/transport match BEACON-142; no exact checkout_completed match |
-+| 4 | Recent | Local issues | `rg -n 'updated:\|created:\|Safari\|3.12' mock-sources/issues` | Compared dates: 142 updated May 4, created April 29, near April 28 onset; 160 May 2; 151 May 1; 097 April 22; 118 January 8 |
++| # | Query type | Repo / tracker | Query | Best Candidate | Conclusion |
++|---|---|---|---|---|---|
++| 1 | Hybrid / paraphrase | mock-sources/issues | `rg -n -i 'safari\|navigation\|unload\|missing\|drop\|confirmation' mock-sources/issues` | BEACON-142; BEACON-118 | 142 accepted as likely; 118 rejected |
++| 2 | Lexical | mock-sources/issues | `rg -n -i 'checkout\|sendBeacon\|flush\|batch' mock-sources/issues` | BEACON-142; BEACON-097 | Delivery regression matches; export batching unrelated |
++| 3 | Exact | mock-sources/issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'pagehide' mock-sources/issues` | BEACON-142 | Version/lifecycle match; literal event name absent, not evidence against match |
++| 4 | Recent | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e 'Safari' -e 'navigation' mock-sources/issues` | BEACON-142 | Compared dates: created April 29, updated May 4 immediately after onset; 160 May 2, 151 May 1, 097 April 22, 118 January 8 |
 +
-+**Matching issue / release:** BEACON-142, closed/fixed; SDK 3.12.2 (E2–E3). Browser/version/frequency match; navigation timing remains unverified.
-+
-+**Closest rejected candidates:** BEACON-118 changes identity rather than delivery (E5). BEACON-160 concerns EU dashboard caching, different date and scope (E6). BEACON-151 and BEACON-097 concern unrelated product areas (E8).
-+
-+**Search gaps:** No separate correlated repository or source code exists in supplied fixtures; no project-data connector or customer artifact was available. No web search was performed for fictional Beacon.
++**Matching issue / release:** BEACON-142 is closed/fixed in 3.12.2 (rows 2–3). Its fix postdates the ticket onset, but exists in supplied evidence at investigation time.
++**Closest rejected candidates:** BEACON-118 concerns identity continuity with events still received; BEACON-160 concerns EU dashboards and later onset. BEACON-151 concerns webhook signatures; BEACON-097 concerns CSV export limits.
++**Search gaps:** Complete offline matrix, but fixtures are limited snapshots. No live project access, source code, framework docs, logs or public reproduction URL. No claims about current real service health.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+Documented flow and candidate failure, not an observed customer trace (E2–E4):
++Docs describe batching and lifecycle flushing (row 4). BEACON-142 describes cancellation before ingestion during navigation (row 2); that broken step remains hypothetical for this customer.
 +
 +```mermaid
 +flowchart LR
-+    A[Payment succeeds] --> B[Confirmation page tracks event]
-+    B --> C[SDK buffers and flushes]
-+    C --> D{Navigation near flush?}
-+    D -->|Safari 3.12.0 candidate failure| E[Request cancelled before ingestion]
-+    D -->|Delivery succeeds| F[Ingestion]
-+    F --> G[Analytics dashboard]
++    A[Payment confirmed] --> B[Track checkout event]
++    B --> C[SDK batch / flush]
++    C --> D[Navigation-time transport]
++    D --> E[Ingestion]
++    E --> F[Analytics dashboard]
++    D -. Possible Safari 3.12.0 cancellation .-> G[Event never reaches ingestion]
 +```
-+
-+BEACON-142 attributes the issue to the switch from sendBeacon/pagehide to fetch keepalive/visibilitychange and says cancelled requests never reach ingestion, without a client error. Those statements describe the known issue, not verified behavior in this customer's project.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported loss likely matches BEACON-142, the SDK 3.12.0 Safari navigation-time delivery regression.
++**Assessment:** Likely BEACON-142: SDK 3.12.0 drops Safari events if they are fired immediately before navigation.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Browser majors, SDK version, Chrome control, confirmation-page symptom, approximate loss rate and deployment timing align with E1–E3. Direct customer cancellation evidence is absent (E7). Confidence is limited by lack of project data access.
++**Reasoning:** Browser versions, SDK version, confirmation-event pattern, unaffected Chrome and approximate loss rate align (rows 1–3). Docs support a specific mitigation (row 4). No direct customer evidence establishes the navigation trigger or cancellation (row 8). Plausible unresolved candidate caps confidence at Medium (70%). Confidence limited by lack of project data access.
 +
-+**Not explained:** The ticket does not establish navigation or page hiding immediately after capture. If the page stays open through a flush, the candidate may not explain the loss. Current persistence and whether earlier events arrive are unknown.
++**Not explained:** The ticket says the event fires on the confirmation page, but does not establish a subsequent redirect, route change, tab close or hide. Actual event emission, receipt and dashboard filtering remain unverified.
 +
 +## Recommended Next Action
 +
-+1. Ask for the sanitized capture/navigation snippet and confirm deployed version using the documented `beacon.version` check (E4).
-+2. Recommend testing SDK 3.12.2, the documented fixed release (E3). It became available May 4, after the reported April 28 onset; this is a present-day recommendation.
-+3. Interim documented options: pass `{ transport: 'beacon' }` to the affected track call, or await `beacon.flush()` before navigation (E2/E4). Do not claim these have been tested in this flow.
-+4. If loss persists on the fixed release, collect one sanitized Safari network trace and refer to browser SDK engineering.
++1. Have the customer confirm the event/navigation order from a sanitized snippet and check `beacon.version` in the affected browser (row 4). Request a sanitized network capture only if timing or the fix test remains inconclusive.
++2. 🔧 Test the documented fixed version 3.12.2 with the same checkout flow (rows 2–3). As an interim alternative, use `{ transport: 'beacon' }` on the affected track call or `await beacon.flush()` before navigation (rows 2, 4). These are recommendations, not changes performed.
++3. 🚨 Route the brief below to the browser SDK team for confirmation because reported conversion-event loss is P2. If the issue persists on the fixed version, compare browser capture with event receipt before attributing the outcome to this regression. Do not promise recovery of historical events.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Reported Next.js/Safari 17 or 18/SDK 3.12.0/US; OS and plan unknown.  
-+**Preconditions:** Synthetic checkout; existing integration; event code still needed.
++**Environment:** Safari 17 or 18; Next.js; SDK 3.12.0; US; OS/plan unknown.
++**Preconditions:** Synthetic test checkout; sanitized payload; navigation order still needs confirmation.
 +
-+1. Complete a synthetic successful payment and reach confirmation (source: ticket).
-+2. Send checkout_completed using the customer's sanitized integration (source: ticket; implementation missing).
-+3. Trigger the same immediate navigation, if present in their flow (source: assumed candidate condition from E2; confirm before treating as reproduction).
-+4. Observe network delivery and analytics appearance (source: proposed verification).
++1. Complete a test payment and reach confirmation (source: ticket; synthetic payment assumed).
++2. Emit `checkout_completed` using the customer's sanitized integration (source: ticket; exact code missing).
++3. Trigger the immediately following route change/redirect if the customer's flow has one (source: issue; applicability assumed).
++4. Observe delivery and dashboard appearance, preserving a sanitized network log (source: proposed verification).
 +
-+**Expected:** Tracked events deliver via the documented lifecycle path (E4).  
-+**Actual:** Customer reports about half missing in Safari (E1); network cancellation is not observed.  
-+**Control:** Repeat identical Safari steps with only SDK changed to 3.12.2; candidate predicts delivery restored (E3). Chrome on 3.12.0 is a secondary browser control.  
-+**Frequency:** Customer estimate roughly 50%; no measured n/m.
++**Expected:** Event arrives under documented navigation-safe delivery (row 4).
++**Actual:** Customer reports roughly half of Safari completion events missing (row 1); no reproduced network outcome.
++**Control:** Repeat the same Safari flow changing only SDK 3.12.0 to 3.12.2; release notes predict restored delivery (row 3). Chrome is a secondary browser control.
++**Frequency:** Approximately half of Safari users reported; test n/m unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Prepare conditional engineering handoff; no external escalation sent.
-+
-+**Reason:** P2 analytics loss and strong known defect match warrant a ready brief. First obtain the minimum timing evidence and test the documented fix; escalate if losses continue on 3.12.2 or evidence contradicts the candidate.
-+**Suggested owner:** Browser SDK engineering (suggested, not verified ownership).
-+**Follow-up cadence:** Review when requested artifacts or test results arrive; no timeline promised.
-+
-+### Prepared Escalation Brief
-+
-+**Ticket / severity / date:** SUP-1001 / High (P2) / 2026-10-07  
-+**Summary:** Verify whether the customer flow hits BEACON-142, or a separate delivery defect if SDK 3.12.2 still loses events.  
-+**Customer impact:** One reporting organization, roughly half of Safari checkouts missing from analytics; no reported payment failure; first seen April 28 14:00 UTC after frontend deployment.  
-+**Reproduction:** Use the unrun steps above; immediate-navigation condition and sanitized code remain missing.  
-+**Expected vs actual:** Successful delivery versus customer-reported missing analytics events; no customer network trace.  
-+**Evidence:** E1 customer report, E2 known regression, E3 fixed release, E4 documented workaround.  
-+**Support checks:** Completed four search modes, inspected all five issue fixtures, checked docs/releases/status; no code changes, workaround trials or customer-system requests executed.  
-+**Closest issue:** BEACON-142 closed/fixed, strong symptom/version match; BEACON-118 and 160 rejected for stated scope differences.  
-+**Specific ask:** Confirm capture-to-navigation timing and whether a post-upgrade Safari trace shows the event request reaching ingestion; investigate a separate regression if loss persists.  
-+**Workaround:** Documented beacon override or awaited flush, pending customer verification.
++**Decision:** Escalate to engineering — brief prepared only; not sent.
++**Reason:** P2 conversion-event loss and strong known-regression match, with customer-specific trigger unverified.
++**Suggested owner if escalated:** Browser SDK team.
++**Follow-up cadence:** Review when event/navigation snippet or controlled fix-test result arrives; no timeline commitment.
++**Attachment:** Engineering brief in Evidence Pack; reproduction above.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [BEACON-142](../mock-sources/issues/BEACON-142.md): check affected browsers, version, cancellation description and fixed_in.
-+2. Open [release notes](../mock-sources/releases/browser-sdk.md): check April 24 transport change and May 4 fix.
-+3. Open [delivery docs](../mock-sources/docs/browser-sdk.md): check transport override, awaited flush and version check.
-+4. Review the customer's sanitized snippet and Safari trace: establish navigation timing and delivery outcome; rerun with only SDK changed to 3.12.2.
++1. [ ] Open [BEACON-142](../mock-sources/issues/BEACON-142.md): verify Safari 17/18, 3.12.0, navigation trigger, 30–60% loss and fixed_in 3.12.2.
++2. [ ] Open [release notes](../mock-sources/releases/browser-sdk.md): verify 3.12.2 fix and 3.12.0 lifecycle change; 3.12.1 is not this fix.
++3. [ ] Open [SDK docs](../mock-sources/docs/browser-sdk.md): verify both recommended workarounds and runtime version check.
++4. [ ] Inspect sanitized customer snippet/capture: establish whether navigation follows tracking; run the single-variable SDK control before confirming the customer cause.
 +
 +## 💬 Draft Customer Response
 +
-+Hi,
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 +
-+The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 +
-+The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-+
-+Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -1451,212 +1429,231 @@ index 0000000000000000000000000000000000000000..fea4f9092cbae2b8f77190cb02747994
 +
 +### Engineer TL;DR
 +
-+Strong known-regression match; customer root cause remains inferred. Obtain event/navigation timing and verify the documented fixed release before claiming resolution. No project query, browser reproduction, external escalation or message was performed.
++The fixture documents a fixed Safari SDK regression that closely matches the ticket. Customer applicability remains likely rather than confirmed. Establish navigation timing and compare the fixed SDK under the same flow.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source | Status |
++| # | Claim | Source (row #) | Status |
 +|---|---|---|---|
-+| 1 | Customer reports Safari 17/18, SDK 3.12.0, about half missing | E1 | Verified as report only |
-+| 2 | Known issue affects those browsers/version before navigation | E2 | Verified |
-+| 3 | Known issue describes cancellation before ingestion and no client error | E2 | Verified; not customer-specific |
-+| 4 | 3.12.0 changed transport and lifecycle trigger | E3 | Verified |
-+| 5 | 3.12.2 documents fix | E2/E3 | Verified |
-+| 6 | Beacon override or awaited flush is documented | E2/E4 | Verified |
-+| 7 | Runtime version check is beacon.version | E4 | Verified |
-+| 8 | ITP candidate concerns identity rather than delivery | E5 | Verified |
-+| 9 | Listed incidents differ in date or region | E6 | Verified |
-+| 10 | Customer loss likely caused by BEACON-142 | E1–E3/E7 | Inferred |
++| 1 | Ticket reports Safari-only event loss after deploy | 1 | Verified as report |
++| 2 | Known regression matches browser/version and event pattern | 2 | Verified |
++| 3 | Fixed version is 3.12.2 | 2–3 | Verified |
++| 4 | Proposed transport/flush workarounds documented | 2, 4 | Verified |
++| 5 | ITP candidate does not concern delivery | 5 | Verified |
++| 6 | Listed incidents do not match region/timeframe | 6 | Verified |
++| 7 | BEACON-142 causes this customer's loss | 1–3, 8 | Inferred |
++| 8 | Customer navigates immediately after event | 8 | Unverified |
 +
 +### Unknowns
 +
-+Navigation/page-hide timing, deployed runtime version, request fate, current impact, post-fix results, OS, Next.js version, plan and earlier-event behavior. No source-code inspection; issue-body internals are attributed to the issue. No claim of restored missing historical events.
++- Navigation order, exact integration/configuration, runtime SDK, prior SDK and OS.
++- Requests emitted/received, earlier-event delivery, current persistence and test outcomes.
++- No logs supplied; no customer cancellation, silent-error or rejection claim independently established.
++- No source-code inspection; issue-described internals attributed to issue rather than independently verified.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
-+
-+- Verified claims: 9
++**Overall:** Medium, capped at 70%.
++- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified scored claims: 0 (unknowns excluded; not asserted)
-+- Arithmetic: (9 + 0.5) / 10 = 95%.
-+- Caps applied: plausible matching candidate not definitively established or ruled out → Medium (70%). Search gate complete; root cause inferred rather than confirmed.
++- Unverified claims: 1
++- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
++- Caps applied: plausible matching candidate not ruled out / customer cause not confirmed → Medium (70%). Search gate complete.
 +
-+### Anti-hallucination and contradiction review
++### Anti-hallucination review
 +
-+Claims mapped above; versions, workaround API, issue state and no-error statement checked against fetched fixtures. Ticket is distinguished from independent customer evidence. No contradiction between known issue and release notes; navigation is the unresolved condition. Later release/issue updates are retrospective evidence, not claimed to have been available at onset. Customer reply contains no fixture paths, internal tracker names, invented URLs, timelines or ungrounded fix recipe.
++All material claims mapped above. Version and configuration recommendations checked against fetched offline docs and issue, not memory. Contradiction check: confirmation-page event does not itself prove navigation; retained explicitly as a gap. EU dashboard and earlier ingestion incident rejected by scope/date, without ruling out all backend causes. No customer requests, logs or code behavior fabricated. No recovery or timing promise.
++
++### Engineering Escalation Brief
++
++**Ticket:** SUP-1001
++**Customer Impact:** Roughly half of Safari checkout completion analytics reportedly missing; payments still succeed.
++**Severity:** High (P2)
++**Suggested Owner:** Browser SDK
++**Filed by support:** Prepared by triage agent; not filed externally
++**Date:** 2026-10-07
++
++#### Summary
++Confirm whether the customer's event fires in BEACON-142's navigation-time path. A fix is documented; no controlled customer result is available.
++
++#### Customer Impact
++One reporting organization; Safari 17/18 subset, approximately half affected per report. First seen April 28 at 14:00 UTC after frontend 2026.04.28.2. Reported regression, not payment-production downtime. Documented workaround available.
++
++#### Reproduction
++Use the not-yet-run reproduction under Recommended Next Action unchanged. Minimal missing piece: sanitized tracking code and navigation order.
++
++#### Expected Behavior
++Navigation-safe delivery documented in row 4.
++
++#### Actual Behavior
++Dashboard event absent for about half of Safari users per row 1; network result unknown.
++
++#### Evidence
++Rows 1–4 establish symptom, matching issue, fixed release and workaround. Row 8 preserves the customer-specific gap.
++
++#### What Support Already Tried
++Read-only four-part search matrix; full issue inspection; SDK docs, releases and status comparison. No customer changes, browser repro or project queries performed.
++
++#### Closest Known Issues
++BEACON-142: closed/fixed, strong conditional match. BEACON-118: rejected identity issue. BEACON-160: rejected EU dashboard incident.
++
++#### Specific Ask
++Confirm applicability from the sanitized event/navigation sequence; if the same flow still loses events on 3.12.2, investigate sanitized network outcomes and ingestion receipt as a potentially separate defect.
++
++#### Workaround
++Documented per-call beacon transport or awaited flush before navigation (rows 2, 4).
 +
 +### Redaction confirmation
 +
-+Redaction pass: 0 replacements made across 2 files. Reviewed for tokens, secrets, PII, private links, admin links and raw person properties; none included. Synthetic organization label remains internal. Customer draft contains no emojis or internal-only details.
++Redaction pass: 0 replacements made across the two output files. No tokens, raw person properties, payment payloads, private URLs or internal admin links included. Synthetic organization name omitted; safe event/version/ticket identifiers retained. Customer draft contains no internal source paths, tooling or emojis.
 +
 
 diff --git a/reports/20261007-000000-SUP-1001-customer-response.md b/reports/20261007-000000-SUP-1001-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..c5d6bebdc5e5aaff21d508f76063a40a8febedd0
+index 0000000000000000000000000000000000000000..9271ee3e0778546d29cedfb13935db03772f162b
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1001-customer-response.md
-@@ -0,0 +1,8 @@
-+Hi,
+@@ -0,0 +1,6 @@
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 +
-+The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 +
-+The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-+
-+Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 +
 diff --git a/reports/20261007-000000-SUP-1001-triage.md b/reports/20261007-000000-SUP-1001-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..fea4f9092cbae2b8f77190cb0274799414f42916
+index 0000000000000000000000000000000000000000..7e020f6a977740419fdaf41f08b97ca723916c0e
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1001-triage.md
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,215 @@
 +# 🟠 Triage Report: SUP-1001 — Safari checkout events missing
 +
-+**Ticket:** SUP-1001  
-+**Customer:** Acme Analytics (synthetic organization)  
-+**Issue Type:** Bug  
-+**Product Area:** Browser SDK event delivery during page lifecycle transitions  
-+**Priority:** 🟠 P2  
-+**Plan Tier / SLA:** Unknown  
-+**Environment:** Next.js, Safari 17/18, browser SDK 3.12.0, US  
-+**Investigation Mode:** Read-only, offline fictional Beacon fixtures; reviewed 2026-10-07
++**Ticket:** SUP-1001
++**Issue Type:** Bug
++**Product Area:** Browser SDK event delivery during navigation
++**Priority:** 🟠 P2
++**Plan Tier:** Unknown
++**Environment:** Next.js; Safari 17/18; browser SDK 3.12.0; US
++**Investigation Mode:** Read-only, synthetic offline fixtures; investigated 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer wants successful payments to appear as `checkout_completed` events. The [browser delivery guide](../mock-sources/docs/browser-sdk.md) describes batching and flushing events around navigation. About half of Safari users reportedly reach the confirmation page without a corresponding analytics event; Chrome appears normal. No customer logs or project access were provided.
++The customer wants completed payments counted in analytics. The [browser SDK](../mock-sources/docs/browser-sdk.md) batches events and sends them to Beacon. Roughly half of Safari checkout events reportedly disappear while Chrome looks normal. Successful payment and confirmation-page display do not prove analytics delivery.
 +
 +## Issue Summary
 +
-+The customer reports Safari-only missing checkout events since frontend deployment `2026.04.28.2` at 2026-04-28 14:00 UTC. SDK 3.12.0 and Safari 17/18 align closely with BEACON-142, but the required navigation timing has not been verified (E1–E3).
++The customer reports missing `checkout_completed` events after frontend deploy `2026.04.28.2` around 2026-04-28 14:00 UTC. The environment closely matches a documented Safari delivery regression, but navigation timing and actual network behavior have not been verified. The ticket's “yesterday” is relative to its original submission; current persistence is unknown.
 +
 +## Intake
 +
++ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, unknown plan, multiple Safari users affected.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / browser event delivery |
-+| Timeframe | Reported onset 2026-04-28 14:00 UTC after deployment; current persistence unknown. “Yesterday” is ticket wording, not relative to investigation date. |
-+| Impact | Reportedly about half of Safari users; Chrome normal. Payment succeeds; analytics visibility is impaired. |
-+| Environment | Next.js; Safari 17/18; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown. |
++| Issue Type / Product Area | Bug / browser SDK navigation-time delivery |
++| Timeframe | Reported onset 2026-04-28 14:00 UTC after frontend deploy; ongoing at submission, current status unknown |
++| Impact | About half of Safari users' checkout completion events reportedly missing; Chrome normal; payment completion unaffected per ticket |
++| Environment | Safari 17/18; Next.js; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown |
 +| Identifiers | SUP-1001; checkout_completed; frontend 2026.04.28.2 |
-+| Reproduction | Payment succeeds → confirmation page sends event → dashboard lacks event for roughly half of Safari users. Customer report only. |
-+| Missing Context | Sanitized event/navigation code; deployed runtime SDK version; one sanitized Safari network capture; whether earlier events arrive. |
++| Reproduction | Payment succeeds → confirmation page → event sent → absent from dashboard for affected Safari sessions; not independently reproduced |
++| Missing Context | Sanitized event/redirect snippet; runtime SDK version; one sanitized Safari network capture; prior SDK version; current persistence |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | [Ticket](../tickets/001-safari-checkout-events.md), full read | Browser, version, event, onset and impact above are customer-reported, not independently measured. | ✅ Verified as ticket content |
-+| E2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | Closed/fixed in 3.12.2; Safari 17/18 events before transitions dropped since 3.12.0; reported 30–60% confirmation/conversion loss. Describes cancelled keepalive requests and no client error for that issue. | ✅ Verified fixture |
-+| E3 | [SDK releases](../mock-sources/releases/browser-sdk.md), full read | 3.12.0 released April 24 changed unload transport/lifecycle trigger; 3.12.2 released May 4 fixes Safari navigation losses. 3.12.1 fixes identify types. | ✅ Verified fixture |
-+| E4 | [Delivery guide](../mock-sources/docs/browser-sdk.md), full read | Flush every 3 seconds, at 20 events, or on page hiding; documented beacon transport override or awaited flush before navigation; runtime version check is beacon.version. | ✅ Verified fixture |
-+| E5 | [BEACON-118](../mock-sources/issues/BEACON-118.md), full body | Identity continuity issue explicitly does not prevent event delivery. | ✅ Verified fixture |
-+| E6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status history](../mock-sources/status/incidents.md), full reads | May 2 dashboard incident scoped to EU; April 11 ingestion delay resolved, with no data loss. Neither matches reported US April 28 Safari-specific onset. | ✅ Sources verified; exclusion is pattern-based |
-+| E7 | Customer evidence unavailable | Navigation after capture, cancellation in this customer flow, ingestion receipt and fix effectiveness have not been observed. | ❌ Unverified |
-+| E8 | [BEACON-151](../mock-sources/issues/BEACON-151.md), [BEACON-097](../mock-sources/issues/BEACON-097.md), full reads | Webhook signature and CSV cap topics do not match browser event delivery. | ✅ Verified fixture |
++| 1 | [Ticket](../tickets/001-safari-checkout-events.md) | Safari-only loss around half of users after deploy, SDK 3.12.0, US | ✅ Verified as customer report; occurrence not independently verified |
++| 2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | SDK 3.12.0 navigation-time regression in Safari 17/18; 30–60% confirmation/conversion events missing; Chrome unaffected. Issue attributes cancellation before ingestion to keepalive fetch and lifecycle change; no client error logged in that issue | ✅ Verified fixture description; not customer telemetry |
++| 3 | [Release notes](../mock-sources/releases/browser-sdk.md) | 3.12.0 changed unload transport/lifecycle; 3.12.2 dated May 4 restores sendBeacon in WebKit and fixes BEACON-142; 3.12.1 addresses identify typing only | ✅ Verified fixture |
++| 4 | [Browser SDK docs](../mock-sources/docs/browser-sdk.md) | Flush every 3 seconds, at 20 events and when hidden; documented navigation workarounds: transport beacon or await flush; version check beacon.version | ✅ Verified fixture |
++| 5 | [BEACON-118](../mock-sources/issues/BEACON-118.md) | Safari identity reset after seven days; explicitly not event delivery loss | ✅ Verified fixture; rejected candidate |
++| 6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status](../mock-sources/status/incidents.md) | EU dashboard incident May 2 excludes US; April 11 ingestion delay predates onset and says no data loss | ✅ Verified fixture; poor matches |
++| 7 | Search matrix below; full bodies of all five issue fixtures inspected | BEACON-142 strongest match; webhook/export issues do not concern this event delivery path | ✅ Verified search coverage |
++| 8 | Ticket versus BEACON-142 | Customer event may coincide with navigation; no snippet, HAR, ingestion data or runtime version check supplied | ⚠️ Inferred applicability; trigger unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+All commands below were executed this session against `mock-sources/issues/`; offline hybrid means synonym/paraphrase grep, not a semantic search service.
++Tracker searched: `mock-sources/issues/` (offline equivalent of all related product repositories). These exact read-only commands were executed; no web lookup for fictional Beacon.
 +
-+| # | Query type | Tracker | Exact executed query | Candidate / conclusion |
-+|---|---|---|---|---|
-+| 1 | Hybrid | Local issues | `rg -n -i 'Safari\|WebKit\|missing\|drop\|navigation\|confirmation\|checkout' mock-sources/issues` | BEACON-142 accepted as likely match; BEACON-118 rejected for delivery symptoms |
-+| 2 | Lexical | Local issues | `rg -n -i 'Safari\|flush\|batch\|keepalive' mock-sources/issues` | BEACON-142 strongest; CSV batching in BEACON-097 unrelated |
-+| 3 | Exact | Local issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'sendBeacon' mock-sources/issues` | Version/transport match BEACON-142; no exact checkout_completed match |
-+| 4 | Recent | Local issues | `rg -n 'updated:\|created:\|Safari\|3.12' mock-sources/issues` | Compared dates: 142 updated May 4, created April 29, near April 28 onset; 160 May 2; 151 May 1; 097 April 22; 118 January 8 |
++| # | Query type | Repo / tracker | Query | Best Candidate | Conclusion |
++|---|---|---|---|---|---|
++| 1 | Hybrid / paraphrase | mock-sources/issues | `rg -n -i 'safari\|navigation\|unload\|missing\|drop\|confirmation' mock-sources/issues` | BEACON-142; BEACON-118 | 142 accepted as likely; 118 rejected |
++| 2 | Lexical | mock-sources/issues | `rg -n -i 'checkout\|sendBeacon\|flush\|batch' mock-sources/issues` | BEACON-142; BEACON-097 | Delivery regression matches; export batching unrelated |
++| 3 | Exact | mock-sources/issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'pagehide' mock-sources/issues` | BEACON-142 | Version/lifecycle match; literal event name absent, not evidence against match |
++| 4 | Recent | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e 'Safari' -e 'navigation' mock-sources/issues` | BEACON-142 | Compared dates: created April 29, updated May 4 immediately after onset; 160 May 2, 151 May 1, 097 April 22, 118 January 8 |
 +
-+**Matching issue / release:** BEACON-142, closed/fixed; SDK 3.12.2 (E2–E3). Browser/version/frequency match; navigation timing remains unverified.
-+
-+**Closest rejected candidates:** BEACON-118 changes identity rather than delivery (E5). BEACON-160 concerns EU dashboard caching, different date and scope (E6). BEACON-151 and BEACON-097 concern unrelated product areas (E8).
-+
-+**Search gaps:** No separate correlated repository or source code exists in supplied fixtures; no project-data connector or customer artifact was available. No web search was performed for fictional Beacon.
++**Matching issue / release:** BEACON-142 is closed/fixed in 3.12.2 (rows 2–3). Its fix postdates the ticket onset, but exists in supplied evidence at investigation time.
++**Closest rejected candidates:** BEACON-118 concerns identity continuity with events still received; BEACON-160 concerns EU dashboards and later onset. BEACON-151 concerns webhook signatures; BEACON-097 concerns CSV export limits.
++**Search gaps:** Complete offline matrix, but fixtures are limited snapshots. No live project access, source code, framework docs, logs or public reproduction URL. No claims about current real service health.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+Documented flow and candidate failure, not an observed customer trace (E2–E4):
++Docs describe batching and lifecycle flushing (row 4). BEACON-142 describes cancellation before ingestion during navigation (row 2); that broken step remains hypothetical for this customer.
 +
 +```mermaid
 +flowchart LR
-+    A[Payment succeeds] --> B[Confirmation page tracks event]
-+    B --> C[SDK buffers and flushes]
-+    C --> D{Navigation near flush?}
-+    D -->|Safari 3.12.0 candidate failure| E[Request cancelled before ingestion]
-+    D -->|Delivery succeeds| F[Ingestion]
-+    F --> G[Analytics dashboard]
++    A[Payment confirmed] --> B[Track checkout event]
++    B --> C[SDK batch / flush]
++    C --> D[Navigation-time transport]
++    D --> E[Ingestion]
++    E --> F[Analytics dashboard]
++    D -. Possible Safari 3.12.0 cancellation .-> G[Event never reaches ingestion]
 +```
-+
-+BEACON-142 attributes the issue to the switch from sendBeacon/pagehide to fetch keepalive/visibilitychange and says cancelled requests never reach ingestion, without a client error. Those statements describe the known issue, not verified behavior in this customer's project.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported loss likely matches BEACON-142, the SDK 3.12.0 Safari navigation-time delivery regression.
++**Assessment:** Likely BEACON-142: SDK 3.12.0 drops Safari events if they are fired immediately before navigation.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Browser majors, SDK version, Chrome control, confirmation-page symptom, approximate loss rate and deployment timing align with E1–E3. Direct customer cancellation evidence is absent (E7). Confidence is limited by lack of project data access.
++**Reasoning:** Browser versions, SDK version, confirmation-event pattern, unaffected Chrome and approximate loss rate align (rows 1–3). Docs support a specific mitigation (row 4). No direct customer evidence establishes the navigation trigger or cancellation (row 8). Plausible unresolved candidate caps confidence at Medium (70%). Confidence limited by lack of project data access.
 +
-+**Not explained:** The ticket does not establish navigation or page hiding immediately after capture. If the page stays open through a flush, the candidate may not explain the loss. Current persistence and whether earlier events arrive are unknown.
++**Not explained:** The ticket says the event fires on the confirmation page, but does not establish a subsequent redirect, route change, tab close or hide. Actual event emission, receipt and dashboard filtering remain unverified.
 +
 +## Recommended Next Action
 +
-+1. Ask for the sanitized capture/navigation snippet and confirm deployed version using the documented `beacon.version` check (E4).
-+2. Recommend testing SDK 3.12.2, the documented fixed release (E3). It became available May 4, after the reported April 28 onset; this is a present-day recommendation.
-+3. Interim documented options: pass `{ transport: 'beacon' }` to the affected track call, or await `beacon.flush()` before navigation (E2/E4). Do not claim these have been tested in this flow.
-+4. If loss persists on the fixed release, collect one sanitized Safari network trace and refer to browser SDK engineering.
++1. Have the customer confirm the event/navigation order from a sanitized snippet and check `beacon.version` in the affected browser (row 4). Request a sanitized network capture only if timing or the fix test remains inconclusive.
++2. 🔧 Test the documented fixed version 3.12.2 with the same checkout flow (rows 2–3). As an interim alternative, use `{ transport: 'beacon' }` on the affected track call or `await beacon.flush()` before navigation (rows 2, 4). These are recommendations, not changes performed.
++3. 🚨 Route the brief below to the browser SDK team for confirmation because reported conversion-event loss is P2. If the issue persists on the fixed version, compare browser capture with event receipt before attributing the outcome to this regression. Do not promise recovery of historical events.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Reported Next.js/Safari 17 or 18/SDK 3.12.0/US; OS and plan unknown.  
-+**Preconditions:** Synthetic checkout; existing integration; event code still needed.
++**Environment:** Safari 17 or 18; Next.js; SDK 3.12.0; US; OS/plan unknown.
++**Preconditions:** Synthetic test checkout; sanitized payload; navigation order still needs confirmation.
 +
-+1. Complete a synthetic successful payment and reach confirmation (source: ticket).
-+2. Send checkout_completed using the customer's sanitized integration (source: ticket; implementation missing).
-+3. Trigger the same immediate navigation, if present in their flow (source: assumed candidate condition from E2; confirm before treating as reproduction).
-+4. Observe network delivery and analytics appearance (source: proposed verification).
++1. Complete a test payment and reach confirmation (source: ticket; synthetic payment assumed).
++2. Emit `checkout_completed` using the customer's sanitized integration (source: ticket; exact code missing).
++3. Trigger the immediately following route change/redirect if the customer's flow has one (source: issue; applicability assumed).
++4. Observe delivery and dashboard appearance, preserving a sanitized network log (source: proposed verification).
 +
-+**Expected:** Tracked events deliver via the documented lifecycle path (E4).  
-+**Actual:** Customer reports about half missing in Safari (E1); network cancellation is not observed.  
-+**Control:** Repeat identical Safari steps with only SDK changed to 3.12.2; candidate predicts delivery restored (E3). Chrome on 3.12.0 is a secondary browser control.  
-+**Frequency:** Customer estimate roughly 50%; no measured n/m.
++**Expected:** Event arrives under documented navigation-safe delivery (row 4).
++**Actual:** Customer reports roughly half of Safari completion events missing (row 1); no reproduced network outcome.
++**Control:** Repeat the same Safari flow changing only SDK 3.12.0 to 3.12.2; release notes predict restored delivery (row 3). Chrome is a secondary browser control.
++**Frequency:** Approximately half of Safari users reported; test n/m unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Prepare conditional engineering handoff; no external escalation sent.
-+
-+**Reason:** P2 analytics loss and strong known defect match warrant a ready brief. First obtain the minimum timing evidence and test the documented fix; escalate if losses continue on 3.12.2 or evidence contradicts the candidate.
-+**Suggested owner:** Browser SDK engineering (suggested, not verified ownership).
-+**Follow-up cadence:** Review when requested artifacts or test results arrive; no timeline promised.
-+
-+### Prepared Escalation Brief
-+
-+**Ticket / severity / date:** SUP-1001 / High (P2) / 2026-10-07  
-+**Summary:** Verify whether the customer flow hits BEACON-142, or a separate delivery defect if SDK 3.12.2 still loses events.  
-+**Customer impact:** One reporting organization, roughly half of Safari checkouts missing from analytics; no reported payment failure; first seen April 28 14:00 UTC after frontend deployment.  
-+**Reproduction:** Use the unrun steps above; immediate-navigation condition and sanitized code remain missing.  
-+**Expected vs actual:** Successful delivery versus customer-reported missing analytics events; no customer network trace.  
-+**Evidence:** E1 customer report, E2 known regression, E3 fixed release, E4 documented workaround.  
-+**Support checks:** Completed four search modes, inspected all five issue fixtures, checked docs/releases/status; no code changes, workaround trials or customer-system requests executed.  
-+**Closest issue:** BEACON-142 closed/fixed, strong symptom/version match; BEACON-118 and 160 rejected for stated scope differences.  
-+**Specific ask:** Confirm capture-to-navigation timing and whether a post-upgrade Safari trace shows the event request reaching ingestion; investigate a separate regression if loss persists.  
-+**Workaround:** Documented beacon override or awaited flush, pending customer verification.
++**Decision:** Escalate to engineering — brief prepared only; not sent.
++**Reason:** P2 conversion-event loss and strong known-regression match, with customer-specific trigger unverified.
++**Suggested owner if escalated:** Browser SDK team.
++**Follow-up cadence:** Review when event/navigation snippet or controlled fix-test result arrives; no timeline commitment.
++**Attachment:** Engineering brief in Evidence Pack; reproduction above.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [BEACON-142](../mock-sources/issues/BEACON-142.md): check affected browsers, version, cancellation description and fixed_in.
-+2. Open [release notes](../mock-sources/releases/browser-sdk.md): check April 24 transport change and May 4 fix.
-+3. Open [delivery docs](../mock-sources/docs/browser-sdk.md): check transport override, awaited flush and version check.
-+4. Review the customer's sanitized snippet and Safari trace: establish navigation timing and delivery outcome; rerun with only SDK changed to 3.12.2.
++1. [ ] Open [BEACON-142](../mock-sources/issues/BEACON-142.md): verify Safari 17/18, 3.12.0, navigation trigger, 30–60% loss and fixed_in 3.12.2.
++2. [ ] Open [release notes](../mock-sources/releases/browser-sdk.md): verify 3.12.2 fix and 3.12.0 lifecycle change; 3.12.1 is not this fix.
++3. [ ] Open [SDK docs](../mock-sources/docs/browser-sdk.md): verify both recommended workarounds and runtime version check.
++4. [ ] Inspect sanitized customer snippet/capture: establish whether navigation follows tracking; run the single-variable SDK control before confirming the customer cause.
 +
 +## 💬 Draft Customer Response
 +
-+Hi,
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 +
-+The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 +
-+The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-+
-+Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -1666,216 +1663,502 @@ index 0000000000000000000000000000000000000000..fea4f9092cbae2b8f77190cb02747994
 +
 +### Engineer TL;DR
 +
-+Strong known-regression match; customer root cause remains inferred. Obtain event/navigation timing and verify the documented fixed release before claiming resolution. No project query, browser reproduction, external escalation or message was performed.
++The fixture documents a fixed Safari SDK regression that closely matches the ticket. Customer applicability remains likely rather than confirmed. Establish navigation timing and compare the fixed SDK under the same flow.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source | Status |
++| # | Claim | Source (row #) | Status |
 +|---|---|---|---|
-+| 1 | Customer reports Safari 17/18, SDK 3.12.0, about half missing | E1 | Verified as report only |
-+| 2 | Known issue affects those browsers/version before navigation | E2 | Verified |
-+| 3 | Known issue describes cancellation before ingestion and no client error | E2 | Verified; not customer-specific |
-+| 4 | 3.12.0 changed transport and lifecycle trigger | E3 | Verified |
-+| 5 | 3.12.2 documents fix | E2/E3 | Verified |
-+| 6 | Beacon override or awaited flush is documented | E2/E4 | Verified |
-+| 7 | Runtime version check is beacon.version | E4 | Verified |
-+| 8 | ITP candidate concerns identity rather than delivery | E5 | Verified |
-+| 9 | Listed incidents differ in date or region | E6 | Verified |
-+| 10 | Customer loss likely caused by BEACON-142 | E1–E3/E7 | Inferred |
++| 1 | Ticket reports Safari-only event loss after deploy | 1 | Verified as report |
++| 2 | Known regression matches browser/version and event pattern | 2 | Verified |
++| 3 | Fixed version is 3.12.2 | 2–3 | Verified |
++| 4 | Proposed transport/flush workarounds documented | 2, 4 | Verified |
++| 5 | ITP candidate does not concern delivery | 5 | Verified |
++| 6 | Listed incidents do not match region/timeframe | 6 | Verified |
++| 7 | BEACON-142 causes this customer's loss | 1–3, 8 | Inferred |
++| 8 | Customer navigates immediately after event | 8 | Unverified |
 +
 +### Unknowns
 +
-+Navigation/page-hide timing, deployed runtime version, request fate, current impact, post-fix results, OS, Next.js version, plan and earlier-event behavior. No source-code inspection; issue-body internals are attributed to the issue. No claim of restored missing historical events.
++- Navigation order, exact integration/configuration, runtime SDK, prior SDK and OS.
++- Requests emitted/received, earlier-event delivery, current persistence and test outcomes.
++- No logs supplied; no customer cancellation, silent-error or rejection claim independently established.
++- No source-code inspection; issue-described internals attributed to issue rather than independently verified.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
-+
-+- Verified claims: 9
++**Overall:** Medium, capped at 70%.
++- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified scored claims: 0 (unknowns excluded; not asserted)
-+- Arithmetic: (9 + 0.5) / 10 = 95%.
-+- Caps applied: plausible matching candidate not definitively established or ruled out → Medium (70%). Search gate complete; root cause inferred rather than confirmed.
++- Unverified claims: 1
++- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
++- Caps applied: plausible matching candidate not ruled out / customer cause not confirmed → Medium (70%). Search gate complete.
 +
-+### Anti-hallucination and contradiction review
++### Anti-hallucination review
 +
-+Claims mapped above; versions, workaround API, issue state and no-error statement checked against fetched fixtures. Ticket is distinguished from independent customer evidence. No contradiction between known issue and release notes; navigation is the unresolved condition. Later release/issue updates are retrospective evidence, not claimed to have been available at onset. Customer reply contains no fixture paths, internal tracker names, invented URLs, timelines or ungrounded fix recipe.
++All material claims mapped above. Version and configuration recommendations checked against fetched offline docs and issue, not memory. Contradiction check: confirmation-page event does not itself prove navigation; retained explicitly as a gap. EU dashboard and earlier ingestion incident rejected by scope/date, without ruling out all backend causes. No customer requests, logs or code behavior fabricated. No recovery or timing promise.
++
++### Engineering Escalation Brief
++
++**Ticket:** SUP-1001
++**Customer Impact:** Roughly half of Safari checkout completion analytics reportedly missing; payments still succeed.
++**Severity:** High (P2)
++**Suggested Owner:** Browser SDK
++**Filed by support:** Prepared by triage agent; not filed externally
++**Date:** 2026-10-07
++
++#### Summary
++Confirm whether the customer's event fires in BEACON-142's navigation-time path. A fix is documented; no controlled customer result is available.
++
++#### Customer Impact
++One reporting organization; Safari 17/18 subset, approximately half affected per report. First seen April 28 at 14:00 UTC after frontend 2026.04.28.2. Reported regression, not payment-production downtime. Documented workaround available.
++
++#### Reproduction
++Use the not-yet-run reproduction under Recommended Next Action unchanged. Minimal missing piece: sanitized tracking code and navigation order.
++
++#### Expected Behavior
++Navigation-safe delivery documented in row 4.
++
++#### Actual Behavior
++Dashboard event absent for about half of Safari users per row 1; network result unknown.
++
++#### Evidence
++Rows 1–4 establish symptom, matching issue, fixed release and workaround. Row 8 preserves the customer-specific gap.
++
++#### What Support Already Tried
++Read-only four-part search matrix; full issue inspection; SDK docs, releases and status comparison. No customer changes, browser repro or project queries performed.
++
++#### Closest Known Issues
++BEACON-142: closed/fixed, strong conditional match. BEACON-118: rejected identity issue. BEACON-160: rejected EU dashboard incident.
++
++#### Specific Ask
++Confirm applicability from the sanitized event/navigation sequence; if the same flow still loses events on 3.12.2, investigate sanitized network outcomes and ingestion receipt as a potentially separate defect.
++
++#### Workaround
++Documented per-call beacon transport or awaited flush before navigation (rows 2, 4).
 +
 +### Redaction confirmation
 +
-+Redaction pass: 0 replacements made across 2 files. Reviewed for tokens, secrets, PII, private links, admin links and raw person properties; none included. Synthetic organization label remains internal. Customer draft contains no emojis or internal-only details.
++Redaction pass: 0 replacements made across the two output files. No tokens, raw person properties, payment payloads, private URLs or internal admin links included. Synthetic organization name omitted; safe event/version/ticket identifiers retained. Customer draft contains no internal source paths, tooling or emojis.
++
+
+exec
+/bin/zsh -lc "rg -n '"'^## |''^'"\\*\\*Confidence:|"'^ASSUMING:|''^→|END OF CUSTOMER|spot check|Redaction pass'"' reports/20261007-000000-SUP-1001-triage.md; cat reports/20261007-000000-SUP-1001-customer-response.md" in <workspace>
+ succeeded in 0ms:
+11:## 📖 Context for Reviewers
+15:## Issue Summary
+19:## Intake
+21:ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, unknown plan, multiple Safari users affected.
+22:→ Correct me now or I proceed with these.
+34:## Evidence Gathered
+47:## 🐛 Known-Issue Search
+62:## 🗺️ How It Works (and Where It Breaks)
+76:## 🎯 Root-Cause Assessment
+80:**Confidence:** Likely based on pattern match
+86:## Recommended Next Action
+107:## Escalation Decision
+115:## 🔎 Verify This Report
+122:## 💬 Draft Customer Response
+130:--- END OF CUSTOMER-FACING CONTENT ---
+132:## 🔬 Evidence Pack (internal only)
+134:Pre-send spot check: all cited references verified.
+214:Redaction pass: 0 replacements made across the two output files. No tokens, raw person properties, payment payloads, private URLs or internal admin links included. Synthetic organization name omitted; safe event/version/ticket identifiers retained. Customer draft contains no internal source paths, tooling or emojis.
+Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
+
+The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
+
+Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
+
+
+diff --git a/reports/20261007-000000-SUP-1001-customer-response.md b/reports/20261007-000000-SUP-1001-customer-response.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..9271ee3e0778546d29cedfb13935db03772f162b
+--- /dev/null
++++ b/reports/20261007-000000-SUP-1001-customer-response.md
+@@ -0,0 +1,6 @@
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
++
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
++
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
++
+diff --git a/reports/20261007-000000-SUP-1001-triage.md b/reports/20261007-000000-SUP-1001-triage.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..7e020f6a977740419fdaf41f08b97ca723916c0e
+--- /dev/null
++++ b/reports/20261007-000000-SUP-1001-triage.md
+@@ -0,0 +1,215 @@
++# 🟠 Triage Report: SUP-1001 — Safari checkout events missing
++
++**Ticket:** SUP-1001
++**Issue Type:** Bug
++**Product Area:** Browser SDK event delivery during navigation
++**Priority:** 🟠 P2
++**Plan Tier:** Unknown
++**Environment:** Next.js; Safari 17/18; browser SDK 3.12.0; US
++**Investigation Mode:** Read-only, synthetic offline fixtures; investigated 2026-10-07
++
++## 📖 Context for Reviewers
++
++The customer wants completed payments counted in analytics. The [browser SDK](../mock-sources/docs/browser-sdk.md) batches events and sends them to Beacon. Roughly half of Safari checkout events reportedly disappear while Chrome looks normal. Successful payment and confirmation-page display do not prove analytics delivery.
++
++## Issue Summary
++
++The customer reports missing `checkout_completed` events after frontend deploy `2026.04.28.2` around 2026-04-28 14:00 UTC. The environment closely matches a documented Safari delivery regression, but navigation timing and actual network behavior have not been verified. The ticket's “yesterday” is relative to its original submission; current persistence is unknown.
++
++## Intake
++
++ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, unknown plan, multiple Safari users affected.
++→ Correct me now or I proceed with these.
++
++| Field | Value |
++|---|---|
++| Issue Type / Product Area | Bug / browser SDK navigation-time delivery |
++| Timeframe | Reported onset 2026-04-28 14:00 UTC after frontend deploy; ongoing at submission, current status unknown |
++| Impact | About half of Safari users' checkout completion events reportedly missing; Chrome normal; payment completion unaffected per ticket |
++| Environment | Safari 17/18; Next.js; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown |
++| Identifiers | SUP-1001; checkout_completed; frontend 2026.04.28.2 |
++| Reproduction | Payment succeeds → confirmation page → event sent → absent from dashboard for affected Safari sessions; not independently reproduced |
++| Missing Context | Sanitized event/redirect snippet; runtime SDK version; one sanitized Safari network capture; prior SDK version; current persistence |
++
++## Evidence Gathered
++
++| # | Source / Query | Finding | Status |
++|---|---|---|---|
++| 1 | [Ticket](../tickets/001-safari-checkout-events.md) | Safari-only loss around half of users after deploy, SDK 3.12.0, US | ✅ Verified as customer report; occurrence not independently verified |
++| 2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | SDK 3.12.0 navigation-time regression in Safari 17/18; 30–60% confirmation/conversion events missing; Chrome unaffected. Issue attributes cancellation before ingestion to keepalive fetch and lifecycle change; no client error logged in that issue | ✅ Verified fixture description; not customer telemetry |
++| 3 | [Release notes](../mock-sources/releases/browser-sdk.md) | 3.12.0 changed unload transport/lifecycle; 3.12.2 dated May 4 restores sendBeacon in WebKit and fixes BEACON-142; 3.12.1 addresses identify typing only | ✅ Verified fixture |
++| 4 | [Browser SDK docs](../mock-sources/docs/browser-sdk.md) | Flush every 3 seconds, at 20 events and when hidden; documented navigation workarounds: transport beacon or await flush; version check beacon.version | ✅ Verified fixture |
++| 5 | [BEACON-118](../mock-sources/issues/BEACON-118.md) | Safari identity reset after seven days; explicitly not event delivery loss | ✅ Verified fixture; rejected candidate |
++| 6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status](../mock-sources/status/incidents.md) | EU dashboard incident May 2 excludes US; April 11 ingestion delay predates onset and says no data loss | ✅ Verified fixture; poor matches |
++| 7 | Search matrix below; full bodies of all five issue fixtures inspected | BEACON-142 strongest match; webhook/export issues do not concern this event delivery path | ✅ Verified search coverage |
++| 8 | Ticket versus BEACON-142 | Customer event may coincide with navigation; no snippet, HAR, ingestion data or runtime version check supplied | ⚠️ Inferred applicability; trigger unverified |
++
++## 🐛 Known-Issue Search
++
++Tracker searched: `mock-sources/issues/` (offline equivalent of all related product repositories). These exact read-only commands were executed; no web lookup for fictional Beacon.
++
++| # | Query type | Repo / tracker | Query | Best Candidate | Conclusion |
++|---|---|---|---|---|---|
++| 1 | Hybrid / paraphrase | mock-sources/issues | `rg -n -i 'safari\|navigation\|unload\|missing\|drop\|confirmation' mock-sources/issues` | BEACON-142; BEACON-118 | 142 accepted as likely; 118 rejected |
++| 2 | Lexical | mock-sources/issues | `rg -n -i 'checkout\|sendBeacon\|flush\|batch' mock-sources/issues` | BEACON-142; BEACON-097 | Delivery regression matches; export batching unrelated |
++| 3 | Exact | mock-sources/issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'pagehide' mock-sources/issues` | BEACON-142 | Version/lifecycle match; literal event name absent, not evidence against match |
++| 4 | Recent | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e 'Safari' -e 'navigation' mock-sources/issues` | BEACON-142 | Compared dates: created April 29, updated May 4 immediately after onset; 160 May 2, 151 May 1, 097 April 22, 118 January 8 |
++
++**Matching issue / release:** BEACON-142 is closed/fixed in 3.12.2 (rows 2–3). Its fix postdates the ticket onset, but exists in supplied evidence at investigation time.
++**Closest rejected candidates:** BEACON-118 concerns identity continuity with events still received; BEACON-160 concerns EU dashboards and later onset. BEACON-151 concerns webhook signatures; BEACON-097 concerns CSV export limits.
++**Search gaps:** Complete offline matrix, but fixtures are limited snapshots. No live project access, source code, framework docs, logs or public reproduction URL. No claims about current real service health.
++
++## 🗺️ How It Works (and Where It Breaks)
++
++Docs describe batching and lifecycle flushing (row 4). BEACON-142 describes cancellation before ingestion during navigation (row 2); that broken step remains hypothetical for this customer.
++
++```mermaid
++flowchart LR
++    A[Payment confirmed] --> B[Track checkout event]
++    B --> C[SDK batch / flush]
++    C --> D[Navigation-time transport]
++    D --> E[Ingestion]
++    E --> F[Analytics dashboard]
++    D -. Possible Safari 3.12.0 cancellation .-> G[Event never reaches ingestion]
++```
++
++## 🎯 Root-Cause Assessment
++
++**Assessment:** Likely BEACON-142: SDK 3.12.0 drops Safari events if they are fired immediately before navigation.
++
++**Confidence:** Likely based on pattern match
++
++**Reasoning:** Browser versions, SDK version, confirmation-event pattern, unaffected Chrome and approximate loss rate align (rows 1–3). Docs support a specific mitigation (row 4). No direct customer evidence establishes the navigation trigger or cancellation (row 8). Plausible unresolved candidate caps confidence at Medium (70%). Confidence limited by lack of project data access.
++
++**Not explained:** The ticket says the event fires on the confirmation page, but does not establish a subsequent redirect, route change, tab close or hide. Actual event emission, receipt and dashboard filtering remain unverified.
++
++## Recommended Next Action
++
++1. Have the customer confirm the event/navigation order from a sanitized snippet and check `beacon.version` in the affected browser (row 4). Request a sanitized network capture only if timing or the fix test remains inconclusive.
++2. 🔧 Test the documented fixed version 3.12.2 with the same checkout flow (rows 2–3). As an interim alternative, use `{ transport: 'beacon' }` on the affected track call or `await beacon.flush()` before navigation (rows 2, 4). These are recommendations, not changes performed.
++3. 🚨 Route the brief below to the browser SDK team for confirmation because reported conversion-event loss is P2. If the issue persists on the fixed version, compare browser capture with event receipt before attributing the outcome to this regression. Do not promise recovery of historical events.
++
++### Reproduction (status: not yet run)
++
++**Environment:** Safari 17 or 18; Next.js; SDK 3.12.0; US; OS/plan unknown.
++**Preconditions:** Synthetic test checkout; sanitized payload; navigation order still needs confirmation.
++
++1. Complete a test payment and reach confirmation (source: ticket; synthetic payment assumed).
++2. Emit `checkout_completed` using the customer's sanitized integration (source: ticket; exact code missing).
++3. Trigger the immediately following route change/redirect if the customer's flow has one (source: issue; applicability assumed).
++4. Observe delivery and dashboard appearance, preserving a sanitized network log (source: proposed verification).
++
++**Expected:** Event arrives under documented navigation-safe delivery (row 4).
++**Actual:** Customer reports roughly half of Safari completion events missing (row 1); no reproduced network outcome.
++**Control:** Repeat the same Safari flow changing only SDK 3.12.0 to 3.12.2; release notes predict restored delivery (row 3). Chrome is a secondary browser control.
++**Frequency:** Approximately half of Safari users reported; test n/m unknown.
++
++## Escalation Decision
++
++**Decision:** Escalate to engineering — brief prepared only; not sent.
++**Reason:** P2 conversion-event loss and strong known-regression match, with customer-specific trigger unverified.
++**Suggested owner if escalated:** Browser SDK team.
++**Follow-up cadence:** Review when event/navigation snippet or controlled fix-test result arrives; no timeline commitment.
++**Attachment:** Engineering brief in Evidence Pack; reproduction above.
++
++## 🔎 Verify This Report
++
++1. [ ] Open [BEACON-142](../mock-sources/issues/BEACON-142.md): verify Safari 17/18, 3.12.0, navigation trigger, 30–60% loss and fixed_in 3.12.2.
++2. [ ] Open [release notes](../mock-sources/releases/browser-sdk.md): verify 3.12.2 fix and 3.12.0 lifecycle change; 3.12.1 is not this fix.
++3. [ ] Open [SDK docs](../mock-sources/docs/browser-sdk.md): verify both recommended workarounds and runtime version check.
++4. [ ] Inspect sanitized customer snippet/capture: establish whether navigation follows tracking; run the single-variable SDK control before confirming the customer cause.
++
++## 💬 Draft Customer Response
++
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
++
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
++
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
++
++--- END OF CUSTOMER-FACING CONTENT ---
++
++## 🔬 Evidence Pack (internal only)
++
++Pre-send spot check: all cited references verified.
++
++### Engineer TL;DR
++
++The fixture documents a fixed Safari SDK regression that closely matches the ticket. Customer applicability remains likely rather than confirmed. Establish navigation timing and compare the fixed SDK under the same flow.
++
++### Claim-Source Map
++
++| # | Claim | Source (row #) | Status |
++|---|---|---|---|
++| 1 | Ticket reports Safari-only event loss after deploy | 1 | Verified as report |
++| 2 | Known regression matches browser/version and event pattern | 2 | Verified |
++| 3 | Fixed version is 3.12.2 | 2–3 | Verified |
++| 4 | Proposed transport/flush workarounds documented | 2, 4 | Verified |
++| 5 | ITP candidate does not concern delivery | 5 | Verified |
++| 6 | Listed incidents do not match region/timeframe | 6 | Verified |
++| 7 | BEACON-142 causes this customer's loss | 1–3, 8 | Inferred |
++| 8 | Customer navigates immediately after event | 8 | Unverified |
++
++### Unknowns
++
++- Navigation order, exact integration/configuration, runtime SDK, prior SDK and OS.
++- Requests emitted/received, earlier-event delivery, current persistence and test outcomes.
++- No logs supplied; no customer cancellation, silent-error or rejection claim independently established.
++- No source-code inspection; issue-described internals attributed to issue rather than independently verified.
++
++### Confidence Score
++
++**Overall:** Medium, capped at 70%.
++- Verified claims: 6
++- Inferred claims: 1
++- Unverified claims: 1
++- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
++- Caps applied: plausible matching candidate not ruled out / customer cause not confirmed → Medium (70%). Search gate complete.
++
++### Anti-hallucination review
++
++All material claims mapped above. Version and configuration recommendations checked against fetched offline docs and issue, not memory. Contradiction check: confirmation-page event does not itself prove navigation; retained explicitly as a gap. EU dashboard and earlier ingestion incident rejected by scope/date, without ruling out all backend causes. No customer requests, logs or code behavior fabricated. No recovery or timing promise.
++
++### Engineering Escalation Brief
++
++**Ticket:** SUP-1001
++**Customer Impact:** Roughly half of Safari checkout completion analytics reportedly missing; payments still succeed.
++**Severity:** High (P2)
++**Suggested Owner:** Browser SDK
++**Filed by support:** Prepared by triage agent; not filed externally
++**Date:** 2026-10-07
++
++#### Summary
++Confirm whether the customer's event fires in BEACON-142's navigation-time path. A fix is documented; no controlled customer result is available.
++
++#### Customer Impact
++One reporting organization; Safari 17/18 subset, approximately half affected per report. First seen April 28 at 14:00 UTC after frontend 2026.04.28.2. Reported regression, not payment-production downtime. Documented workaround available.
++
++#### Reproduction
++Use the not-yet-run reproduction under Recommended Next Action unchanged. Minimal missing piece: sanitized tracking code and navigation order.
++
++#### Expected Behavior
++Navigation-safe delivery documented in row 4.
++
++#### Actual Behavior
++Dashboard event absent for about half of Safari users per row 1; network result unknown.
++
++#### Evidence
++Rows 1–4 establish symptom, matching issue, fixed release and workaround. Row 8 preserves the customer-specific gap.
++
++#### What Support Already Tried
++Read-only four-part search matrix; full issue inspection; SDK docs, releases and status comparison. No customer changes, browser repro or project queries performed.
++
++#### Closest Known Issues
++BEACON-142: closed/fixed, strong conditional match. BEACON-118: rejected identity issue. BEACON-160: rejected EU dashboard incident.
++
++#### Specific Ask
++Confirm applicability from the sanitized event/navigation sequence; if the same flow still loses events on 3.12.2, investigate sanitized network outcomes and ingestion receipt as a potentially separate defect.
++
++#### Workaround
++Documented per-call beacon transport or awaited flush before navigation (rows 2, 4).
++
++### Redaction confirmation
++
++Redaction pass: 0 replacements made across the two output files. No tokens, raw person properties, payment payloads, private URLs or internal admin links included. Synthetic organization name omitted; safe event/version/ticket identifiers retained. Customer draft contains no internal source paths, tooling or emojis.
 +
 
 codex
-Likely match: SDK 3.12.0’s Safari event-delivery regression, documented as fixed in 3.12.2. Navigation timing still needs confirmation.
+Likely match: **BEACON-142**, a Safari regression in SDK 3.12.0, fixed in 3.12.2. Customer navigation timing still needs confirmation.
 
-Saved the [triage report](reports/20261007-000000-SUP-1001-triage.md) and [customer response draft](reports/20261007-000000-SUP-1001-customer-response.md), including workarounds and verification steps. Nothing was sent externally.
+Saved:
+
+- [Triage report](reports/20261007-000000-SUP-1001-triage.md), including engineering brief
+- [Customer response draft](reports/20261007-000000-SUP-1001-customer-response.md)
+
+Nothing was sent or changed in customer systems.
 diff --git a/reports/20261007-000000-SUP-1001-customer-response.md b/reports/20261007-000000-SUP-1001-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..c5d6bebdc5e5aaff21d508f76063a40a8febedd0
+index 0000000000000000000000000000000000000000..9271ee3e0778546d29cedfb13935db03772f162b
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1001-customer-response.md
-@@ -0,0 +1,8 @@
-+Hi,
+@@ -0,0 +1,6 @@
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 +
-+The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 +
-+The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-+
-+Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 +
 diff --git a/reports/20261007-000000-SUP-1001-triage.md b/reports/20261007-000000-SUP-1001-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..fea4f9092cbae2b8f77190cb0274799414f42916
+index 0000000000000000000000000000000000000000..7e020f6a977740419fdaf41f08b97ca723916c0e
 --- /dev/null
 +++ b/reports/20261007-000000-SUP-1001-triage.md
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,215 @@
 +# 🟠 Triage Report: SUP-1001 — Safari checkout events missing
 +
-+**Ticket:** SUP-1001  
-+**Customer:** Acme Analytics (synthetic organization)  
-+**Issue Type:** Bug  
-+**Product Area:** Browser SDK event delivery during page lifecycle transitions  
-+**Priority:** 🟠 P2  
-+**Plan Tier / SLA:** Unknown  
-+**Environment:** Next.js, Safari 17/18, browser SDK 3.12.0, US  
-+**Investigation Mode:** Read-only, offline fictional Beacon fixtures; reviewed 2026-10-07
++**Ticket:** SUP-1001
++**Issue Type:** Bug
++**Product Area:** Browser SDK event delivery during navigation
++**Priority:** 🟠 P2
++**Plan Tier:** Unknown
++**Environment:** Next.js; Safari 17/18; browser SDK 3.12.0; US
++**Investigation Mode:** Read-only, synthetic offline fixtures; investigated 2026-10-07
 +
 +## 📖 Context for Reviewers
 +
-+The customer wants successful payments to appear as `checkout_completed` events. The [browser delivery guide](../mock-sources/docs/browser-sdk.md) describes batching and flushing events around navigation. About half of Safari users reportedly reach the confirmation page without a corresponding analytics event; Chrome appears normal. No customer logs or project access were provided.
++The customer wants completed payments counted in analytics. The [browser SDK](../mock-sources/docs/browser-sdk.md) batches events and sends them to Beacon. Roughly half of Safari checkout events reportedly disappear while Chrome looks normal. Successful payment and confirmation-page display do not prove analytics delivery.
 +
 +## Issue Summary
 +
-+The customer reports Safari-only missing checkout events since frontend deployment `2026.04.28.2` at 2026-04-28 14:00 UTC. SDK 3.12.0 and Safari 17/18 align closely with BEACON-142, but the required navigation timing has not been verified (E1–E3).
++The customer reports missing `checkout_completed` events after frontend deploy `2026.04.28.2` around 2026-04-28 14:00 UTC. The environment closely matches a documented Safari delivery regression, but navigation timing and actual network behavior have not been verified. The ticket's “yesterday” is relative to its original submission; current persistence is unknown.
 +
 +## Intake
 +
++ASSUMING: Next.js with Beacon browser SDK v3.12.0, US region, unknown plan, multiple Safari users affected.
++→ Correct me now or I proceed with these.
++
 +| Field | Value |
 +|---|---|
-+| Issue Type / Product Area | Bug / browser event delivery |
-+| Timeframe | Reported onset 2026-04-28 14:00 UTC after deployment; current persistence unknown. “Yesterday” is ticket wording, not relative to investigation date. |
-+| Impact | Reportedly about half of Safari users; Chrome normal. Payment succeeds; analytics visibility is impaired. |
-+| Environment | Next.js; Safari 17/18; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown. |
++| Issue Type / Product Area | Bug / browser SDK navigation-time delivery |
++| Timeframe | Reported onset 2026-04-28 14:00 UTC after frontend deploy; ongoing at submission, current status unknown |
++| Impact | About half of Safari users' checkout completion events reportedly missing; Chrome normal; payment completion unaffected per ticket |
++| Environment | Safari 17/18; Next.js; SDK 3.12.0; US; OS, Next.js version, plan and hosting unknown |
 +| Identifiers | SUP-1001; checkout_completed; frontend 2026.04.28.2 |
-+| Reproduction | Payment succeeds → confirmation page sends event → dashboard lacks event for roughly half of Safari users. Customer report only. |
-+| Missing Context | Sanitized event/navigation code; deployed runtime SDK version; one sanitized Safari network capture; whether earlier events arrive. |
++| Reproduction | Payment succeeds → confirmation page → event sent → absent from dashboard for affected Safari sessions; not independently reproduced |
++| Missing Context | Sanitized event/redirect snippet; runtime SDK version; one sanitized Safari network capture; prior SDK version; current persistence |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | [Ticket](../tickets/001-safari-checkout-events.md), full read | Browser, version, event, onset and impact above are customer-reported, not independently measured. | ✅ Verified as ticket content |
-+| E2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | Closed/fixed in 3.12.2; Safari 17/18 events before transitions dropped since 3.12.0; reported 30–60% confirmation/conversion loss. Describes cancelled keepalive requests and no client error for that issue. | ✅ Verified fixture |
-+| E3 | [SDK releases](../mock-sources/releases/browser-sdk.md), full read | 3.12.0 released April 24 changed unload transport/lifecycle trigger; 3.12.2 released May 4 fixes Safari navigation losses. 3.12.1 fixes identify types. | ✅ Verified fixture |
-+| E4 | [Delivery guide](../mock-sources/docs/browser-sdk.md), full read | Flush every 3 seconds, at 20 events, or on page hiding; documented beacon transport override or awaited flush before navigation; runtime version check is beacon.version. | ✅ Verified fixture |
-+| E5 | [BEACON-118](../mock-sources/issues/BEACON-118.md), full body | Identity continuity issue explicitly does not prevent event delivery. | ✅ Verified fixture |
-+| E6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status history](../mock-sources/status/incidents.md), full reads | May 2 dashboard incident scoped to EU; April 11 ingestion delay resolved, with no data loss. Neither matches reported US April 28 Safari-specific onset. | ✅ Sources verified; exclusion is pattern-based |
-+| E7 | Customer evidence unavailable | Navigation after capture, cancellation in this customer flow, ingestion receipt and fix effectiveness have not been observed. | ❌ Unverified |
-+| E8 | [BEACON-151](../mock-sources/issues/BEACON-151.md), [BEACON-097](../mock-sources/issues/BEACON-097.md), full reads | Webhook signature and CSV cap topics do not match browser event delivery. | ✅ Verified fixture |
++| 1 | [Ticket](../tickets/001-safari-checkout-events.md) | Safari-only loss around half of users after deploy, SDK 3.12.0, US | ✅ Verified as customer report; occurrence not independently verified |
++| 2 | [BEACON-142](../mock-sources/issues/BEACON-142.md), full body | SDK 3.12.0 navigation-time regression in Safari 17/18; 30–60% confirmation/conversion events missing; Chrome unaffected. Issue attributes cancellation before ingestion to keepalive fetch and lifecycle change; no client error logged in that issue | ✅ Verified fixture description; not customer telemetry |
++| 3 | [Release notes](../mock-sources/releases/browser-sdk.md) | 3.12.0 changed unload transport/lifecycle; 3.12.2 dated May 4 restores sendBeacon in WebKit and fixes BEACON-142; 3.12.1 addresses identify typing only | ✅ Verified fixture |
++| 4 | [Browser SDK docs](../mock-sources/docs/browser-sdk.md) | Flush every 3 seconds, at 20 events and when hidden; documented navigation workarounds: transport beacon or await flush; version check beacon.version | ✅ Verified fixture |
++| 5 | [BEACON-118](../mock-sources/issues/BEACON-118.md) | Safari identity reset after seven days; explicitly not event delivery loss | ✅ Verified fixture; rejected candidate |
++| 6 | [BEACON-160](../mock-sources/issues/BEACON-160.md) and [status](../mock-sources/status/incidents.md) | EU dashboard incident May 2 excludes US; April 11 ingestion delay predates onset and says no data loss | ✅ Verified fixture; poor matches |
++| 7 | Search matrix below; full bodies of all five issue fixtures inspected | BEACON-142 strongest match; webhook/export issues do not concern this event delivery path | ✅ Verified search coverage |
++| 8 | Ticket versus BEACON-142 | Customer event may coincide with navigation; no snippet, HAR, ingestion data or runtime version check supplied | ⚠️ Inferred applicability; trigger unverified |
 +
 +## 🐛 Known-Issue Search
 +
-+All commands below were executed this session against `mock-sources/issues/`; offline hybrid means synonym/paraphrase grep, not a semantic search service.
++Tracker searched: `mock-sources/issues/` (offline equivalent of all related product repositories). These exact read-only commands were executed; no web lookup for fictional Beacon.
 +
-+| # | Query type | Tracker | Exact executed query | Candidate / conclusion |
-+|---|---|---|---|---|
-+| 1 | Hybrid | Local issues | `rg -n -i 'Safari\|WebKit\|missing\|drop\|navigation\|confirmation\|checkout' mock-sources/issues` | BEACON-142 accepted as likely match; BEACON-118 rejected for delivery symptoms |
-+| 2 | Lexical | Local issues | `rg -n -i 'Safari\|flush\|batch\|keepalive' mock-sources/issues` | BEACON-142 strongest; CSV batching in BEACON-097 unrelated |
-+| 3 | Exact | Local issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'sendBeacon' mock-sources/issues` | Version/transport match BEACON-142; no exact checkout_completed match |
-+| 4 | Recent | Local issues | `rg -n 'updated:\|created:\|Safari\|3.12' mock-sources/issues` | Compared dates: 142 updated May 4, created April 29, near April 28 onset; 160 May 2; 151 May 1; 097 April 22; 118 January 8 |
++| # | Query type | Repo / tracker | Query | Best Candidate | Conclusion |
++|---|---|---|---|---|---|
++| 1 | Hybrid / paraphrase | mock-sources/issues | `rg -n -i 'safari\|navigation\|unload\|missing\|drop\|confirmation' mock-sources/issues` | BEACON-142; BEACON-118 | 142 accepted as likely; 118 rejected |
++| 2 | Lexical | mock-sources/issues | `rg -n -i 'checkout\|sendBeacon\|flush\|batch' mock-sources/issues` | BEACON-142; BEACON-097 | Delivery regression matches; export batching unrelated |
++| 3 | Exact | mock-sources/issues | `rg -n -F -e 'checkout_completed' -e '3.12.0' -e 'pagehide' mock-sources/issues` | BEACON-142 | Version/lifecycle match; literal event name absent, not evidence against match |
++| 4 | Recent | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e 'Safari' -e 'navigation' mock-sources/issues` | BEACON-142 | Compared dates: created April 29, updated May 4 immediately after onset; 160 May 2, 151 May 1, 097 April 22, 118 January 8 |
 +
-+**Matching issue / release:** BEACON-142, closed/fixed; SDK 3.12.2 (E2–E3). Browser/version/frequency match; navigation timing remains unverified.
-+
-+**Closest rejected candidates:** BEACON-118 changes identity rather than delivery (E5). BEACON-160 concerns EU dashboard caching, different date and scope (E6). BEACON-151 and BEACON-097 concern unrelated product areas (E8).
-+
-+**Search gaps:** No separate correlated repository or source code exists in supplied fixtures; no project-data connector or customer artifact was available. No web search was performed for fictional Beacon.
++**Matching issue / release:** BEACON-142 is closed/fixed in 3.12.2 (rows 2–3). Its fix postdates the ticket onset, but exists in supplied evidence at investigation time.
++**Closest rejected candidates:** BEACON-118 concerns identity continuity with events still received; BEACON-160 concerns EU dashboards and later onset. BEACON-151 concerns webhook signatures; BEACON-097 concerns CSV export limits.
++**Search gaps:** Complete offline matrix, but fixtures are limited snapshots. No live project access, source code, framework docs, logs or public reproduction URL. No claims about current real service health.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+Documented flow and candidate failure, not an observed customer trace (E2–E4):
++Docs describe batching and lifecycle flushing (row 4). BEACON-142 describes cancellation before ingestion during navigation (row 2); that broken step remains hypothetical for this customer.
 +
 +```mermaid
 +flowchart LR
-+    A[Payment succeeds] --> B[Confirmation page tracks event]
-+    B --> C[SDK buffers and flushes]
-+    C --> D{Navigation near flush?}
-+    D -->|Safari 3.12.0 candidate failure| E[Request cancelled before ingestion]
-+    D -->|Delivery succeeds| F[Ingestion]
-+    F --> G[Analytics dashboard]
++    A[Payment confirmed] --> B[Track checkout event]
++    B --> C[SDK batch / flush]
++    C --> D[Navigation-time transport]
++    D --> E[Ingestion]
++    E --> F[Analytics dashboard]
++    D -. Possible Safari 3.12.0 cancellation .-> G[Event never reaches ingestion]
 +```
-+
-+BEACON-142 attributes the issue to the switch from sendBeacon/pagehide to fetch keepalive/visibilitychange and says cancelled requests never reach ingestion, without a client error. Those statements describe the known issue, not verified behavior in this customer's project.
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported loss likely matches BEACON-142, the SDK 3.12.0 Safari navigation-time delivery regression.
++**Assessment:** Likely BEACON-142: SDK 3.12.0 drops Safari events if they are fired immediately before navigation.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** Browser majors, SDK version, Chrome control, confirmation-page symptom, approximate loss rate and deployment timing align with E1–E3. Direct customer cancellation evidence is absent (E7). Confidence is limited by lack of project data access.
++**Reasoning:** Browser versions, SDK version, confirmation-event pattern, unaffected Chrome and approximate loss rate align (rows 1–3). Docs support a specific mitigation (row 4). No direct customer evidence establishes the navigation trigger or cancellation (row 8). Plausible unresolved candidate caps confidence at Medium (70%). Confidence limited by lack of project data access.
 +
-+**Not explained:** The ticket does not establish navigation or page hiding immediately after capture. If the page stays open through a flush, the candidate may not explain the loss. Current persistence and whether earlier events arrive are unknown.
++**Not explained:** The ticket says the event fires on the confirmation page, but does not establish a subsequent redirect, route change, tab close or hide. Actual event emission, receipt and dashboard filtering remain unverified.
 +
 +## Recommended Next Action
 +
-+1. Ask for the sanitized capture/navigation snippet and confirm deployed version using the documented `beacon.version` check (E4).
-+2. Recommend testing SDK 3.12.2, the documented fixed release (E3). It became available May 4, after the reported April 28 onset; this is a present-day recommendation.
-+3. Interim documented options: pass `{ transport: 'beacon' }` to the affected track call, or await `beacon.flush()` before navigation (E2/E4). Do not claim these have been tested in this flow.
-+4. If loss persists on the fixed release, collect one sanitized Safari network trace and refer to browser SDK engineering.
++1. Have the customer confirm the event/navigation order from a sanitized snippet and check `beacon.version` in the affected browser (row 4). Request a sanitized network capture only if timing or the fix test remains inconclusive.
++2. 🔧 Test the documented fixed version 3.12.2 with the same checkout flow (rows 2–3). As an interim alternative, use `{ transport: 'beacon' }` on the affected track call or `await beacon.flush()` before navigation (rows 2, 4). These are recommendations, not changes performed.
++3. 🚨 Route the brief below to the browser SDK team for confirmation because reported conversion-event loss is P2. If the issue persists on the fixed version, compare browser capture with event receipt before attributing the outcome to this regression. Do not promise recovery of historical events.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Reported Next.js/Safari 17 or 18/SDK 3.12.0/US; OS and plan unknown.  
-+**Preconditions:** Synthetic checkout; existing integration; event code still needed.
++**Environment:** Safari 17 or 18; Next.js; SDK 3.12.0; US; OS/plan unknown.
++**Preconditions:** Synthetic test checkout; sanitized payload; navigation order still needs confirmation.
 +
-+1. Complete a synthetic successful payment and reach confirmation (source: ticket).
-+2. Send checkout_completed using the customer's sanitized integration (source: ticket; implementation missing).
-+3. Trigger the same immediate navigation, if present in their flow (source: assumed candidate condition from E2; confirm before treating as reproduction).
-+4. Observe network delivery and analytics appearance (source: proposed verification).
++1. Complete a test payment and reach confirmation (source: ticket; synthetic payment assumed).
++2. Emit `checkout_completed` using the customer's sanitized integration (source: ticket; exact code missing).
++3. Trigger the immediately following route change/redirect if the customer's flow has one (source: issue; applicability assumed).
++4. Observe delivery and dashboard appearance, preserving a sanitized network log (source: proposed verification).
 +
-+**Expected:** Tracked events deliver via the documented lifecycle path (E4).  
-+**Actual:** Customer reports about half missing in Safari (E1); network cancellation is not observed.  
-+**Control:** Repeat identical Safari steps with only SDK changed to 3.12.2; candidate predicts delivery restored (E3). Chrome on 3.12.0 is a secondary browser control.  
-+**Frequency:** Customer estimate roughly 50%; no measured n/m.
++**Expected:** Event arrives under documented navigation-safe delivery (row 4).
++**Actual:** Customer reports roughly half of Safari completion events missing (row 1); no reproduced network outcome.
++**Control:** Repeat the same Safari flow changing only SDK 3.12.0 to 3.12.2; release notes predict restored delivery (row 3). Chrome is a secondary browser control.
++**Frequency:** Approximately half of Safari users reported; test n/m unknown.
 +
 +## Escalation Decision
 +
-+**Decision:** Prepare conditional engineering handoff; no external escalation sent.
-+
-+**Reason:** P2 analytics loss and strong known defect match warrant a ready brief. First obtain the minimum timing evidence and test the documented fix; escalate if losses continue on 3.12.2 or evidence contradicts the candidate.
-+**Suggested owner:** Browser SDK engineering (suggested, not verified ownership).
-+**Follow-up cadence:** Review when requested artifacts or test results arrive; no timeline promised.
-+
-+### Prepared Escalation Brief
-+
-+**Ticket / severity / date:** SUP-1001 / High (P2) / 2026-10-07  
-+**Summary:** Verify whether the customer flow hits BEACON-142, or a separate delivery defect if SDK 3.12.2 still loses events.  
-+**Customer impact:** One reporting organization, roughly half of Safari checkouts missing from analytics; no reported payment failure; first seen April 28 14:00 UTC after frontend deployment.  
-+**Reproduction:** Use the unrun steps above; immediate-navigation condition and sanitized code remain missing.  
-+**Expected vs actual:** Successful delivery versus customer-reported missing analytics events; no customer network trace.  
-+**Evidence:** E1 customer report, E2 known regression, E3 fixed release, E4 documented workaround.  
-+**Support checks:** Completed four search modes, inspected all five issue fixtures, checked docs/releases/status; no code changes, workaround trials or customer-system requests executed.  
-+**Closest issue:** BEACON-142 closed/fixed, strong symptom/version match; BEACON-118 and 160 rejected for stated scope differences.  
-+**Specific ask:** Confirm capture-to-navigation timing and whether a post-upgrade Safari trace shows the event request reaching ingestion; investigate a separate regression if loss persists.  
-+**Workaround:** Documented beacon override or awaited flush, pending customer verification.
++**Decision:** Escalate to engineering — brief prepared only; not sent.
++**Reason:** P2 conversion-event loss and strong known-regression match, with customer-specific trigger unverified.
++**Suggested owner if escalated:** Browser SDK team.
++**Follow-up cadence:** Review when event/navigation snippet or controlled fix-test result arrives; no timeline commitment.
++**Attachment:** Engineering brief in Evidence Pack; reproduction above.
 +
 +## 🔎 Verify This Report
 +
-+1. Open [BEACON-142](../mock-sources/issues/BEACON-142.md): check affected browsers, version, cancellation description and fixed_in.
-+2. Open [release notes](../mock-sources/releases/browser-sdk.md): check April 24 transport change and May 4 fix.
-+3. Open [delivery docs](../mock-sources/docs/browser-sdk.md): check transport override, awaited flush and version check.
-+4. Review the customer's sanitized snippet and Safari trace: establish navigation timing and delivery outcome; rerun with only SDK changed to 3.12.2.
++1. [ ] Open [BEACON-142](../mock-sources/issues/BEACON-142.md): verify Safari 17/18, 3.12.0, navigation trigger, 30–60% loss and fixed_in 3.12.2.
++2. [ ] Open [release notes](../mock-sources/releases/browser-sdk.md): verify 3.12.2 fix and 3.12.0 lifecycle change; 3.12.1 is not this fix.
++3. [ ] Open [SDK docs](../mock-sources/docs/browser-sdk.md): verify both recommended workarounds and runtime version check.
++4. [ ] Inspect sanitized customer snippet/capture: establish whether navigation follows tracking; run the single-variable SDK control before confirming the customer cause.
 +
 +## 💬 Draft Customer Response
 +
-+Hi,
++Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 +
-+The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
++The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 +
-+The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-+
-+Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
++Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -1885,48 +2168,92 @@ index 0000000000000000000000000000000000000000..fea4f9092cbae2b8f77190cb02747994
 +
 +### Engineer TL;DR
 +
-+Strong known-regression match; customer root cause remains inferred. Obtain event/navigation timing and verify the documented fixed release before claiming resolution. No project query, browser reproduction, external escalation or message was performed.
++The fixture documents a fixed Safari SDK regression that closely matches the ticket. Customer applicability remains likely rather than confirmed. Establish navigation timing and compare the fixed SDK under the same flow.
 +
 +### Claim-Source Map
 +
-+| # | Claim | Source | Status |
++| # | Claim | Source (row #) | Status |
 +|---|---|---|---|
-+| 1 | Customer reports Safari 17/18, SDK 3.12.0, about half missing | E1 | Verified as report only |
-+| 2 | Known issue affects those browsers/version before navigation | E2 | Verified |
-+| 3 | Known issue describes cancellation before ingestion and no client error | E2 | Verified; not customer-specific |
-+| 4 | 3.12.0 changed transport and lifecycle trigger | E3 | Verified |
-+| 5 | 3.12.2 documents fix | E2/E3 | Verified |
-+| 6 | Beacon override or awaited flush is documented | E2/E4 | Verified |
-+| 7 | Runtime version check is beacon.version | E4 | Verified |
-+| 8 | ITP candidate concerns identity rather than delivery | E5 | Verified |
-+| 9 | Listed incidents differ in date or region | E6 | Verified |
-+| 10 | Customer loss likely caused by BEACON-142 | E1–E3/E7 | Inferred |
++| 1 | Ticket reports Safari-only event loss after deploy | 1 | Verified as report |
++| 2 | Known regression matches browser/version and event pattern | 2 | Verified |
++| 3 | Fixed version is 3.12.2 | 2–3 | Verified |
++| 4 | Proposed transport/flush workarounds documented | 2, 4 | Verified |
++| 5 | ITP candidate does not concern delivery | 5 | Verified |
++| 6 | Listed incidents do not match region/timeframe | 6 | Verified |
++| 7 | BEACON-142 causes this customer's loss | 1–3, 8 | Inferred |
++| 8 | Customer navigates immediately after event | 8 | Unverified |
 +
 +### Unknowns
 +
-+Navigation/page-hide timing, deployed runtime version, request fate, current impact, post-fix results, OS, Next.js version, plan and earlier-event behavior. No source-code inspection; issue-body internals are attributed to the issue. No claim of restored missing historical events.
++- Navigation order, exact integration/configuration, runtime SDK, prior SDK and OS.
++- Requests emitted/received, earlier-event delivery, current persistence and test outcomes.
++- No logs supplied; no customer cancellation, silent-error or rejection claim independently established.
++- No source-code inspection; issue-described internals attributed to issue rather than independently verified.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
-+
-+- Verified claims: 9
++**Overall:** Medium, capped at 70%.
++- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified scored claims: 0 (unknowns excluded; not asserted)
-+- Arithmetic: (9 + 0.5) / 10 = 95%.
-+- Caps applied: plausible matching candidate not definitively established or ruled out → Medium (70%). Search gate complete; root cause inferred rather than confirmed.
++- Unverified claims: 1
++- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
++- Caps applied: plausible matching candidate not ruled out / customer cause not confirmed → Medium (70%). Search gate complete.
 +
-+### Anti-hallucination and contradiction review
++### Anti-hallucination review
 +
-+Claims mapped above; versions, workaround API, issue state and no-error statement checked against fetched fixtures. Ticket is distinguished from independent customer evidence. No contradiction between known issue and release notes; navigation is the unresolved condition. Later release/issue updates are retrospective evidence, not claimed to have been available at onset. Customer reply contains no fixture paths, internal tracker names, invented URLs, timelines or ungrounded fix recipe.
++All material claims mapped above. Version and configuration recommendations checked against fetched offline docs and issue, not memory. Contradiction check: confirmation-page event does not itself prove navigation; retained explicitly as a gap. EU dashboard and earlier ingestion incident rejected by scope/date, without ruling out all backend causes. No customer requests, logs or code behavior fabricated. No recovery or timing promise.
++
++### Engineering Escalation Brief
++
++**Ticket:** SUP-1001
++**Customer Impact:** Roughly half of Safari checkout completion analytics reportedly missing; payments still succeed.
++**Severity:** High (P2)
++**Suggested Owner:** Browser SDK
++**Filed by support:** Prepared by triage agent; not filed externally
++**Date:** 2026-10-07
++
++#### Summary
++Confirm whether the customer's event fires in BEACON-142's navigation-time path. A fix is documented; no controlled customer result is available.
++
++#### Customer Impact
++One reporting organization; Safari 17/18 subset, approximately half affected per report. First seen April 28 at 14:00 UTC after frontend 2026.04.28.2. Reported regression, not payment-production downtime. Documented workaround available.
++
++#### Reproduction
++Use the not-yet-run reproduction under Recommended Next Action unchanged. Minimal missing piece: sanitized tracking code and navigation order.
++
++#### Expected Behavior
++Navigation-safe delivery documented in row 4.
++
++#### Actual Behavior
++Dashboard event absent for about half of Safari users per row 1; network result unknown.
++
++#### Evidence
++Rows 1–4 establish symptom, matching issue, fixed release and workaround. Row 8 preserves the customer-specific gap.
++
++#### What Support Already Tried
++Read-only four-part search matrix; full issue inspection; SDK docs, releases and status comparison. No customer changes, browser repro or project queries performed.
++
++#### Closest Known Issues
++BEACON-142: closed/fixed, strong conditional match. BEACON-118: rejected identity issue. BEACON-160: rejected EU dashboard incident.
++
++#### Specific Ask
++Confirm applicability from the sanitized event/navigation sequence; if the same flow still loses events on 3.12.2, investigate sanitized network outcomes and ingestion receipt as a potentially separate defect.
++
++#### Workaround
++Documented per-call beacon transport or awaited flush before navigation (rows 2, 4).
 +
 +### Redaction confirmation
 +
-+Redaction pass: 0 replacements made across 2 files. Reviewed for tokens, secrets, PII, private links, admin links and raw person properties; none included. Synthetic organization label remains internal. Customer draft contains no emojis or internal-only details.
++Redaction pass: 0 replacements made across the two output files. No tokens, raw person properties, payment payloads, private URLs or internal admin links included. Synthetic organization name omitted; safe event/version/ticket identifiers retained. Customer draft contains no internal source paths, tooling or emojis.
 +
 
 tokens used
-40,412
-Likely match: SDK 3.12.0’s Safari event-delivery regression, documented as fixed in 3.12.2. Navigation timing still needs confirmation.
+34,180
+Likely match: **BEACON-142**, a Safari regression in SDK 3.12.0, fixed in 3.12.2. Customer navigation timing still needs confirmation.
 
-Saved the [triage report](reports/20261007-000000-SUP-1001-triage.md) and [customer response draft](reports/20261007-000000-SUP-1001-customer-response.md), including workarounds and verification steps. Nothing was sent externally.
+Saved:
+
+- [Triage report](reports/20261007-000000-SUP-1001-triage.md), including engineering brief
+- [Customer response draft](reports/20261007-000000-SUP-1001-customer-response.md)
+
+Nothing was sent or changed in customer systems.

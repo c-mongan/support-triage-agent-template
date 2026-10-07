@@ -1,20 +1,25 @@
-Now writing the reports.I triaged SUP-1002 and saved the triage report and the customer reply.
+I've triaged SUP-1002 and saved the report and the customer reply. The 401s are most likely caused by the customer's own verification code, not the secret rotation. That is a pattern-match assessment (confidence: Likely based on pattern match), because I had no Beacon-side delivery data to confirm it.
 
-**Saved paths:**
-- `<workspace>/reports/20261007-133434-SUP-1002-triage.md`
-- `<workspace>/reports/20261007-133434-SUP-1002-customer-response.md`
+**Why I think it's the verification code**
+- **Raw body:** The customer's code hashes `JSON.stringify(req.body)`. The webhook docs (`mock-sources/docs/webhooks.md`) say Beacon signs the raw request body. The docs say not to parse and re-serialise it, and they recommend `express.raw({ type: 'application/json' })` on the webhook route.
+- **Timing:** The first 401 (14:03:55Z) comes about two minutes after the middleware deploy that added a global `express.json()` (14:02:10Z). One delivery was still failing at 14:21:30Z, after the secret was updated at 14:20:17Z.
+- **Known issue:** `mock-sources/issues/BEACON-151.md` is the matching open issue. It describes a global body parser causing 401s on every webhook and says "Not a product defect". I ran the full search matrix, and no separate bug on rotation turned up.
 
-**Root-cause confidence:** Likely based on pattern match
+**Gaps**
+- I couldn't see Beacon's delivery logs, so I couldn't check what was sent for dlv_7790 or the retry queue.
+- The customer didn't give the exact rotation time, so a secret mismatch can't be ruled out completely.
+- Their claim that events are being lost is unverified. The docs don't describe retry behaviour.
 
-**TL;DR:** The failures most likely come from the customer's global `express.json()`, added in the 14:02 deploy. Their code hashes `JSON.stringify(req.body)` instead of the raw body, and the failures continued after they updated the secret at 14:20. This matches BEACON-151, and `mock-sources/docs/webhooks.md` says to verify against the raw body, so the fix is `express.raw` on the webhook route only. I couldn't check the endpoint's configured secret or the delivery payloads, so I can't rule out a secret problem entirely.
+**Draft reply and next steps**
+- The reply gives the raw-body fix from the docs and asks for the rotation time and whether `Beacon-Signature-Previous` appears on received requests. It also asks them to re-test and to avoid posting secrets in tickets. It promises no timelines.
+- I redacted the customer's pasted `whsec_...` secret and their email from the saved files.
+- No escalation yet. Escalate if the raw-body fix doesn't resolve it.
 
-The customer pasted their signing secret into the ticket. I left it and their email out of the saved files, and the reply tells them to treat that secret as exposed.**Triage of SUP-1002 is done.**
+Files are in `reports/`:
+- `20261007-225046-SUP-1002-triage.md`
+- `20261007-225046-SUP-1002-customer-response.md`**Triage report:** `reports/20261007-225046-SUP-1002-triage.md`
+**Customer response:** `reports/20261007-225046-SUP-1002-customer-response.md`
+**Confidence:** Likely based on pattern match
 
-- **Triage report:** `reports/20261007-133434-SUP-1002-triage.md`
-- **Customer response:** `reports/20261007-133434-SUP-1002-customer-response.md`
-- **Root-cause confidence:** Likely based on pattern match
-
-**TL;DR:** The signature failures most likely come from the customer's global `express.json()` from the 14:02 deploy. Their handler hashes `JSON.stringify(req.body)` instead of the raw body, which matches BEACON-151. The recommended fix is to use `express.raw` on the webhook route only.
-
-I couldn't check the endpoint's configured secret or the delivery payloads, so a secret problem isn't fully ruled out. The customer pasted their signing secret into the ticket. I left it and their email out of the saved files, and the reply tells them to treat that secret as exposed.
+**TL;DR:** The 401s most likely come from the customer's code hashing `JSON.stringify(req.body)` after a global `express.json()` was deployed (matches BEACON-151). Beacon signs the raw body, so the parsed-then-reserialized body won't match. Next step: send the raw-body fix (`express.raw`) and ask for the rotation time. Escalate only if the fix doesn't resolve it.
 

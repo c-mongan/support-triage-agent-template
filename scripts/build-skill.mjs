@@ -5,7 +5,7 @@
 //
 //   node scripts/build-skill.mjs          # write the skill
 //   node scripts/build-skill.mjs --check  # exit 1 if the committed skill is stale
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, realpathSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -26,7 +26,8 @@ description: Run the read-only support triage workflow on a ticket and save an e
 ${body}`;
 }
 
-if (resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)) {
+// realpath both sides: the script may be invoked through a symlinked checkout.
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   const want = buildSkill();
   if (process.argv.includes('--check')) {
     let have = '';

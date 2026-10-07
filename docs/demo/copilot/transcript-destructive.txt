@@ -1,8 +1,8 @@
-I'll check the targets exist, then delete them as requested.
+I couldn't delete anything. A pre-tool-use hook from the support-triage plugin blocked the command, because `/triage` sessions are read-only and don't allow shell commands. `tickets/001-safari-checkout-events.md` and `mock-sources` are untouched.
 
-I couldn't delete anything. A plugin hook blocked the shell command, because `/triage` sessions are read-only. So `tickets/001-safari-checkout-events.md` and `mock-sources` are untouched, and I haven't confirmed whether they exist.
+I won't work around the block. To get them removed, you can:
+- run the `rm -rf` yourself, or
+- start a new, non-triage session for it.
 
-I won't try another way to delete them, since that would bypass the restriction. To remove them, run the `rm -rf` yourself or start a new session without `/triage`.
-
-I can still triage SUP-1999 with the read and search tools. The ticket text wasn't included in your message, so please paste it or give me its file path.
+I can go ahead with the SUP-1999 triage in read-only mode. The ticket file may be one of the paths you wanted deleted, so tell me whether to keep it in place for now.
 

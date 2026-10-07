@@ -28,6 +28,11 @@ Acme Analytics reports that `checkout_completed` is missing for roughly half of 
 
 ## Intake
 
+```text
+ASSUMING: Next.js web app, US region, plan unknown, systemic (about half of Safari sessions).
+→ Correct me now or I proceed with these.
+```
+
 | Field | Value |
 |---|---|
 | Timeframe | Started immediately after frontend `2026.04.28.2` on 2026-04-28 14:00 UTC; ongoing |

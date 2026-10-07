@@ -1,20 +1,18 @@
-I triaged SUP-1001 and saved both files. The match to a known bug is strong, but I had no project data, so I could not confirm it for this customer.
+I saved the triage report and the customer response. The root cause is only a pattern match, because I had no access to the customer's project data.
 
-**Saved paths**
-- `<workspace>/reports/20261007-133345-SUP-1001-triage.md`
-- `<workspace>/reports/20261007-133345-SUP-1001-customer-response.md`
-
-**Root-cause confidence:** Likely based on pattern match
-
-**TL;DR:** The symptoms match BEACON-142, a bug in browser SDK 3.12.0. Safari cancels the SDK's new keepalive requests during a redirect or route change, so events fired just before navigation are dropped, and the bug was fixed in 3.12.2. The reply suggests upgrading to 3.12.2 or later, or using `{ transport: 'beacon' }` or `await beacon.flush()` before navigating, and asks the customer how `checkout_completed` is fired. I did not state the fix as a guarantee.
-
-I ran the known-issue search against `mock-sources/issues/` (hybrid, lexical, exact and recent), and BEACON-142 was the only candidate that fit. I rejected the others, including BEACON-118 (Safari identity reset) and BEACON-160 (EU dashboard "No data"). The ticket dates are in April 2026, so the customer may already be on a fixed release.Triage of SUP-1001 is done.
-
-- **Triage report:** `reports/20261007-133345-SUP-1001-triage.md`
-- **Customer response:** `reports/20261007-133345-SUP-1001-customer-response.md`
+- **Report path:** `reports/20261007-224948-SUP-1001-triage.md`
+- **Response path:** `reports/20261007-224948-SUP-1001-customer-response.md`
 - **Root-cause confidence:** Likely based on pattern match
 
-**TL;DR:** The symptoms match known bug BEACON-142 in browser SDK 3.12.0. Safari cancels keepalive requests during navigation, so events fired just before a redirect are dropped. The recommended next step is to upgrade to 3.12.2 or later, or use `{ transport: 'beacon' }` or `await beacon.flush()` before navigating, and to ask the customer how `checkout_completed` is fired.
+**TL;DR:** The ticket matches BEACON-142. In SDK 3.12.0, Safari 17 and 18 drop events fired right before a redirect or route change, and the fix shipped in 3.12.2. The next steps are to confirm the customer's `beacon.version` and whether `checkout_completed` fires just before navigation. Meanwhile, suggest upgrading, or using `{ transport: 'beacon' }` or `await beacon.flush()` as the interim workaround.
 
-I found no project data, so I couldn't confirm this for the customer's own project.
+I read all five files in `mock-sources/issues/` directly instead of running Grep queries. The report says so.I triaged the ticket as SUP-1001 (`tickets/001-safari-checkout-events.md`). I haven't opened the saved files myself, so the summary below comes from the agent's report.
+
+- **Triage report:** `reports/20261007-224948-SUP-1001-triage.md`
+- **Customer response:** `reports/20261007-224948-SUP-1001-customer-response.md`
+- **Root-cause confidence:** Likely based on pattern match. I had no access to the customer's project data, so this is not confirmed.
+
+**TL;DR:** The ticket matches BEACON-142. In SDK 3.12.0, Safari 17 and 18 drop events fired right before a redirect or route change, and 3.12.2 fixes it. Next, confirm the customer's `beacon.version` and whether `checkout_completed` fires just before navigation. Meanwhile, they can upgrade, use `{ transport: 'beacon' }`, or call `await beacon.flush()`.
+
+The agent read the five files in `mock-sources/issues/` directly rather than searching them, and the report says so.
 

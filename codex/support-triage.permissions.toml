@@ -1,0 +1,18 @@
+# Codex permissions profile for the support triage workflow.
+#
+# Append this file to ~/.codex/config.toml (or $CODEX_HOME/config.toml) once:
+#   cat codex/support-triage.permissions.toml >> ~/.codex/config.toml
+# Then start triage sessions with:
+#   codex -c default_permissions='"support-triage"'
+#
+# Sandboxed commands and apply_patch edits can read the workspace but write only
+# under reports/. Network access for commands stays off (the read-only base
+# profile). This is the write boundary; codex/support-triage.rules adds
+# best-effort command blocking on top.
+
+[permissions.support-triage]
+description = "Support triage: read-only workspace, writes only to reports/"
+extends = ":read-only"
+
+[permissions.support-triage.filesystem.":workspace_roots"]
+"reports" = "write"

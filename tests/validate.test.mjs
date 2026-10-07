@@ -104,3 +104,31 @@ test('demo setup script creates reports/ next to the fixtures', async () => {
     for (const d of ['reports', 'tickets', 'mock-sources']) assert.ok(existsSync(join(dir, d)), `${d}/ missing`);
   } finally { rmSync(dirname(dir), { recursive: true, force: true }); }
 });
+
+test('a report without the Phase 0 ASSUMING line is rejected', () => {
+  const report = sample.replace(/^ASSUMING:.*$/m, '');
+  assert.match(checkReport(report).join('\n'), /missing Phase 0 "ASSUMING/);
+});
+
+test('a report without the "Correct me now" line is rejected', () => {
+  const report = sample.replace(/^→ Correct me now.*$/m, '');
+  assert.match(checkReport(report).join('\n'), /Correct me now/);
+});
+
+test('an ASSUMING line placed after the evidence is rejected', () => {
+  const report = sample.replace(/^ASSUMING:.*$/m, '').replace(/^## .*Known-Issue Search.*$/m, 'ASSUMING: late.\n\n$&');
+  assert.match(checkReport(report).join('\n'), /missing Phase 0 "ASSUMING/);
+});
+
+test('a draft reply that only points to the separate file is rejected', () => {
+  const report = sample.replace(
+    /(^## .*Draft Customer Response.*\n)[\s\S]*?(--- END OF CUSTOMER-FACING CONTENT ---)/m,
+    '$1\nSee reports/20261007-000000-SUP-1002-customer-response.md for the full reply.\n\n$2',
+  );
+  assert.match(checkReport(report).join('\n'), /must embed the full reply/);
+});
+
+test('an Evidence Gathered section with no table rows is rejected', () => {
+  const report = sample.replace(/(^## Evidence Gathered\n)[\s\S]*?(?=^## )/m, '$1\nNothing yet.\n\n');
+  assert.match(checkReport(report).join('\n'), /Evidence Gathered has no table rows/);
+});
