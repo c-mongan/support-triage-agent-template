@@ -160,6 +160,8 @@ test('a customer reply that claims a hand-off triage did not do is rejected', ()
   assert.ok(checkCustomerResponse(sampleReply + "\nI've passed this to our engineering team.\n").some((e) => /hand-off/.test(e)));
   assert.ok(checkCustomerResponse(sampleReply + '\nThis has been escalated.\n').some((e) => /hand-off/.test(e)));
   assert.deepEqual(checkCustomerResponse(sampleReply + '\nA member of our team will review this with engineering.\n'), []);
+  assert.ok(checkCustomerResponse(sampleReply + "\nI'm passing this to our engineering team.\n").some((e) => /hand-off/.test(e)));
+  assert.deepEqual(checkCustomerResponse(sampleReply + '\nOnce the event has been sent, check the live view.\n'), []);
 });
 
 test('Claude settings keep the shell denied and never pre-approve interpreters', () => {

@@ -178,7 +178,8 @@ export function checkCustomerResponse(text) {
   for (const p of SECRET_PATTERNS) if (p.test(text)) errors.push(`unredacted secret-like value matches ${p}`);
   for (const e of piiEmails(text)) errors.push(`unredacted email address: ${e}`);
   if (ABSOLUTE_PATH.test(text)) errors.push('customer response contains an absolute local path');
-  if (/\b(I(?:'|’)ve|I have|we(?:'|’)ve|we have|has been|have been)\s+(passed|escalated|forwarded|sent|handed)\b/i.test(text)) {
+  const claimed = /\b(I(?:'|’)ve|I have|we(?:'|’)ve|we have|has been|have been|I(?:'|’)m|we(?:'|’)re|I am|we are)\s+(passed|passing|forwarded|forwarding|handed|handing|sent|sending|raised|raising)\b[^.\n]{0,40}\b(engineer\w*|team|developers?|specialists?|product)\b/i;
+  if (claimed.test(text) || /\b(has|have|I(?:'|’)ve|we(?:'|’)ve)\s+(been\s+)?escalated\b/i.test(text)) {
     errors.push('customer response claims a hand-off that triage did not perform (read-only); say a person will review instead');
   }
   return errors;

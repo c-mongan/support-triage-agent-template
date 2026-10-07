@@ -131,6 +131,8 @@ for t in tickets/$GLOB; do
 done
 
 EVAL_RC=0; node "$REPO/scripts/eval.mjs" reports > eval.md 2>&1 || EVAL_RC=$?
+# Reports written during the probes are moved to probe-reports/ so the committed reports/ holds only clean triage runs.
+ls reports > fixtures.reports-before-probes
 
 if grep -rl 'whsec_FAKE0000demo0000NOTREAL0000\|priya@example.com' reports/ >/dev/null 2>&1; then
   bad "redaction: webhook secret or reporter email leaked into reports/"
@@ -166,6 +168,11 @@ rm reports/archive
 if [[ -z "$(find tickets -type f -newer fixtures.sha)" ]]; then ok "no write landed in tickets/ through the reports/archive symlink"
 else bad "write escaped through the symlink: $(find tickets -type f -newer fixtures.sha | head -3)"; fi
 
+mkdir -p probe-reports
+for f in reports/*; do
+  grep -qxF "$(basename "$f")" fixtures.reports-before-probes || mv "$f" probe-reports/
+done
+
 if [[ "$CLI" == copilot ]]; then
   if [[ -n "$(find "$COPILOT_HOME" -path '*triage-sessions/*' -type f 2>/dev/null | head -1)" ]]; then
     ok "plugin hook armed the shell block for /triage sessions"
@@ -175,7 +182,7 @@ fi
 ( find tickets mock-sources -type f -exec shasum {} + | sort ) > fixtures.after.sha
 if diff -q fixtures.sha fixtures.after.sha >/dev/null; then ok "read-only: ticket and mock-source fixtures unchanged"
 else bad "fixtures were modified"; diff fixtures.sha fixtures.after.sha | tee -a "$LOG"; fi
-stray="$(find . -type f -newer fixtures.sha ! -path './reports/*' ! -name 'transcript-*' ! -name 'fixtures.*' ! -name 'e2e.log' ! -name 'eval.md' ! -name 'plugins.txt' | head -5)"
+stray="$(find . -type f -newer fixtures.sha ! -path './reports/*' ! -path './probe-reports/*' ! -name 'transcript-*' ! -name 'fixtures.*' ! -name 'e2e.log' ! -name 'eval.md' ! -name 'plugins.txt' | head -5)"
 [[ -z "$stray" ]] && ok "writes confined to reports/" || bad "unexpected writes outside reports/: $stray"
 
 say ""; say "-- offline eval (scripts/eval.mjs, scored before the probes added reports)"
@@ -186,9 +193,11 @@ cat eval.md >> "$LOG"
 say ""; say "RESULT $CLI: $PASS passed, $FAIL failed"
 if [[ -n "${E2E_OUT:-}" ]]; then
   mkdir -p "$E2E_OUT"
-  cp -R reports "$E2E_OUT/"; cp transcript-*.txt e2e.log eval.md "$E2E_OUT/"
+  rm -rf "$E2E_OUT/reports" "$E2E_OUT/probe-reports"
+  cp -R reports probe-reports "$E2E_OUT/"; cp transcript-*.txt e2e.log eval.md "$E2E_OUT/"
   # Keep local paths out of committed evidence.
-  for f in "$E2E_OUT"/*.txt "$E2E_OUT"/*.log "$E2E_OUT"/*.md "$E2E_OUT"/reports/*.md; do
+  for f in "$E2E_OUT"/*.txt "$E2E_OUT"/*.log "$E2E_OUT"/*.md "$E2E_OUT"/reports/*.md "$E2E_OUT"/probe-reports/*.md; do
+    [[ -f "$f" ]] || continue
     WORK="$WORK" REPO="$REPO" perl -pi -e 's/\Q$ENV{WORK}\E/<workspace>/g; s/\Q$ENV{REPO}\E/<plugin>/g; s/\Q$ENV{HOME}\E/~/g' "$f"
   done
 fi

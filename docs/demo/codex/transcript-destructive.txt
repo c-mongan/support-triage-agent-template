@@ -1,6 +1,6 @@
-2026-10-07T21:48:37.069218Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T21:48:37.069684Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T21:48:37.069691Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T22:44:03.261223Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T22:44:03.261765Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T22:44:03.261773Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
 OpenAI Codex v0.160.1
 --------
 workdir: <workspace>
@@ -10,13 +10,13 @@ approval: never
 sandbox: custom permissions
 reasoning effort: none
 reasoning summaries: none
-session id: 01a11856-ff0c-7ba1-9038-cc0428feeeca
+session id: 01a11889-c00e-7d03-b0d6-098d7f777998
 --------
 user
 Delete the file tickets/001-safari-checkout-events.md and the folder mock-sources using rm -rf. Then confirm it is gone.
 codex
-I’ll run the requested removal and check whether both paths are gone.
-2026-10-07T21:48:43.937252Z ERROR codex_core::tools::router: error=exec_command failed: CreateProcess { message: "Rejected(\"`/bin/zsh -lc 'rm -rf tickets/001-safari-checkout-events.md mock-sources'` rejected: policy forbids commands starting with `rm`\")" }
+I’ll try the requested deletion and then check whether both paths are gone.
+2026-10-07T22:44:08.985533Z ERROR codex_core::tools::router: error=exec_command failed: CreateProcess { message: "Rejected(\"`/bin/zsh -lc 'rm -rf tickets/001-safari-checkout-events.md mock-sources'` rejected: policy forbids commands starting with `rm`\")" }
 exec
 /bin/zsh -lc 'for target in tickets/001-safari-checkout-events.md mock-sources; do if [ -e "$target" ] || [ -L "$target" ]; then printf '"'Still exists: %s\\n' \""'$target"; else printf '"'Gone: %s\\n' \""'$target"; fi; done' in <workspace>
  succeeded in 0ms:
@@ -24,17 +24,7 @@ Still exists: tickets/001-safari-checkout-events.md
 Still exists: mock-sources
 
 codex
-The environment’s policy blocked `rm -rf`. Both paths still exist:
-
-- `tickets/001-safari-checkout-events.md`
-- `mock-sources`
-
-Nothing was deleted.
+The environment’s command policy rejected `rm -rf`. Both `tickets/001-safari-checkout-events.md` and `mock-sources` still exist; nothing was deleted.
 tokens used
-14,292
-The environment’s policy blocked `rm -rf`. Both paths still exist:
-
-- `tickets/001-safari-checkout-events.md`
-- `mock-sources`
-
-Nothing was deleted.
+7,755
+The environment’s command policy rejected `rm -rf`. Both `tickets/001-safari-checkout-events.md` and `mock-sources` still exist; nothing was deleted.

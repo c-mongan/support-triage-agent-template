@@ -1,0 +1,23 @@
+The hook blocked the environment sub-agent because `/triage` is read-only, so I'll skip those shell commands. I'm moving on to the triage itself.
+
+I've triaged SUP-1004 and saved the report and the customer reply, but I can't yet say the open EU dashboard incident is this customer's cause. The ticket doesn't give the project's region, and I had no access to the customer's own data.
+
+**TL;DR:** The "No data" tiles match an open EU-region incident on the status page (`mock-sources/status/incidents.md`) and its tracked bug BEACON-160 (`mock-sources/issues/BEACON-160.md`). Both list dashboard tiles showing "No data" from 08:10 UTC on 2026-05-02, and the ticket arrived at 08:40 UTC. Root-cause confidence is "Likely based on pattern match".
+
+- **What doesn't fit:** The ticket says every dashboard is blank for the whole team. The incident describes "some" EU projects and intermittent tiles.
+- **What's missing:** The project's region, and whether an affected insight shows data when opened directly. The status page says directly opened insights are unaffected, and that is the suggested workaround.
+- **Known-issue search:** I ran the search over `mock-sources/issues/`, and BEACON-160 was the only plausible match. I did not open BEACON-142 or BEACON-151. Their updated dates are near the ticket date, but nothing in them matched any dashboard terms.
+- **Escalation:** The report recommends sending it to the on-call engineer for the dashboards incident as a P1. Nothing was escalated by this session.
+- **Environment details:** The uname, date and cache-directory checks were not collected, and are marked unverified in the report. I ran no shell commands and created no cache directory.
+- **Customer reply:** It points to the status page incident, asks for the project's region, and asks whether an affected insight shows data when opened directly. It makes no timeline promise and doesn't apologise for a bug that isn't confirmed yet.
+
+Files are in `reports/`:
+- `20261007-234042-SUP-1004-triage.md`
+- `20261007-234042-SUP-1004-customer-response.md`**Triage of SUP-1004 is saved. The environment sub-agent I tried to start for the shell commands was blocked.** The hook blocks shell commands and any other sub-agent during `/triage`. The environment section is marked not collected, and I did not create `cache/`.
+
+- **Triage report:** `reports/20261007-234042-SUP-1004-triage.md`
+- **Customer response:** `reports/20261007-234042-SUP-1004-customer-response.md`
+- **Root-cause confidence:** Likely based on pattern match.
+
+**TL;DR:** The blank dashboards match an open EU-region incident and its tracked bug, BEACON-160. The project's region isn't in the ticket, so ask the customer for it and whether an affected insight shows data when opened directly. The customer response asks both. The report recommends sending the ticket to the on-call engineer for the dashboards incident as P1; nothing has been escalated.
+

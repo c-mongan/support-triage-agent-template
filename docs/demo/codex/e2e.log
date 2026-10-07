@@ -1,15 +1,15 @@
-== support-triage-agent E2E · codex · 20261007T214015Z
+== support-triage-agent E2E · codex · 20261007T223651Z
 workspace: <workspace>
-marketplace source: c-mongan/support-triage-agent-template@c-mongan-v1-2-hardening
-Added marketplace `support-triage-agent-template` from https://github.com/c-mongan/support-triage-agent-template.git#c-mongan-v1-2-hardening.
-Installed marketplace root: /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/.tmp/marketplaces/support-triage-agent-template
+marketplace source: c-mongan/support-triage-agent-template@c-mongan-v1-3-qa-fixes
+Added marketplace `support-triage-agent-template` from https://github.com/c-mongan/support-triage-agent-template.git#c-mongan-v1-3-qa-fixes.
+Installed marketplace root: /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/.tmp/marketplaces/support-triage-agent-template
 Added plugin `support-triage-agent` from marketplace `support-triage-agent-template`.
-Installed plugin root: /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0
+Installed plugin root: /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0
 Marketplace `support-triage-agent-template`
-/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/.tmp/marketplaces/support-triage-agent-template/.agents/plugins/marketplace.json
+/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/.tmp/marketplaces/support-triage-agent-template/.agents/plugins/marketplace.json
 
 PLUGIN                                              STATUS              VERSION  SOURCE
-support-triage-agent@support-triage-agent-template  installed, enabled  1.2.0    /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/.tmp/marketplaces/support-triage-agent-template
+support-triage-agent@support-triage-agent-template  installed, enabled  1.3.0    /private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/.tmp/marketplaces/support-triage-agent-template
 
 Marketplace `openai-curated-remote`
 Remote catalog
@@ -716,7 +716,7 @@ app-6a82e719c090819198c38d465cf13874@openai-curated-remote        not installed 
 app-69ce0ee1b7a88191a223ce0ada4ec5bf@openai-curated-remote        not installed       2.0.0                                               plugin_asdk_app_69ce0ee1b7a88191a223ce0ada4ec5bf
 app-69ce440db9d4819188bec0d04496486b@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_69ce440db9d4819188bec0d04496486b
 aiera@openai-curated-remote                                       not installed       1.0.0                                               plugin_asdk_app_6967ddccc88881918a3733322b6bdf1a
-admin-console@openai-curated-remote                               not installed       0.1.21                                              plugin_connector_1p_e4d796f7afc48191bf6af2220a55fdd6
+admin-console@openai-curated-remote                               not installed       0.1.22                                              plugin_connector_1p_e4d796f7afc48191bf6af2220a55fdd6
 app-694a6fdf173c8191a985aa80872af9d0@openai-curated-remote        not installed       2.0.0                                               plugin_asdk_app_694a6fdf173c8191a985aa80872af9d0
 app-69c2a46272188191897a37e0331cc715@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_69c2a46272188191897a37e0331cc715
 app-6a3afee66ea481919b2a45ae6e623b3a@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a3afee66ea481919b2a45ae6e623b3a
@@ -4255,6 +4255,7 @@ app-69494bc0260481919dcbef67b7160608@openai-curated-remote        not installed 
 app-695409dbd200819180c014be5172aa13@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_695409dbd200819180c014be5172aa13
 app-6967c9139bd88191b04253108974aba7@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6967c9139bd88191b04253108974aba7
 app-697ab8ecb004819180d0e574ba5d4ff8@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_697ab8ecb004819180d0e574ba5d4ff8
+app-698c5319a3c8819180537c0c37cde979@openai-curated-remote        not installed       1.0.2                                               plugin_asdk_app_698c5319a3c8819180537c0c37cde979
 app-69a411a8b32c81919a745365382dcbb2@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_69a411a8b32c81919a745365382dcbb2
 app-69a97eaa96a08191b6d2057172489626@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_69a97eaa96a08191b6d2057172489626
 app-69aa07b18ec8819194a2c585ea98f46f@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_69aa07b18ec8819194a2c585ea98f46f
@@ -4329,6 +4330,7 @@ app-6a7e286fd0f481919e2626f8ecd21a2f@openai-curated-remote        not installed 
 app-6a7eba8aeff08191bb01050c2f6d4ab5@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a7eba8aeff08191bb01050c2f6d4ab5
 app-6a7ed9d2070c8191b822a7a4e624e28b@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a7ed9d2070c8191b822a7a4e624e28b
 app-6a7ef10884808191ae915f3447218355@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a7ef10884808191ae915f3447218355
+app-6a801ee38924819188767f77d6d131ff@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a801ee38924819188767f77d6d131ff
 app-6a837992639c8191b3dc02be90afaa36@openai-curated-remote        not installed       1.0.1                                               plugin_asdk_app_6a837992639c8191b3dc02be90afaa36
 app-6a83ea254a6881918c646f28616d20dc@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a83ea254a6881918c646f28616d20dc
 app-6a83f294921481919050a1a03952072d@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6a83f294921481919050a1a03952072d
@@ -4443,6 +4445,7 @@ app-6ab2757102e08191887f75cc506c2333@openai-curated-remote        not installed 
 app-6ab2815f10ac8191a09931f6fab7aa6e@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab2815f10ac8191a09931f6fab7aa6e
 app-6ab29fafda248191bd1362d00200fa05@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab29fafda248191bd1362d00200fa05
 app-6ab2b97c38408191b0a641f649aac00d@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab2b97c38408191b0a641f649aac00d
+app-6ab2c96a7ac08191a195159255244579@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab2c96a7ac08191a195159255244579
 app-6ab2d6f6a39c8191907d69b1103fe10c@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab2d6f6a39c8191907d69b1103fe10c
 app-6ab2f511d1b881919026fe9b6aeb5790@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab2f511d1b881919026fe9b6aeb5790
 app-6ab37421dc3c81919b639807e58724d7@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ab37421dc3c81919b639807e58724d7
@@ -4521,6 +4524,7 @@ orgvue-us@openai-curated-remote                                   not installed 
 namestl@openai-curated-remote                                     not installed       1.0.0                                               plugin_asdk_app_6abf74ad828881918cbd6011bdc96850
 mailrambo@openai-curated-remote                                   not installed       0.1.0                                               plugin_asdk_app_6abf8b2d06fc81919d52f6b4407dba63
 trupeo@openai-curated-remote                                      not installed       1.0.0                                               plugin_asdk_app_6abfb7adf7908191a75371f065e48978
+podpitch@openai-curated-remote                                    not installed       1.0.2                                               plugin_asdk_app_6abfc7f315f08191a992a93d8bf51722
 crewnest-job-pricing@openai-curated-remote                        not installed       1.0.0                                               plugin_asdk_app_6abfd56705e08191b8c67f2b030423b3
 getmint-mcp@openai-curated-remote                                 not installed       1.0.0                                               plugin_asdk_app_6abfd82b49808191a95e1490c8b4afaa
 eigakan-guide@openai-curated-remote                               not installed       1.0.0                                               plugin_asdk_app_6abfdc298c20819192a2d44302a6e7a8
@@ -4561,6 +4565,7 @@ tolstoy-closet@openai-curated-remote                              not installed 
 app-6a3b7f704418819181ca5879f64ffee0@openai-curated-remote        not installed       1.0.0                                               plugin_asdk_app_6ac3596981c48191a219a3f24a838a91
 the-living-bread@openai-curated-remote                            not installed       1.0.9                                               plugin_asdk_app_6ac369a633548191ae524762e927332e
 world-war-watcher@openai-curated-remote                           not installed       1.0.0                                               plugin_asdk_app_6ac38bcc12808191ba97dc82192aa3f2
+ethica-compliance@openai-curated-remote                           not installed       1.0.0                                               plugin_asdk_app_6ac3b18c0c1481918401108ea35ab391
 gonogo@openai-curated-remote                                      not installed       1.0.0                                               plugin_asdk_app_6ac3d25714bc81919ce217cd24506e34
 fast-io@openai-curated-remote                                     not installed       2.91.0                                              plugin_asdk_app_6ac3d75f4938819199566f39487e3a2f
 kapa@openai-curated-remote                                        not installed       0.1.0                                               plugin_asdk_app_6ac3d7b5fe88819198d51c023f1e8e96
@@ -5514,34 +5519,35 @@ sites@openai-curated-remote                                       installed, ena
 plugin-management@openai-curated-remote                           installed, enabled  0.1.0                                               plugin_connector_1p_b3438d6beb9081918fba3625bc988128
 work-pets@openai-curated-remote                                   installed, enabled  0.1.6                                               plugin_connector_1p_bccf6c8660c08191ae4470d9ae4877fa
 PASS  plugin installed into clean CODEX_HOME
-PASS  permissions profile and execpolicy rules copied from the installed plugin
+PASS  profile file and execpolicy rules copied from the installed plugin
+PASS  plain codex commands still work with the profile installed
 
 -- $support-triage tickets/001-safari-checkout-events.md (SUP-1001)
-   finished in 115s
-OK reports/20261007-000000-SUP-1001-triage.md
+   finished in 118s
+OK reports/20261007-223745-SUP-1001-triage.md
 PASS  SUP-1001 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-000000-SUP-1001-customer-response.md
+OK reports/20261007-223745-SUP-1001-customer-response.md
 PASS  SUP-1001 customer response (no emoji, no internal detail, no secrets)
 
 -- $support-triage tickets/002-webhook-signature-failures.md (SUP-1002)
-   finished in 125s
-OK reports/20261007-000000-SUP-1002-triage.md
+   finished in 99s
+OK reports/20261007-223941-SUP-1002-triage.md
 PASS  SUP-1002 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-000000-SUP-1002-customer-response.md
+OK reports/20261007-223941-SUP-1002-customer-response.md
 PASS  SUP-1002 customer response (no emoji, no internal detail, no secrets)
 
 -- $support-triage tickets/003-csv-export-truncated.md (SUP-1003)
-   finished in 107s
-OK reports/20261007-000000-SUP-1003-triage.md
+   finished in 91s
+OK reports/20261007-224124-SUP-1003-triage.md
 PASS  SUP-1003 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-000000-SUP-1003-customer-response.md
+OK reports/20261007-224124-SUP-1003-customer-response.md
 PASS  SUP-1003 customer response (no emoji, no internal detail, no secrets)
 
 -- $support-triage tickets/004-dashboards-blank.md (SUP-1004)
-   finished in 138s
-OK reports/20261007-000000-SUP-1004-triage.md
+   finished in 89s
+OK reports/20261007-224252-SUP-1004-triage.md
 PASS  SUP-1004 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-000000-SUP-1004-customer-response.md
+OK reports/20261007-224252-SUP-1004-customer-response.md
 PASS  SUP-1004 customer response (no emoji, no internal detail, no secrets)
 PASS  redaction: ticket secret and email absent from reports/
 
@@ -5553,10 +5559,16 @@ PASS  interpreter (python3 -c) and redirect writes denied
 
 -- file-tool write probe
 PASS  file-tool writes outside reports/ denied
+
+-- sub-agent probe (benign wording, QA H1)
+PASS  sub-agent shell write denied (no cache/env-check.txt)
+
+-- symlink probe (reports/archive -> ../tickets, QA H2)
+PASS  no write landed in tickets/ through the reports/archive symlink
 PASS  read-only: ticket and mock-source fixtures unchanged
 PASS  writes confined to reports/
 
--- offline eval (scripts/eval.mjs)
+-- offline eval (scripts/eval.mjs, scored before the probes added reports)
 PASS  eval: every report scores full marks on the rubric
 
 ### reports — 28/28
@@ -5568,4 +5580,4 @@ PASS  eval: every report scores full marks on the rubric
 | SUP-1003 | pass | pass | pass | pass | pass | pass | pass | 7/7 |
 | SUP-1004 | pass | pass | pass | pass | pass | pass | pass | 7/7 |
 
-RESULT codex: 17 passed, 0 failed
+RESULT codex: 20 passed, 0 failed

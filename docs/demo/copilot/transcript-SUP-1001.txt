@@ -1,18 +1,15 @@
-I saved the triage report and the customer response. The root cause is only a pattern match, because I had no access to the customer's project data.
+I saved both files.
 
-- **Report path:** `reports/20261007-224948-SUP-1001-triage.md`
-- **Response path:** `reports/20261007-224948-SUP-1001-customer-response.md`
-- **Root-cause confidence:** Likely based on pattern match
+- `reports/20261007-233654-SUP-1001-triage.md`
+- `reports/20261007-233654-SUP-1001-customer-response.md`
 
-**TL;DR:** The ticket matches BEACON-142. In SDK 3.12.0, Safari 17 and 18 drop events fired right before a redirect or route change, and the fix shipped in 3.12.2. The next steps are to confirm the customer's `beacon.version` and whether `checkout_completed` fires just before navigation. Meanwhile, suggest upgrading, or using `{ transport: 'beacon' }` or `await beacon.flush()` as the interim workaround.
+**Root-cause confidence:** Likely based on pattern match
 
-I read all five files in `mock-sources/issues/` directly instead of running Grep queries. The report says so.I triaged the ticket as SUP-1001 (`tickets/001-safari-checkout-events.md`). I haven't opened the saved files myself, so the summary below comes from the agent's report.
+**TL;DR:** The ticket matches the known Safari regression BEACON-142 (`mock-sources/issues/BEACON-142.md`). In SDK 3.12.0, events fired right before navigation are dropped in Safari 17 and 18, and the release notes say 3.12.2 fixes it. I couldn't confirm it on the customer's own system, because there was no project data and the ticket doesn't say whether the event fires before a redirect. The draft reply asks for `beacon.version` and for how the event is fired. It also offers the documented workarounds: `{ transport: 'beacon' }` on the call, or `await beacon.flush()` before navigating.**Triage complete for ticket SUP-1001.**
 
-- **Triage report:** `reports/20261007-224948-SUP-1001-triage.md`
-- **Customer response:** `reports/20261007-224948-SUP-1001-customer-response.md`
-- **Root-cause confidence:** Likely based on pattern match. I had no access to the customer's project data, so this is not confirmed.
+- Triage report: `reports/20261007-233654-SUP-1001-triage.md`
+- Customer response: `reports/20261007-233654-SUP-1001-customer-response.md`
+- Root-cause confidence: **Likely based on pattern match**
 
-**TL;DR:** The ticket matches BEACON-142. In SDK 3.12.0, Safari 17 and 18 drop events fired right before a redirect or route change, and 3.12.2 fixes it. Next, confirm the customer's `beacon.version` and whether `checkout_completed` fires just before navigation. Meanwhile, they can upgrade, use `{ transport: 'beacon' }`, or call `await beacon.flush()`.
-
-The agent read the five files in `mock-sources/issues/` directly rather than searching them, and the report says so.
+**TL;DR:** The ticket matches the known Safari regression BEACON-142. In SDK 3.12.0, events fired just before navigation are dropped in Safari 17 and 18, and the release notes say 3.12.2 fixes it. I couldn't confirm it on the customer's own system. The next step is to send the draft reply, which asks for `beacon.version` and how the event is fired, and offers the documented workarounds (`{ transport: 'beacon' }` or `await beacon.flush()` before navigating).
 

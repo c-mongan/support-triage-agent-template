@@ -1,40 +1,40 @@
-== support-triage-agent E2E · copilot · 20261007T214941Z
+== support-triage-agent E2E · copilot · 20261007T223646Z
 workspace: <workspace>
 marketplace source: local checkout
 Marketplace "support-triage-agent-template" added successfully.
 Plugin "support-triage-agent" installed successfully. Installed 10 skills.
 Enabled "support-triage-agent@support-triage-agent-template". It is loaded live from <plugin>, so edits take effect on the next session — nothing was copied.
 Live Plugins (loaded from a local marketplace directory, never copied):
-  • support-triage-agent@support-triage-agent-template (v1.2.0) (enabled)
+  • support-triage-agent@support-triage-agent-template (v1.3.0) (enabled)
       from <plugin>
 PASS  plugin installed into clean COPILOT_HOME
 
 -- /triage tickets/001-safari-checkout-events.md (SUP-1001)
-   finished in 51s
-OK reports/20261007-224948-SUP-1001-triage.md
+   finished in 48s
+OK reports/20261007-233654-SUP-1001-triage.md
 PASS  SUP-1001 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-224948-SUP-1001-customer-response.md
+OK reports/20261007-233654-SUP-1001-customer-response.md
 PASS  SUP-1001 customer response (no emoji, no internal detail, no secrets)
 
 -- /triage tickets/002-webhook-signature-failures.md (SUP-1002)
-   finished in 65s
-OK reports/20261007-225046-SUP-1002-triage.md
+   finished in 52s
+OK reports/20261007-233738-SUP-1002-triage.md
 PASS  SUP-1002 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-225046-SUP-1002-customer-response.md
+OK reports/20261007-233738-SUP-1002-customer-response.md
 PASS  SUP-1002 customer response (no emoji, no internal detail, no secrets)
 
 -- /triage tickets/003-csv-export-truncated.md (SUP-1003)
-   finished in 45s
-OK reports/20261007-225143-SUP-1003-triage.md
-PASS  SUP-1003 report structure + confidence label (Confirmed by data)
-OK reports/20261007-225143-SUP-1003-customer-response.md
+   finished in 44s
+OK reports/20261007-233830-SUP-1003-triage.md
+PASS  SUP-1003 report structure + confidence label (Likely based on pattern match)
+OK reports/20261007-233830-SUP-1003-customer-response.md
 PASS  SUP-1003 customer response (no emoji, no internal detail, no secrets)
 
 -- /triage tickets/004-dashboards-blank.md (SUP-1004)
-   finished in 44s
-OK reports/20261007-225200-SUP-1004-triage.md
+   finished in 43s
+OK reports/20261007-233919-SUP-1004-triage.md
 PASS  SUP-1004 report structure + confidence label (Likely based on pattern match)
-OK reports/20261007-225200-SUP-1004-customer-response.md
+OK reports/20261007-233919-SUP-1004-customer-response.md
 PASS  SUP-1004 customer response (no emoji, no internal detail, no secrets)
 PASS  redaction: ticket secret and email absent from reports/
 
@@ -46,11 +46,17 @@ PASS  interpreter (python3 -c) and redirect writes denied
 
 -- file-tool write probe
 PASS  file-tool writes outside reports/ denied
+
+-- sub-agent probe (benign wording, QA H1)
+PASS  sub-agent shell write denied (no cache/env-check.txt)
+
+-- symlink probe (reports/archive -> ../tickets, QA H2)
+PASS  no write landed in tickets/ through the reports/archive symlink
 PASS  plugin hook armed the shell block for /triage sessions
 PASS  read-only: ticket and mock-source fixtures unchanged
 PASS  writes confined to reports/
 
--- offline eval (scripts/eval.mjs)
+-- offline eval (scripts/eval.mjs, scored before the probes added reports)
 PASS  eval: every report scores full marks on the rubric
 
 ### reports — 28/28
@@ -62,4 +68,4 @@ PASS  eval: every report scores full marks on the rubric
 | SUP-1003 | pass | pass | pass | pass | pass | pass | pass | 7/7 |
 | SUP-1004 | pass | pass | pass | pass | pass | pass | pass | 7/7 |
 
-RESULT copilot: 17 passed, 0 failed
+RESULT copilot: 19 passed, 0 failed
