@@ -1,0 +1,11 @@
+# Codex execpolicy rules for the support triage workflow.
+# Copy to ~/.codex/rules/ (or $CODEX_HOME/rules/) to forbid destructive or
+# write-side commands while triaging. Codex rules cover shell commands only;
+# file edits made through apply_patch are governed by the sandbox and the skill.
+prefix_rule(pattern=["rm"], decision="forbidden")
+prefix_rule(pattern=["rmdir"], decision="forbidden")
+prefix_rule(pattern=["mv"], decision="forbidden")
+prefix_rule(pattern=["git", ["push", "reset", "clean", "commit", "rebase"]], decision="forbidden")
+prefix_rule(pattern=["gh", ["issue", "pr", "release", "repo", "api"]], decision="forbidden")
+prefix_rule(pattern=["curl", ["-X", "--request", "-d", "--data", "-F", "--form"]], decision="forbidden")
+prefix_rule(pattern=[["npm", "pnpm", "yarn", "pip", "pip3", "brew"], "install"], decision="forbidden")

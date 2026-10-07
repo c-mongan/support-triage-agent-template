@@ -1,0 +1,36 @@
+{
+  "name": "support-triage-agent",
+  "version": "1.1.0",
+  "description": "Read-only support triage workflow: turns customer tickets into evidence-graded triage reports with confidence labels, a known-issue search gate, and a draft customer response.",
+  "author": {
+    "name": "Conor Mongan",
+    "url": "https://github.com/c-mongan"
+  },
+  "homepage": "https://github.com/c-mongan/support-triage-agent-template",
+  "repository": "https://github.com/c-mongan/support-triage-agent-template",
+  "license": "MIT",
+  "keywords": [
+    "support",
+    "triage",
+    "read-only",
+    "agent-skills",
+    "evidence"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Support Triage Agent",
+    "shortDescription": "Evidence-graded, read-only triage of customer support tickets",
+    "longDescription": "Turns a messy support ticket into a structured triage report: intake, a known-issue search gate, evidence table, root cause with a Confirmed / Likely / Suspected confidence label, escalation decision and a draft customer reply. Read-only by design; writes only under reports/.",
+    "developerName": "Conor Mongan",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use $support-triage on examples/tickets/001-safari-checkout-events.md",
+      "Triage this support ticket and draft a customer reply"
+    ],
+    "websiteURL": "https://github.com/c-mongan/support-triage-agent-template"
+  }
+}

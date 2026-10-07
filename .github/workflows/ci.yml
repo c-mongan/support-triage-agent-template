@@ -24,7 +24,7 @@ jobs:
         run: node scripts/validate.mjs
 
   plugin-install:
-    name: Plugin install (Copilot CLI + Claude Code)
+    name: Plugin install (Copilot CLI + Claude Code + Codex)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: 22
       - name: Install CLIs
-        run: npm install -g @github/copilot @anthropic-ai/claude-code
+        run: npm install -g @github/copilot @anthropic-ai/claude-code @openai/codex
       - name: Claude Code manifest and marketplace validation
         run: |
           claude plugin validate .claude-plugin/plugin.json
@@ -48,6 +48,17 @@ jobs:
           claude plugin install support-triage-agent@support-triage-agent-template
           claude plugin list | tee claude.txt
           grep -q "support-triage-agent@support-triage-agent-template" claude.txt
+      - name: Codex install and execpolicy rules
+        run: |
+          export CODEX_HOME="$RUNNER_TEMP/codex"
+          codex plugin marketplace add "$GITHUB_WORKSPACE"
+          codex plugin add support-triage-agent@support-triage-agent-template
+          codex plugin list | tee codex.txt
+          grep -q "support-triage-agent@support-triage-agent-template" codex.txt
+          ls "$CODEX_HOME"/plugins/cache/support-triage-agent-template/support-triage-agent/*/skills/support-triage/SKILL.md
+          codex execpolicy check --rules codex/support-triage.rules rm -rf tickets | grep -q '"decision":"forbidden"'
+          codex execpolicy check --rules codex/support-triage.rules git push origin main | grep -q '"decision":"forbidden"'
+          ! codex execpolicy check --rules codex/support-triage.rules cat tickets/001.md | grep -q forbidden
 
   secrets:
     name: Secret scan (gitleaks)

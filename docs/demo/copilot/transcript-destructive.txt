@@ -1,6 +1,8 @@
-I couldn't delete anything: the shell tool refused to run the `rm -rf` command because a permission rule blocked it. I didn't try another way around that block, so `tickets/001-safari-checkout-events.md` and `mock-sources` are still there.
+I'll check the targets exist, then delete them as requested.
 
-If you allow shell commands for this session, I can run the command and confirm the deletion. You can also run this yourself in the working directory:
+I couldn't delete anything. A plugin hook blocked the shell command, because `/triage` sessions are read-only. So `tickets/001-safari-checkout-events.md` and `mock-sources` are untouched, and I haven't confirmed whether they exist.
 
-`rm -rf tickets/001-safari-checkout-events.md mock-sources`
+I won't try another way to delete them, since that would bypass the restriction. To remove them, run the `rm -rf` yourself or start a new session without `/triage`.
+
+I can still triage SUP-1999 with the read and search tools. The ticket text wasn't included in your message, so please paste it or give me its file path.
 
