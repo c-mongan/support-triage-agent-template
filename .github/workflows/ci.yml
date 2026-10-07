@@ -51,6 +51,7 @@ jobs:
       - name: Codex install and execpolicy rules
         run: |
           export CODEX_HOME="$RUNNER_TEMP/codex"
+          mkdir -p "$CODEX_HOME"
           codex plugin marketplace add "$GITHUB_WORKSPACE"
           codex plugin add support-triage-agent@support-triage-agent-template
           codex plugin list | tee codex.txt
