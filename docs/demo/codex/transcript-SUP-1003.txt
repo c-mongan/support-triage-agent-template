@@ -1,6 +1,6 @@
-2026-10-07T21:44:31.898879Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T21:44:31.899550Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
-2026-10-07T21:44:31.899556Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T22:41:03.004248Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/deploy/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T22:41:03.004282Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/prepare/SKILL.md: missing YAML frontmatter delimited by ---
+2026-10-07T22:41:03.004287Z ERROR codex_core::session::session: failed to load skill ~/.agents/skills/azure-app-onboard/scaffold/SKILL.md: missing YAML frontmatter delimited by ---
 OpenAI Codex v0.160.1
 --------
 workdir: <workspace>
@@ -10,15 +10,14 @@ approval: never
 sandbox: custom permissions
 reasoning effort: none
 reasoning summaries: none
-session id: 01a11853-4154-7bb0-b7a0-e69a49572f01
+session id: 01a11886-ffe8-7c43-9756-a412d0c31140
 --------
 user
 $support-triage tickets/003-csv-export-truncated.md
 codex
-I’ll use the support-triage skill to investigate the ticket and save an evidence-based report and draft response under `reports/`.
-
+I’m using the support-triage skill to investigate the ticket and save an evidence-based report with a draft customer response.
 exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/support-triage/SKILL.md'" in <workspace>
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/support-triage/SKILL.md'" in <workspace>
  succeeded in 0ms:
 ---
 name: support-triage
@@ -48,7 +47,9 @@ Reduce time-to-diagnosis without inventing facts.
 3. **No stale hardcoding.** When SDK behavior, feature availability, API shapes, or config rules matter, fetch live docs or live source before stating them. Do not rely on memorized version numbers.
 4. **Search known issues before blaming the customer.** Before concluding "misconfiguration", "expected behavior", "not a bug", or "no matching issue", complete the Known-Issue Search Gate below and cite the searches you ran.
 5. **Escalate cleanly.** If evidence is insufficient or contradicts documented behavior, produce an escalation brief instead of pretending certainty.
-6. **Redact in saved outputs.** Strip API keys, tokens, raw person properties, private session URLs, internal admin links, and customer PII from anything saved to disk or copied into customer-facing text. Keep public bug URLs, public docs URLs, and non-sensitive identifiers.
+6. **Redact in saved outputs.** Strip API keys, tokens, raw person properties, private session URLs, internal admin links, and customer PII (including email addresses) from anything saved to disk or copied into customer-facing text. Keep public bug URLs, public docs URLs, and non-sensitive identifiers.
+7. **Stay inside the working directory.** Read and search only the current working directory and its subfolders. Never search, list or read parent directories, the home directory or other projects, and never cite files from outside the working directory. Write every file path in a report as a path relative to the working directory (for example `mock-sources/issues/BEACON-142.md`), never as an absolute path.
+8. **Only claim actions that happened.** Never write that something was done (escalated, filed, passed to an engineer, reproduced, fixed) unless a tool call this session did it. Triage is read-only, so the customer reply can say a person *will* review the case, not that it already *has been* passed on.
 
 ## Anti-hallucination guards
 
@@ -86,7 +87,7 @@ The Draft Customer Response must NOT:
 - Invent fix recipes not grounded in docs or public issue comments.
 - Apologize for bugs that are not yet confirmed as bugs.
 
-When uncertain, defer to "an engineer will confirm" or link the specific docs page. Better to under-promise than retract.
+When uncertain, say a support engineer will review the findings, or link the specific docs page. Do not say the case "has been passed to" anyone: nothing was sent. Better to under-promise than retract.
 
 ### 6. Surface assumptions before investigating
 
@@ -138,6 +139,8 @@ If the working directory contains a `mock-sources/` folder, the ticket is about 
 - Run the Known-Issue Search Gate against `mock-sources/issues/` with Grep: hybrid (synonyms and paraphrases of the symptom), lexical (2–4 short noun phrases), exact (quoted error strings, method names, header names), and recent (compare the `updated:` front-matter dates with the ticket timeframe).
 - Cite sources by relative path (for example `mock-sources/issues/BEACON-142.md`). Do not search the web for Beacon: it does not exist.
 - Never edit anything under `mock-sources/` or the ticket files. They are fixtures.
+
+If there is **no** `mock-sources/` folder and no connector or web tool is available, do not pretend you searched. Add an Evidence Gathered row with status `Unavailable — no known-issue source in this workspace`, mark the Known-Issue Search Gate as not run, and cap the root-cause confidence at `Suspected, needs human verification`. Only say a web or docs lookup happened if a tool call this session made it.
 
 ## Speed: parallelization is mandatory
 
@@ -240,7 +243,7 @@ Then:
 
 Save the report under `reports/` in the current working directory using a filename pattern like `YYYYMMDD-HHmmss-<ticket-id>-triage.md`. Save the customer-facing draft as a separate file named `YYYYMMDD-HHmmss-<ticket-id>-customer-response.md` with **no internal detail and no emojis**, ready to copy-paste into the support tool.
 
-The two filenames are fixed: the report always ends in `-triage.md` and the reply in `-customer-response.md`. Take the timestamp from the session context or the current date you know; do not call a shell or `date` for it. If you only know the date, use `000000` for the time.
+The two filenames are fixed: the report always ends in `-triage.md` and the reply in `-customer-response.md`. Take the timestamp, including real hours, minutes and seconds, from the session context or the current time you know; do not call a shell or `date` for it. If you do not know the exact time, use your best estimate of the current time rather than `000000`, so that two runs on the same day do not overwrite each other.
 
 Create both files with the file-create/Write tool, never with a shell command (no `mkdir`, `touch`, `tee` or redirection). Most hosts create the `reports/` folder for you. If the save fails because `reports/` does not exist and the tool cannot create it, do not retry through a shell: print the full report and the customer response inline, then tell the operator to run `mkdir reports` and re-run.
 
@@ -262,6 +265,7 @@ Caps:
 - If the Known-Issue Search Gate is incomplete on a bug-shaped ticket, cap at Low (49%).
 - If the report says "not a bug" / "expected behavior" / "no matching issue" without the full search matrix, cap at Low (40%).
 - If a public issue plausibly matches but has not been ruled out, cap at Medium (70%) and mention the candidate.
+- `Confirmed by data` needs data from the customer's own system (their logs, events, request traces, account state or a reproduction on their setup). Documentation, release notes, a status page or a matching known issue alone can support `Likely based on pattern match`, never `Confirmed by data`.
 
 ## Visual formatting — internal vs customer-facing
 
@@ -324,13 +328,65 @@ The agent must never stall on a tool failure.
 When MCP project tools are absent entirely, confidence is naturally lower. Flag it explicitly: `Confidence limited by lack of project data access.` This is honest and correct, not a failure.
 
 exec
-/bin/zsh -lc "pwd; rg --files -g 'AGENTS.md' -g 'tickets/003-csv-export-truncated.md' -g '*CONTEXT*'" in <workspace>
+/bin/zsh -lc "pwd; rg --files -g 'AGENTS.md' -g '*003*' -g '*csv*' -g '*README*'" in <workspace>
  succeeded in 0ms:
 <workspace>
+transcript-SUP-1003.txt
+mock-sources/README.md
 tickets/003-csv-export-truncated.md
 
 exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/ticket-intake/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/known-issue-search/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/triage-report/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/triage-report/references/triage-report-template.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/response-drafting/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/redaction/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/reproduction-steps/SKILL.md' '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/escalation/SKILL.md'" in <workspace>
+/bin/zsh -lc 'cat tickets/003-csv-export-truncated.md; cat mock-sources/README.md; rg --files mock-sources' in <workspace>
+ succeeded in 0ms:
+# Ticket 003: CSV export stops at 10,000 rows
+
+**Source:** synthetic example (fictional product: Beacon)
+**Ticket ID:** SUP-1003
+**Customer:** Contoso Learning
+**Priority:** P4
+
+Hi,
+
+When I export our Insights table for March to CSV, the file always has exactly 10,000 rows (plus the header). The table in the UI says there are 48,212 rows. Is the export broken, or is there a setting I am missing?
+
+I need the full list for our finance reconciliation.
+
+Thanks,
+Sam
+# Mock sources (synthetic, read-only)
+
+Offline stand-ins for the connectors a real deployment would wire up (bug tracker, product docs, release notes, status page). They let the demo and the E2E test run with **no credentials and no network connectors**.
+
+Everything here describes **Beacon**, a fictional product analytics SaaS. No real company, customer or person is represented.
+
+| Folder | Stands in for | How the agent searches it |
+|---|---|---|
+| `issues/` | Bug tracker (GitHub Issues, Linear, Jira) | Grep over titles, bodies and front matter (`status`, `created`, `updated`, `labels`) |
+| `docs/` | Product documentation | Grep / Read |
+| `releases/` | Release notes and changelogs | Grep / Read, version-range matching |
+| `status/` | Public status page / incident history | Grep / Read, time-window matching |
+
+## Using it
+
+Copy `examples/tickets/` and `examples/mock-sources/` into a working directory (the E2E script does this for you), then run `/triage tickets/<file>.md`. When a `mock-sources/` folder is present in the working directory, the agent treats it as the evidence source for the fictional Beacon product and does not search the web for it.
+
+The search matrix still applies: hybrid (synonyms and paraphrases), lexical (short noun phrases), exact (quoted error strings and method names) and recent (sort by the `updated` front-matter field).
+
+These files are fixtures. The agent must never edit them.
+mock-sources/issues/BEACON-118.md
+mock-sources/issues/BEACON-142.md
+mock-sources/issues/BEACON-151.md
+mock-sources/issues/BEACON-097.md
+mock-sources/issues/BEACON-160.md
+mock-sources/README.md
+mock-sources/docs/browser-sdk.md
+mock-sources/docs/exports.md
+mock-sources/docs/webhooks.md
+mock-sources/status/incidents.md
+mock-sources/releases/browser-sdk.md
+
+exec
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/ticket-intake/SKILL.md'" in <workspace>
  succeeded in 0ms:
 ---
 name: ticket-intake
@@ -374,6 +430,15 @@ Use this skill first for every ticket.
 2. ...
 3. ...
 ```
+
+codex
+ASSUMING: Beacon Insights web export, region and plan unknown, one reported customer with broader scope unknown.
+→ Correct me now or I proceed with these.
+
+The file stops at exactly 10,000 data rows while the UI reports 48,212. I’ll check the export documentation and known issues before deciding whether this is a limit or a bug.
+exec
+/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/known-issue-search/SKILL.md'; cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/triage-report/references/triage-report-template.md'; cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/redaction/SKILL.md'; cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/response-drafting/SKILL.md'; cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/reproduction-steps/SKILL.md'" in <workspace>
+ succeeded in 0ms:
 ---
 name: known-issue-search
 description: Search bug trackers, release notes, and source history before concluding misconfiguration or expected behavior on any bug-shaped ticket. Use this skill any time a ticket reports something that worked once and now does not, an upload/build that logs success but the product cannot use, UI state that disagrees with stored data, or any silent no-op / dropped / truncated / zero-result outcome that should not happen.
@@ -482,39 +547,6 @@ When a bug surfaces in one SDK or component, automatically check related repos. 
 - Exact symptom + direct project/customer evidence can support **Confirmed** confidence.
 - Similar symptom without version or config verification stays **Suspected** or **Likely** depending on evidence strength.
 - Asserting "no match found" without all four query types caps confidence at **Low (40%)**.
----
-name: triage-report
-description: Produce a structured, evidence-graded support triage report.
----
-
-# Triage Report
-
-Use [`references/triage-report-template.md`](references/triage-report-template.md) (in this skill's directory) as the canonical report structure. Keep its section headings unchanged: the CI structure check and downstream tooling rely on them.
-
-## Rules
-
-- Every important claim must map to a source.
-- Separate customer-provided facts from facts independently verified by tools.
-- Include rejected hypotheses when they prevent repeated work.
-- Include unknowns instead of hiding uncertainty.
-- Keep the customer response free of internal-only detail.
-- Escalate when support cannot verify or resolve the issue with available evidence.
-
-## Confidence
-
-- **Confirmed by data:** direct evidence proves the cause.
-- **Likely based on pattern match:** the evidence points strongly to one cause, but one or more facts remain unverified.
-- **Suspected, needs human verification:** plausible, but not enough evidence to act as if true.
-
-## Pre-Send Check
-
-Before considering the report done:
-
-1. Verify that the root-cause confidence matches the evidence.
-2. Check that all sensitive data is redacted.
-3. Confirm that known-issue search includes at least two symptom-specific queries for bug-shaped tickets.
-4. Confirm that the recommended next action is specific and minimal.
-
 # Support Triage Report
 
 **Ticket:** [ticket ID or short summary]
@@ -672,40 +704,6 @@ Keep to 3–5 steps. Focus on the root-cause and recommended-fix claims.
 
 - Redaction pass: [N] replacements made across [files].
 ---
-name: response-drafting
-description: Draft customer-facing support responses from verified triage findings.
----
-
-# Response Drafting
-
-Customer responses should be clear, calm, specific, and honest about uncertainty.
-
-Start from [`references/customer-response-template.md`](references/customer-response-template.md) in this skill's directory.
-
-## Structure
-
-1. Acknowledge the report and useful details.
-2. State the finding in plain language.
-3. Give the next action or workaround.
-4. Ask for the smallest missing context if needed.
-5. Set expectations for escalation or follow-up.
-
-## Do Not Include
-
-- Internal tool names.
-- Raw database queries or logs.
-- Private URLs.
-- API keys, tokens, request bodies with personal data, or raw person properties.
-- Overconfident claims not supported by the evidence pack.
-
-## Tone
-
-- For customer misconfiguration: collaborative, not blaming.
-- For confirmed product bugs: empathetic and direct.
-- For unclear issues: transparent about what is known and what would prove the cause.
-- For urgent production impact: concise, action-oriented, and specific about next update timing.
-
----
 name: redaction
 description: Strip secrets, tokens, raw person properties, private URLs, and internal admin links before saving any triage output to disk or copying into customer-facing text. Use this skill before Phase 3 of the triage workflow, before posting to any channel, and before sharing any saved report outside the immediate operator.
 ---
@@ -783,6 +781,40 @@ Almost never. Two narrow exceptions:
 
 If you are unsure, redact. The cost of an over-redacted report is a follow-up question. The cost of a leaked secret is a security incident.
 ---
+name: response-drafting
+description: Draft customer-facing support responses from verified triage findings.
+---
+
+# Response Drafting
+
+Customer responses should be clear, calm, specific, and honest about uncertainty.
+
+Start from [`references/customer-response-template.md`](references/customer-response-template.md) in this skill's directory.
+
+## Structure
+
+1. Acknowledge the report and useful details.
+2. State the finding in plain language.
+3. Give the next action or workaround.
+4. Ask for the smallest missing context if needed.
+5. Set expectations for escalation or follow-up.
+
+## Do Not Include
+
+- Internal tool names.
+- Raw database queries or logs.
+- Private URLs.
+- API keys, tokens, request bodies with personal data, or raw person properties.
+- Overconfident claims not supported by the evidence pack.
+
+## Tone
+
+- For customer misconfiguration: collaborative, not blaming.
+- For confirmed product bugs: empathetic and direct.
+- For unclear issues: transparent about what is known and what would prove the cause.
+- For urgent production impact: concise, action-oriented, and specific about next update timing.
+
+---
 name: reproduction-steps
 description: Write a minimal, numbered reproduction for a support ticket, with environment, expected and actual results, so an engineer can confirm a suspected bug. Use for bug-shaped tickets and before escalating.
 ---
@@ -825,104 +857,30 @@ Remove any step that does not change the outcome. Stop when every remaining step
 - In the triage report, put the reproduction under Recommended Next Action and reference it from Escalation Decision.
 - In an escalation brief, paste it into the Reproduction section unchanged.
 - In the customer reply, ask only for the facts needed to fill gaps (for example the exact SDK version), not for the whole reproduction.
----
-name: escalation
-description: Package support investigations into engineering-ready escalation briefs.
----
-
-# Escalation
-
-Escalate when support cannot resolve the issue with available evidence, when customer impact is high, or when evidence points to a product defect.
-
-## Escalation Triggers
-
-- Accepted requests or successful operations do not produce expected product state.
-- A minimal reproduction suggests a regression.
-- Multiple customers report the same issue.
-- Security, billing, data loss, or production-down impact is plausible.
-- Required evidence is available but contradicts documented behavior.
-
-## Brief Requirements
-
-Use [`references/escalation-brief-template.md`](references/escalation-brief-template.md) in this skill's directory.
-
-Include:
-
-- Customer impact.
-- Reproduction steps.
-- Expected vs actual behavior.
-- Evidence table.
-- What support already checked.
-- Closest known issues.
-- A specific ask for engineering.
-
-Do not escalate vague uncertainty. First ask for the smallest missing artifact unless the impact is urgent.
-
 
 exec
-/bin/zsh -lc 'cat tickets/003-csv-export-truncated.md; rg --files mock-sources' in <workspace>
+/bin/zsh -lc "rg -n -i 'truncat|missing rows|incomplete|limit|cap|export|csv' mock-sources/issues; rg -n -i 'CSV|10,000|10000|Insights' mock-sources/issues; rg -n 'updated:|created:' mock-sources/issues; cat mock-sources/docs/exports.md; cat mock-sources/issues/BEACON-160.md; cat mock-sources/issues/BEACON-097.md" in <workspace>
  succeeded in 0ms:
-# Ticket 003: CSV export stops at 10,000 rows
-
-**Source:** synthetic example (fictional product: Beacon)
-**Ticket ID:** SUP-1003
-**Customer:** Contoso Learning
-**Priority:** P4
-
-Hi,
-
-When I export our Insights table for March to CSV, the file always has exactly 10,000 rows (plus the header). The table in the UI says there are 48,212 rows. Is the export broken, or is there a setting I am missing?
-
-I need the full list for our finance reconciliation.
-
-Thanks,
-Sam
-mock-sources/releases/browser-sdk.md
-mock-sources/docs/exports.md
-mock-sources/docs/webhooks.md
-mock-sources/docs/browser-sdk.md
-mock-sources/README.md
-mock-sources/status/incidents.md
-mock-sources/issues/BEACON-118.md
-mock-sources/issues/BEACON-142.md
-mock-sources/issues/BEACON-151.md
-mock-sources/issues/BEACON-097.md
-mock-sources/issues/BEACON-160.md
-
-codex
-ASSUMING: Beacon Insights CSV export, region and plan unknown, one customer report with broader scope unverified.
-
-The ticket reports exactly 10,000 exported rows against 48,212 shown in the table. I’ll check the export documentation and known issues for a limit or truncation bug.
-
-exec
-/bin/zsh -lc "cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.JrvgVPY3aJ/plugins/cache/support-triage-agent-template/support-triage-agent/1.2.0/skills/response-drafting/references/customer-response-template.md'" in <workspace>
- succeeded in 0ms:
-# Customer Response
-
-> No emojis. No internal tool names. No private links. No raw queries. No sensitive data. This file is the copy-pasteable customer-facing reply only.
-
-Hi [name],
-
-Thanks for the detail here — [acknowledge one specific useful piece of context they provided].
-
-What appears to be happening:
-
-- [finding 1, plain English]
-- [finding 2]
-- [finding 3, if needed]
-
-The next best step is [specific action or workaround]. To confirm whether this is the same issue or a separate configuration problem, could you also share [smallest missing context — for example: a network log from the affected browser, the exact code that fires the event, the SDK version output from `<runtime check>`]?
-
-[If escalating: "I'm passing this to our engineering team to check [specific thing]. I'll come back to you within [timeframe] with what they find."]
-
-[If a workaround exists: "In the meantime, [workaround] should restore the behavior you were seeing before."]
-
-Thanks,
-[name]
-
-exec
-/bin/zsh -lc "cat mock-sources/docs/exports.md mock-sources/README.md; rg -n -i 'truncat|limit|cap|missing|partial|export|download' mock-sources/issues" in <workspace>
- succeeded in 0ms:
+mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
+mock-sources/issues/BEACON-118.md:17:This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
+mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
+mock-sources/issues/BEACON-097.md:5:labels: [feature-request, exports, csv]
+mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
+mock-sources/issues/BEACON-097.md:5:labels: [feature-request, exports, csv]
+mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+mock-sources/issues/BEACON-118.md:7:created: 2025-11-12
+mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
+mock-sources/issues/BEACON-151.md:6:created: 2026-03-02
+mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
+mock-sources/issues/BEACON-142.md:8:created: 2026-04-29
+mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
+mock-sources/issues/BEACON-097.md:6:created: 2025-09-18
+mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
+mock-sources/issues/BEACON-160.md:6:created: 2026-05-02
+mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
 # Exporting data
 
 ## CSV export from the UI
@@ -932,76 +890,6 @@ The **Export CSV** button on any Insights table downloads up to **10,000 rows**.
 ## Full exports
 
 For complete exports, use the Query API with cursor pagination (`GET /api/v2/query` with the `cursor` parameter), or the scheduled warehouse export on plans that include it.
-# Mock sources (synthetic, read-only)
-
-Offline stand-ins for the connectors a real deployment would wire up (bug tracker, product docs, release notes, status page). They let the demo and the E2E test run with **no credentials and no network connectors**.
-
-Everything here describes **Beacon**, a fictional product analytics SaaS. No real company, customer or person is represented.
-
-| Folder | Stands in for | How the agent searches it |
-|---|---|---|
-| `issues/` | Bug tracker (GitHub Issues, Linear, Jira) | Grep over titles, bodies and front matter (`status`, `created`, `updated`, `labels`) |
-| `docs/` | Product documentation | Grep / Read |
-| `releases/` | Release notes and changelogs | Grep / Read, version-range matching |
-| `status/` | Public status page / incident history | Grep / Read, time-window matching |
-
-## Using it
-
-Copy `examples/tickets/` and `examples/mock-sources/` into a working directory (the E2E script does this for you), then run `/triage tickets/<file>.md`. When a `mock-sources/` folder is present in the working directory, the agent treats it as the evidence source for the fictional Beacon product and does not search the web for it.
-
-The search matrix still applies: hybrid (synonyms and paraphrases), lexical (short noun phrases), exact (quoted error strings and method names) and recent (sort by the `updated` front-matter field).
-
-These files are fixtures. The agent must never edit them.
-mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
-mock-sources/issues/BEACON-097.md:5:labels: [feature-request, exports, csv]
-mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
-mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
-mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
-mock-sources/issues/BEACON-142.md:22:- Conversion or confirmation-page events missing for roughly 30–60% of Safari sessions.
-mock-sources/issues/BEACON-118.md:13:Safari Intelligent Tracking Prevention caps script-written first-party cookies at seven days. Anonymous visitors who return after more than seven days get a new anonymous ID, so unique-user counts are higher in Safari.
-mock-sources/issues/BEACON-118.md:17:This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
-
-exec
-/bin/zsh -lc "rg -n -i 'CSV|rows|Insights|pagination' mock-sources/issues; rg -n -F -e '10,000' -e '10000' -e '48,212' mock-sources/issues; rg -n -e '"'^updated:'"' -e '"'^created:'"' -e '"'^#'"' mock-sources/issues; cat mock-sources/issues/BEACON-160.md mock-sources/issues/BEACON-097.md" in <workspace>
- succeeded in 0ms:
-mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
-mock-sources/issues/BEACON-142.md:6:fixed_in: browser-sdk 3.12.2
-mock-sources/issues/BEACON-142.md:7:labels: [bug, browser-sdk, safari, delivery, regression]
-mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
-mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
-mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
-mock-sources/issues/BEACON-118.md:6:labels: [browser-sdk, safari, identity, itp]
-mock-sources/issues/BEACON-118.md:17:This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
-mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
-mock-sources/issues/BEACON-097.md:5:labels: [feature-request, exports, csv]
-mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
-mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
-mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
-mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
-mock-sources/issues/BEACON-118.md:7:created: 2025-11-12
-mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
-mock-sources/issues/BEACON-118.md:11:## Summary
-mock-sources/issues/BEACON-118.md:15:## Notes
-mock-sources/issues/BEACON-097.md:6:created: 2025-09-18
-mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
-mock-sources/issues/BEACON-097.md:10:## Summary
-mock-sources/issues/BEACON-097.md:14:## Current guidance
-mock-sources/issues/BEACON-097.md:18:## Status
-mock-sources/issues/BEACON-142.md:8:created: 2026-04-29
-mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
-mock-sources/issues/BEACON-142.md:12:## Summary
-mock-sources/issues/BEACON-142.md:16:## Details
-mock-sources/issues/BEACON-142.md:26:## Workaround
-mock-sources/issues/BEACON-142.md:30:## Fix
-mock-sources/issues/BEACON-160.md:6:created: 2026-05-02
-mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
-mock-sources/issues/BEACON-160.md:10:## Summary
-mock-sources/issues/BEACON-160.md:14:## Scope
-mock-sources/issues/BEACON-151.md:6:created: 2026-03-02
-mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
-mock-sources/issues/BEACON-151.md:10:## Summary
-mock-sources/issues/BEACON-151.md:14:## Status
-mock-sources/issues/BEACON-151.md:18:## Workaround
 ---
 id: BEACON-160
 title: "Dashboards show 'No data' tiles intermittently for EU projects"
@@ -1039,168 +927,209 @@ Use the Query API with cursor pagination for full exports, or narrow the date ra
 
 Open and accepted onto the backlog. No delivery date has been committed.
 
+exec
+/bin/zsh -lc "rg -n -i 'export|csv|rows' mock-sources/issues; rg -n -F -e '10,000' -e 'Export CSV' -e '48,212' mock-sources/issues; rg -n -i 'export|csv|rows|updated:' mock-sources/issues; cat '/private/var/folders/gq/_5ytx8vs18xbh18m_k3n29ym0000gp/T/tmp.hbKUHzISIw/plugins/cache/support-triage-agent-template/support-triage-agent/1.3.0/skills/response-drafting/references/customer-response-template.md'" in <workspace>
+ succeeded in 0ms:
+mock-sources/issues/BEACON-118.md:6:labels: [browser-sdk, safari, identity, itp]
+mock-sources/issues/BEACON-118.md:17:This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
+mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
+mock-sources/issues/BEACON-142.md:6:fixed_in: browser-sdk 3.12.2
+mock-sources/issues/BEACON-142.md:7:labels: [bug, browser-sdk, safari, delivery, regression]
+mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
+mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
+mock-sources/issues/BEACON-097.md:5:labels: [feature-request, exports, csv]
+mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
+mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+mock-sources/issues/BEACON-118.md:6:labels: [browser-sdk, safari, identity, itp]
+mock-sources/issues/BEACON-118.md:8:updated: 2026-01-08
+mock-sources/issues/BEACON-118.md:17:This affects identity continuity, not event delivery. Events are still received. Documented as a browser limitation; the recommended mitigation is server-side identification after login.
+mock-sources/issues/BEACON-142.md:3:title: "Safari: events tracked on the final page before navigation are dropped since browser SDK 3.12.0"
+mock-sources/issues/BEACON-142.md:6:fixed_in: browser-sdk 3.12.2
+mock-sources/issues/BEACON-142.md:7:labels: [bug, browser-sdk, safari, delivery, regression]
+mock-sources/issues/BEACON-142.md:9:updated: 2026-05-04
+mock-sources/issues/BEACON-142.md:14:Since browser SDK 3.12.0, events captured immediately before a page transition or tab close are dropped in Safari 17 and 18. Chrome and Firefox are unaffected.
+mock-sources/issues/BEACON-142.md:18:3.12.0 replaced the `navigator.sendBeacon` unload transport with `fetch(..., { keepalive: true })` and moved the flush from `pagehide` to `visibilitychange`. In Safari, keepalive requests started during a client-side route change or redirect are cancelled before they leave the browser, so the request never reaches ingestion. No error is logged on the client.
+mock-sources/issues/BEACON-142.md:32:Fixed in browser SDK 3.12.2: the SDK restores the `sendBeacon` transport for unload-time flushes in WebKit browsers.
+mock-sources/issues/BEACON-151.md:7:updated: 2026-05-01
+mock-sources/issues/BEACON-097.md:3:title: "Feature request: CSV export for more than 10,000 rows"
+mock-sources/issues/BEACON-097.md:5:labels: [feature-request, exports, csv]
+mock-sources/issues/BEACON-097.md:7:updated: 2026-04-22
+mock-sources/issues/BEACON-097.md:12:Customers want to download more than 10,000 rows from the Insights table in a single CSV file. The UI export is capped at 10,000 rows today; the cap is documented.
+mock-sources/issues/BEACON-097.md:16:Use the Query API with cursor pagination for full exports, or narrow the date range and export in batches.
+mock-sources/issues/BEACON-160.md:7:updated: 2026-05-02
+# Customer Response
+
+> No emojis. No internal tool names. No private links. No raw queries. No sensitive data. This file is the copy-pasteable customer-facing reply only.
+
+Hi [name],
+
+Thanks for the detail here — [acknowledge one specific useful piece of context they provided].
+
+What appears to be happening:
+
+- [finding 1, plain English]
+- [finding 2]
+- [finding 3, if needed]
+
+The next best step is [specific action or workaround]. To confirm whether this is the same issue or a separate configuration problem, could you also share [smallest missing context — for example: a network log from the affected browser, the exact code that fires the event, the SDK version output from `<runtime check>`]?
+
+[If escalation is recommended: "A member of our team will review this with engineering to check [specific thing] and follow up with you." Do not say it has already been passed on, and do not promise a timeframe.]
+
+[If a workaround exists: "In the meantime, [workaround] should restore the behavior you were seeing before."]
+
+Thanks,
+[name]
+
 codex
-The documentation confirms a 10,000-row limit for UI CSV exports, and BEACON-097 matches this exact behavior. For the full March list, the documented options are the Query API with cursor pagination or smaller date-range batches; warehouse exports depend on the plan. I’ll save the report and customer reply with those options.
-
+The documentation confirms that UI CSV exports stop at 10,000 rows, and a matching feature request gives two alternatives: paginated Query API exports or smaller date-range batches. This likely explains the ticket; I’ll save the report and customer draft, noting that the customer’s export has not been independently checked.
 apply patch
 patch: completed
-<workspace>/reports/20261007-000000-SUP-1003-customer-response.md
-<workspace>/reports/20261007-000000-SUP-1003-triage.md
-diff --git a/reports/20261007-000000-SUP-1003-customer-response.md b/reports/20261007-000000-SUP-1003-customer-response.md
+<workspace>/reports/20261007-224124-SUP-1003-customer-response.md
+<workspace>/reports/20261007-224124-SUP-1003-triage.md
+diff --git a/reports/20261007-224124-SUP-1003-customer-response.md b/reports/20261007-224124-SUP-1003-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..be553b79f383c8127429468df796d9d1c35fdeec
+index 0000000000000000000000000000000000000000..19f3020f1b356ac20224adb0cd44a4f6a634b277
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-customer-response.md
++++ b/reports/20261007-224124-SUP-1003-customer-response.md
 @@ -0,0 +1,8 @@
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
-diff --git a/reports/20261007-000000-SUP-1003-triage.md b/reports/20261007-000000-SUP-1003-triage.md
+diff --git a/reports/20261007-224124-SUP-1003-triage.md b/reports/20261007-224124-SUP-1003-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..8e9b69540d48ed7e6220b6453c3894218600adc0
+index 0000000000000000000000000000000000000000..325e3b5f6cb6cb23966f236853e40f91bfb68fef
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-triage.md
-@@ -0,0 +1,183 @@
-+# 🟢 Triage Report: SUP-1003 — CSV export capped at 10,000 rows
++++ b/reports/20261007-224124-SUP-1003-triage.md
+@@ -0,0 +1,164 @@
++# 🟢 Triage Report: SUP-1003 — CSV export stops at 10,000 rows
 +
-+**Ticket:** SUP-1003  
-+**Customer:** Contoso Learning (synthetic)  
-+**Issue Type:** How-to / documented limitation; initially bug-shaped  
-+**Product Area:** Insights table UI CSV export  
-+**Priority:** 🟢 P4  
-+**Plan Tier:** Unknown  
-+**SLA Target:** Not provided  
-+**Environment:** Beacon; browser, version, region and hosting unknown  
-+**Investigation Mode:** Read-only, offline fixtures
++**Issue Type:** Data / How-to (bug-shaped intake)
++**Product Area:** Insights table UI CSV export
++**Priority:** P4
++**Investigation Mode:** Read-only; offline synthetic Beacon fixtures
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs all March rows for finance reconciliation. [UI CSV export](../../mock-sources/docs/exports.md) downloads table results but has a documented size limit. The ticket reports 48,212 rows in the UI and exactly 10,000 data rows in the CSV. No SDK or browser details were supplied.
++The customer needs a complete March dataset for finance reconciliation. The Insights table reports 48,212 rows, but the downloaded CSV contains 10,000 data rows plus a header [E1]. Export documentation describes a UI limit and full-export alternatives [E2].
 +
 +## Issue Summary
 +
-+The customer asks whether the export is broken or a setting is missing. The reported count matches the documented UI export cap. The full dataset requires a different export route or smaller batches.
++The customer reports that March CSV downloads always stop at exactly 10,000 data rows. The documented UI cap likely explains the discrepancy [E1–E3]; no customer file or account was inspected.
 +
 +## Intake
 +
-+ASSUMING: Beacon Insights CSV export, region and plan unknown, one customer report with broader scope unverified.
++ASSUMING: Beacon Insights web export, region and plan unknown, one reported customer with broader scope unknown.
 +→ Correct me now or I proceed with these.
 +
 +| Field | Value |
 +|---|---|
-+| Issue Type | Initially suspected truncation bug; assessed as documented limitation |
-+| Product Area | Insights UI CSV export |
-+| Timeframe | March dataset; year, onset and export date unspecified |
-+| Impact | Incomplete file for finance reconciliation; one customer report |
-+| Environment | Beacon; browser, version, region and plan unknown |
++| Issue Type / Area | Data / How-to; Insights UI CSV |
++| Timeframe | March dataset; year, onset and ticket date unspecified |
++| Impact | Full finance reconciliation list unavailable through one UI export; broader scope unknown |
++| Environment | Web UI inferred; browser, product version, region and plan unknown |
 +| Identifiers | SUP-1003 |
-+| Reproduction | Export March table; reported 48,212 UI rows versus 10,000 CSV rows plus header, always |
-+| Missing Context | Preferred full-export route; plan only if warehouse export is desired |
-+| First Investigation Paths | Export docs; exact-limit tracker match; recent truncation candidates |
++| Reproduction | Export March Insights table; expected 48,212 rows, reported actual 10,000 plus header, always |
++| Missing Context | Actual CSV and query/filter parity not verified; plan needed only to assess warehouse option |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 UI rows and 10,000 CSV data rows; P4 | ✅ Verified as ticket content; not independently reproduced |
-+| E2 | mock-sources/docs/exports.md, full read | UI export returns at most 10,000 rows in current sort order; dialog banner states limit. Full export uses Query API cursor pagination or plan-dependent warehouse export | ✅ Verified fixture documentation |
-+| E3 | mock-sources/issues/BEACON-097.md, full read | Exact cap is documented; API pagination or date-range batches advised. Open feature request, backlog, no committed date | ✅ Verified fixture tracker |
-+| E4 | mock-sources/issues/BEACON-160.md, full read | EU dashboard tiles intermittently show no data; direct insights show results | ✅ Verified; rejected as different symptom |
-+| E5 | mock-sources/issues/, four searches below | Only export-specific result is BEACON-097; metadata sweep covers five issues | ✅ Verified search results |
-+| E6 | Customer-specific export / project data | No independent row counts, banner observation or API result available | ❌ Unverified |
++| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 displayed rows and exactly 10,000 exported data rows | ✅ Verified as ticket content; outcome not independently verified |
++| E2 | mock-sources/docs/exports.md | UI export capped at 10,000 in current sort order; limit banner; full export via Query API cursor pagination or plan-dependent scheduled warehouse export | ✅ Verified fixture documentation |
++| E3 | mock-sources/issues/BEACON-097.md | Exact matching cap; open feature request, updated 2026-04-22; guidance: paginated API or smaller date-range batches; no committed delivery date | ✅ Verified fixture issue |
++| E4 | mock-sources/issues/BEACON-160.md | EU dashboard tiles showing No data while direct insights work | ✅ Verified; rejected as different surface and symptom |
++| E5 | Four rg search passes over mock-sources/issues/ (matrix below) | Export candidate BEACON-097 found across matrix; updated dates inspected across all five issues | ✅ Verified executed searches |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline tracker: mock-sources/issues/. Searches executed with rg, not live network tools.
-+
 +| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid via synonyms | mock-sources/issues | `rg -n -i 'truncat\|limit\|cap\|missing\|partial\|export\|download' mock-sources/issues` | BEACON-097; unrelated Safari matches | Exact limit match |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'CSV\|rows\|Insights\|pagination' mock-sources/issues` | BEACON-097 | Accepted |
-+| 3 | Exact surface | mock-sources/issues | `rg -n -F -e '10,000' -e '10000' -e '48,212' mock-sources/issues` | BEACON-097 | Accepted; no match for 48,212 |
-+| 4 | Recent metadata sweep | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e '^#' mock-sources/issues` | BEACON-097 updated 2026-04-22; BEACON-160 updated 2026-05-02 | Compared all five records; newer issue has different symptom |
++| 1 | Hybrid synonym discovery | mock-sources/issues/ | rg -n -i 'truncat\|missing rows\|incomplete\|limit\|cap\|export\|csv' mock-sources/issues | BEACON-097 | Accepted exact cap match |
++| 2 | Broad lexical | mock-sources/issues/ | rg -n -i 'export\|csv\|rows' mock-sources/issues | BEACON-097 | Accepted; other browser SDK hits were lexical noise |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F -e '10,000' -e 'Export CSV' -e '48,212' mock-sources/issues | BEACON-097 | Exact 10,000 match; other exact strings not found |
++| 4 | Recent sweep | mock-sources/issues/ | rg -n -i 'export\|csv\|rows\|updated:' mock-sources/issues; rg -n 'updated:\|created:' mock-sources/issues | BEACON-097 | Matching issue updated 2026-04-22; later fixture updates through 2026-05-04 concern other areas |
 +
-+**Matching issue:** BEACON-097, accepted feature request for exports over 10,000 rows, corroborated by E2.
++**Candidate inspection:** Full bodies of BEACON-097 and BEACON-160 read. BEACON-097 accepted as a documented limitation and feature request, not evidence of a new export regression. BEACON-160 rejected because intermittent EU dashboard rendering does not explain an exact CSV row cap [E3–E5].
 +
-+**Closest rejected candidate:** BEACON-160 concerns empty dashboard tiles, not a successful CSV capped at exactly 10,000 rows (E4). Safari delivery/identity matches in the broad search lack the export symptom and were not pursued.
-+
-+**Search gaps:** Ticket omits onset date and March year, so recent metadata cannot establish temporal correlation. This is a fixture-only search, not a claim about a live tracker.
++**Search gaps:** Fixture snapshot only, not a live service. Ticket timeframe cannot be correlated with issue dates because March year and onset are unspecified. No external repositories searched; offline demo rules apply.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+The export path imposes the documented limit; the displayed total need not equal the file size (E2).
++The UI export includes only the first 10,000 rows in the current sort order [E2]. The gap occurs at the documented export limit.
 +
 +```mermaid
 +flowchart LR
-+    A[March Insights table: reported 48,212 rows] --> B[Export CSV]
-+    B --> C[Documented limit: first 10,000 sorted rows]
-+    C --> D[CSV with 10,000 data rows plus header]
++    A[Insights results: reported 48,212 rows] --> B[UI CSV export]
++    B --> C[Documented 10,000 row cap]
++    C --> D[Partial CSV for reconciliation]
 +    A --> E[Query API with cursor pagination]
-+    E --> F[Complete export route]
++    E --> F[Documented full export route]
 +```
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported CSV size matches Beacon's documented UI export limit; the available evidence does not indicate a malfunction or a missing setting.
++**Assessment:** The documented Insights UI export limit likely explains the exact truncation; this matches expected documented behavior rather than establishing a new bug.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** E2 directly confirms the product limit, and E3 matches the exact reported threshold in E1. The customer-specific cause remains inferred because no export was inspected or reproduced (E6). The full known-issue matrix is complete for the available fixtures.
++**Reasoning:** Reported count [E1] matches the explicit documentation [E2] and exact tracker candidate [E3]. The full offline search gate ran [E5]. Confidence limited by lack of project data access; no CSV, traces, account state or reproduction on the customer's setup confirms the mechanism.
 +
-+**Not explained:** Whether the customer saw the documented banner; independent accuracy of the 48,212-row total. No other symptom was reported.
++**Not explained:** Whether the customer saw the banner, whether displayed and exported filters match, and whether all 48,212 rows remain obtainable through a full-export route.
 +
 +## Recommended Next Action
 +
-+1. 🔧 For a complete export, use the documented Query API route: `GET /api/v2/query` with cursor pagination (E2). Exact authentication, response format and cursor completion rules are not supplied by these fixtures; verify those before providing implementation instructions.
-+2. 🔧 Alternatively, narrow the date range and export batches below 10,000 rows (E3). Verify batch coverage and combined totals against the same filters; this verification is a proposed reconciliation check, not a documented product guarantee.
-+3. Ask which route the customer prefers. Check plan eligibility before suggesting scheduled warehouse export as available (E2).
++1. Use the documented Query API cursor-pagination route for complete exports [E2]; docs identify GET /api/v2/query with cursor, but do not supply a complete request schema or authentication recipe.
++2. Alternatively, narrow dates and export batches [E3]. As a verification precaution, use non-overlapping ranges, keep each batch below the cap and reconcile counts.
++3. Consider scheduled warehouse export only after checking plan entitlement [E2]. No setting to increase the UI cap is documented in the inspected sources.
++4. If a below-limit export still loses rows or a full-export route fails, obtain sanitized counts, matching filters, time boundaries and request identifiers for renewed investigation.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon Insights; version, browser, region and plan unknown.  
-+**Preconditions:** Synthetic table with more than 10,000 rows, stable filters and sort order (assumed).
++**Environment:** Beacon web UI assumed; version, browser, region and plan unknown.
++**Preconditions:** Synthetic Insights dataset exceeding 10,000 rows (assumed).
 +
-+1. Open a March Insights table with more than 10,000 rows (source: ticket; synthetic setup assumed).
-+2. Choose Export CSV and inspect the export-dialog banner (source: docs).
-+3. Count data records separately from the header (source: ticket).
++1. Open an Insights table for March (source: ticket).
++2. Note the result count and current sort order (sources: ticket, E2).
++3. Select Export CSV and count data rows excluding the header (sources: ticket, E2).
 +
-+**Expected:** At most 10,000 data rows in current sort order (E2).  
-+**Actual:** Customer reports exactly 10,000 plus header, against 48,212 UI rows (E1).  
-+**Control:** Repeat with only the date range changed to yield fewer than 10,000 rows; expect no truncation from this cap (inferred from E2).  
-+**Frequency:** Always, according to ticket; number of runs unknown.
++**Expected:** At most 10,000 rows, first rows in current sort order, and a limit banner [E2].
++**Actual:** Customer reports 10,000 plus header against 48,212 displayed [E1].
++**Control:** Change only the date range to yield fewer than 10,000 rows; compare exported and displayed counts (proposed test, not performed).
++**Frequency:** Always, according to the ticket.
 +
 +## Escalation Decision
 +
-+**Decision:** No escalation needed at present.
-+
-+**Reason:** Reported behavior matches documentation and an existing feature request (E2–E3). Customer confirmation remains outstanding.
-+
-+**Suggested owner if escalated:** Exports / Query API engineering; actual team name unknown.  
-+**Follow-up cadence:** After the customer selects a route or reports a discrepancy; no promised timeline.
-+
-+Escalate with sanitized counts and filter details if a below-limit export is incomplete or a paginated full export cannot retrieve all matching rows. No escalation has been sent.
++**Decision:** No engineering escalation needed on current evidence.
++**Reason:** Strong match to documented cap and existing feature request [E2–E3]; revisit if the control export contradicts documentation.
++**Suggested owner if escalated:** Insights exports component; exact team unknown.
++**Follow-up cadence:** On customer evidence of below-limit or paginated-export failure; no timeline promised. Nothing filed or sent.
 +
 +## 🔎 Verify This Report
 +
-+1. Open `mock-sources/docs/exports.md`: confirm the 10,000-row cap, current sort order and dialog banner.
-+2. Open `mock-sources/issues/BEACON-097.md`: confirm API pagination and smaller date-range batches; do not promise a delivery date.
-+3. Compare the ticket's reported counts against E2; treat these as reported rather than independently verified.
-+4. If using warehouse exports, verify the customer's plan eligibility; if using the API, obtain its detailed pagination documentation before supplying code.
++1. Open mock-sources/docs/exports.md: verify cap, sort order, banner and conditional warehouse option.
++2. Open mock-sources/issues/BEACON-097.md: verify open feature-request status and both workarounds.
++3. Repeat the exact search matrix above and inspect updated dates; do not infer ticket onset from March.
++4. Have a human perform the control reproduction using synthetic data, then compare counts. It has not been run.
 +
 +## 💬 Draft Customer Response
 +
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -1210,201 +1139,182 @@ index 0000000000000000000000000000000000000000..8e9b69540d48ed7e6220b6453c389421
 +
 +### Engineer TL;DR
 +
-+The documented UI cap exactly matches the reported CSV size. Customer-specific causation is likely, not independently confirmed. Provide the documented full-export alternatives; no engineering escalation is currently warranted.
++An exact 10,000-row CSV result matches the documented UI cap. Provide the documented full-export route or date batches; customer-specific causality remains inferred. No engineering action or customer message was sent.
 +
 +### Claim-Source Map
 +
 +| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Ticket reports the two row counts | E1 | ✅ Verified as report |
-+| 2 | UI cap is 10,000, current sort order; banner documented | E2 | ✅ Verified |
-+| 3 | API cursor pagination is a full-export route | E2–E3 | ✅ Verified |
-+| 4 | Date-range batching is recommended | E3 | ✅ Verified |
-+| 5 | Warehouse exports depend on plan | E2 | ✅ Verified |
-+| 6 | Matching feature request is open without committed delivery date | E3 | ✅ Verified |
-+| 7 | Cap explains this customer's file size | E1–E3 | ⚠️ Inferred |
-+| 8 | Customer's actual export and total are independently correct | E6 | ❌ Unverified |
++| 1 | Ticket reports 48,212 versus 10,000 plus header | E1 | Verified as report |
++| 2 | UI cap, sort order and banner documented | E2 | Verified |
++| 3 | Paginated Query API is documented full-export route | E2 | Verified |
++| 4 | Warehouse export is conditional on plan | E2 | Verified |
++| 5 | Exact open feature request supplies date-batch guidance | E3 | Verified |
++| 6 | Customer's actual mechanism is UI cap | E1–E3 | Inferred |
++| 7 | Four search types completed | E5 | Verified |
 +
 +### Unknowns
 +
-+- Export artifact, actual project state, banner visibility, plan, environment and onset date.
-+- API authentication and detailed cursor response shape; do not invent these.
-+- Confidence limited by lack of project data access. No browser repro or customer resource access was attempted.
++Customer artifact, filter parity, banner visibility, product version, region, plan, March year and onset are unverified. Source fixtures cannot establish current production state. No source-code or no-error claim is made.
++
++### Anti-hallucination Review
++
++Claims extracted and mapped above. No contradiction between export docs and accepted candidate. Customer facts are attributed to the ticket, not treated as independent confirmation. API details limited to the inspected docs; no unverified config option or fix release promised. Batch boundary/count checks are proposed verification precautions, not product guarantees. Customer reply has no internal tracker references, queries, private links, personal names or action claims.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
++**Overall:** High evidence coverage: (6 verified + 1 inferred × 0.5) / 7 = 92.9%. Root-cause label remains Likely because customer-system confirmation is absent.
 +
 +- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
-+- Caps applied: plausible matching issue accepted but customer-level cause not independently verified → Medium (70%). No incomplete-search cap.
-+
-+### Anti-hallucination and contradiction check
-+
-+Claims mapped above to sources read this session. Documentation and the matching issue agree. No fix date, new setting, plan entitlement or unverified API shape is asserted. Recommended routes are documented; coverage verification is explicitly proposed. Recent metadata cannot be correlated to an unspecified onset date.
++- Unverified scored claims: 0 (unknowns listed separately)
++- Caps applied: None; accepted candidate describes the limit, not an unresolved plausible bug. Fixture-only scope limits applicability.
 +
 +### Redaction confirmation
 +
-+Redaction pass: 1 personal name omitted across the two output files; no tokens, private URLs, raw person properties or internal admin links included. Customer draft contains no fixture paths, tracker identifiers, raw queries or internal tools.
++Redaction pass: 1 personal-name omission in drafting, applied to both output files. No tokens, raw person properties, private URLs or admin links retained. All evidence paths are relative to the workspace.
 +
 
-diff --git a/reports/20261007-000000-SUP-1003-customer-response.md b/reports/20261007-000000-SUP-1003-customer-response.md
+diff --git a/reports/20261007-224124-SUP-1003-customer-response.md b/reports/20261007-224124-SUP-1003-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..be553b79f383c8127429468df796d9d1c35fdeec
+index 0000000000000000000000000000000000000000..19f3020f1b356ac20224adb0cd44a4f6a634b277
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-customer-response.md
++++ b/reports/20261007-224124-SUP-1003-customer-response.md
 @@ -0,0 +1,8 @@
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
-diff --git a/reports/20261007-000000-SUP-1003-triage.md b/reports/20261007-000000-SUP-1003-triage.md
+diff --git a/reports/20261007-224124-SUP-1003-triage.md b/reports/20261007-224124-SUP-1003-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..8e9b69540d48ed7e6220b6453c3894218600adc0
+index 0000000000000000000000000000000000000000..325e3b5f6cb6cb23966f236853e40f91bfb68fef
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-triage.md
-@@ -0,0 +1,183 @@
-+# 🟢 Triage Report: SUP-1003 — CSV export capped at 10,000 rows
++++ b/reports/20261007-224124-SUP-1003-triage.md
+@@ -0,0 +1,164 @@
++# 🟢 Triage Report: SUP-1003 — CSV export stops at 10,000 rows
 +
-+**Ticket:** SUP-1003  
-+**Customer:** Contoso Learning (synthetic)  
-+**Issue Type:** How-to / documented limitation; initially bug-shaped  
-+**Product Area:** Insights table UI CSV export  
-+**Priority:** 🟢 P4  
-+**Plan Tier:** Unknown  
-+**SLA Target:** Not provided  
-+**Environment:** Beacon; browser, version, region and hosting unknown  
-+**Investigation Mode:** Read-only, offline fixtures
++**Issue Type:** Data / How-to (bug-shaped intake)
++**Product Area:** Insights table UI CSV export
++**Priority:** P4
++**Investigation Mode:** Read-only; offline synthetic Beacon fixtures
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs all March rows for finance reconciliation. [UI CSV export](../../mock-sources/docs/exports.md) downloads table results but has a documented size limit. The ticket reports 48,212 rows in the UI and exactly 10,000 data rows in the CSV. No SDK or browser details were supplied.
++The customer needs a complete March dataset for finance reconciliation. The Insights table reports 48,212 rows, but the downloaded CSV contains 10,000 data rows plus a header [E1]. Export documentation describes a UI limit and full-export alternatives [E2].
 +
 +## Issue Summary
 +
-+The customer asks whether the export is broken or a setting is missing. The reported count matches the documented UI export cap. The full dataset requires a different export route or smaller batches.
++The customer reports that March CSV downloads always stop at exactly 10,000 data rows. The documented UI cap likely explains the discrepancy [E1–E3]; no customer file or account was inspected.
 +
 +## Intake
 +
-+ASSUMING: Beacon Insights CSV export, region and plan unknown, one customer report with broader scope unverified.
++ASSUMING: Beacon Insights web export, region and plan unknown, one reported customer with broader scope unknown.
 +→ Correct me now or I proceed with these.
 +
 +| Field | Value |
 +|---|---|
-+| Issue Type | Initially suspected truncation bug; assessed as documented limitation |
-+| Product Area | Insights UI CSV export |
-+| Timeframe | March dataset; year, onset and export date unspecified |
-+| Impact | Incomplete file for finance reconciliation; one customer report |
-+| Environment | Beacon; browser, version, region and plan unknown |
++| Issue Type / Area | Data / How-to; Insights UI CSV |
++| Timeframe | March dataset; year, onset and ticket date unspecified |
++| Impact | Full finance reconciliation list unavailable through one UI export; broader scope unknown |
++| Environment | Web UI inferred; browser, product version, region and plan unknown |
 +| Identifiers | SUP-1003 |
-+| Reproduction | Export March table; reported 48,212 UI rows versus 10,000 CSV rows plus header, always |
-+| Missing Context | Preferred full-export route; plan only if warehouse export is desired |
-+| First Investigation Paths | Export docs; exact-limit tracker match; recent truncation candidates |
++| Reproduction | Export March Insights table; expected 48,212 rows, reported actual 10,000 plus header, always |
++| Missing Context | Actual CSV and query/filter parity not verified; plan needed only to assess warehouse option |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 UI rows and 10,000 CSV data rows; P4 | ✅ Verified as ticket content; not independently reproduced |
-+| E2 | mock-sources/docs/exports.md, full read | UI export returns at most 10,000 rows in current sort order; dialog banner states limit. Full export uses Query API cursor pagination or plan-dependent warehouse export | ✅ Verified fixture documentation |
-+| E3 | mock-sources/issues/BEACON-097.md, full read | Exact cap is documented; API pagination or date-range batches advised. Open feature request, backlog, no committed date | ✅ Verified fixture tracker |
-+| E4 | mock-sources/issues/BEACON-160.md, full read | EU dashboard tiles intermittently show no data; direct insights show results | ✅ Verified; rejected as different symptom |
-+| E5 | mock-sources/issues/, four searches below | Only export-specific result is BEACON-097; metadata sweep covers five issues | ✅ Verified search results |
-+| E6 | Customer-specific export / project data | No independent row counts, banner observation or API result available | ❌ Unverified |
++| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 displayed rows and exactly 10,000 exported data rows | ✅ Verified as ticket content; outcome not independently verified |
++| E2 | mock-sources/docs/exports.md | UI export capped at 10,000 in current sort order; limit banner; full export via Query API cursor pagination or plan-dependent scheduled warehouse export | ✅ Verified fixture documentation |
++| E3 | mock-sources/issues/BEACON-097.md | Exact matching cap; open feature request, updated 2026-04-22; guidance: paginated API or smaller date-range batches; no committed delivery date | ✅ Verified fixture issue |
++| E4 | mock-sources/issues/BEACON-160.md | EU dashboard tiles showing No data while direct insights work | ✅ Verified; rejected as different surface and symptom |
++| E5 | Four rg search passes over mock-sources/issues/ (matrix below) | Export candidate BEACON-097 found across matrix; updated dates inspected across all five issues | ✅ Verified executed searches |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline tracker: mock-sources/issues/. Searches executed with rg, not live network tools.
-+
 +| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid via synonyms | mock-sources/issues | `rg -n -i 'truncat\|limit\|cap\|missing\|partial\|export\|download' mock-sources/issues` | BEACON-097; unrelated Safari matches | Exact limit match |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'CSV\|rows\|Insights\|pagination' mock-sources/issues` | BEACON-097 | Accepted |
-+| 3 | Exact surface | mock-sources/issues | `rg -n -F -e '10,000' -e '10000' -e '48,212' mock-sources/issues` | BEACON-097 | Accepted; no match for 48,212 |
-+| 4 | Recent metadata sweep | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e '^#' mock-sources/issues` | BEACON-097 updated 2026-04-22; BEACON-160 updated 2026-05-02 | Compared all five records; newer issue has different symptom |
++| 1 | Hybrid synonym discovery | mock-sources/issues/ | rg -n -i 'truncat\|missing rows\|incomplete\|limit\|cap\|export\|csv' mock-sources/issues | BEACON-097 | Accepted exact cap match |
++| 2 | Broad lexical | mock-sources/issues/ | rg -n -i 'export\|csv\|rows' mock-sources/issues | BEACON-097 | Accepted; other browser SDK hits were lexical noise |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F -e '10,000' -e 'Export CSV' -e '48,212' mock-sources/issues | BEACON-097 | Exact 10,000 match; other exact strings not found |
++| 4 | Recent sweep | mock-sources/issues/ | rg -n -i 'export\|csv\|rows\|updated:' mock-sources/issues; rg -n 'updated:\|created:' mock-sources/issues | BEACON-097 | Matching issue updated 2026-04-22; later fixture updates through 2026-05-04 concern other areas |
 +
-+**Matching issue:** BEACON-097, accepted feature request for exports over 10,000 rows, corroborated by E2.
++**Candidate inspection:** Full bodies of BEACON-097 and BEACON-160 read. BEACON-097 accepted as a documented limitation and feature request, not evidence of a new export regression. BEACON-160 rejected because intermittent EU dashboard rendering does not explain an exact CSV row cap [E3–E5].
 +
-+**Closest rejected candidate:** BEACON-160 concerns empty dashboard tiles, not a successful CSV capped at exactly 10,000 rows (E4). Safari delivery/identity matches in the broad search lack the export symptom and were not pursued.
-+
-+**Search gaps:** Ticket omits onset date and March year, so recent metadata cannot establish temporal correlation. This is a fixture-only search, not a claim about a live tracker.
++**Search gaps:** Fixture snapshot only, not a live service. Ticket timeframe cannot be correlated with issue dates because March year and onset are unspecified. No external repositories searched; offline demo rules apply.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+The export path imposes the documented limit; the displayed total need not equal the file size (E2).
++The UI export includes only the first 10,000 rows in the current sort order [E2]. The gap occurs at the documented export limit.
 +
 +```mermaid
 +flowchart LR
-+    A[March Insights table: reported 48,212 rows] --> B[Export CSV]
-+    B --> C[Documented limit: first 10,000 sorted rows]
-+    C --> D[CSV with 10,000 data rows plus header]
++    A[Insights results: reported 48,212 rows] --> B[UI CSV export]
++    B --> C[Documented 10,000 row cap]
++    C --> D[Partial CSV for reconciliation]
 +    A --> E[Query API with cursor pagination]
-+    E --> F[Complete export route]
++    E --> F[Documented full export route]
 +```
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported CSV size matches Beacon's documented UI export limit; the available evidence does not indicate a malfunction or a missing setting.
++**Assessment:** The documented Insights UI export limit likely explains the exact truncation; this matches expected documented behavior rather than establishing a new bug.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** E2 directly confirms the product limit, and E3 matches the exact reported threshold in E1. The customer-specific cause remains inferred because no export was inspected or reproduced (E6). The full known-issue matrix is complete for the available fixtures.
++**Reasoning:** Reported count [E1] matches the explicit documentation [E2] and exact tracker candidate [E3]. The full offline search gate ran [E5]. Confidence limited by lack of project data access; no CSV, traces, account state or reproduction on the customer's setup confirms the mechanism.
 +
-+**Not explained:** Whether the customer saw the documented banner; independent accuracy of the 48,212-row total. No other symptom was reported.
++**Not explained:** Whether the customer saw the banner, whether displayed and exported filters match, and whether all 48,212 rows remain obtainable through a full-export route.
 +
 +## Recommended Next Action
 +
-+1. 🔧 For a complete export, use the documented Query API route: `GET /api/v2/query` with cursor pagination (E2). Exact authentication, response format and cursor completion rules are not supplied by these fixtures; verify those before providing implementation instructions.
-+2. 🔧 Alternatively, narrow the date range and export batches below 10,000 rows (E3). Verify batch coverage and combined totals against the same filters; this verification is a proposed reconciliation check, not a documented product guarantee.
-+3. Ask which route the customer prefers. Check plan eligibility before suggesting scheduled warehouse export as available (E2).
++1. Use the documented Query API cursor-pagination route for complete exports [E2]; docs identify GET /api/v2/query with cursor, but do not supply a complete request schema or authentication recipe.
++2. Alternatively, narrow dates and export batches [E3]. As a verification precaution, use non-overlapping ranges, keep each batch below the cap and reconcile counts.
++3. Consider scheduled warehouse export only after checking plan entitlement [E2]. No setting to increase the UI cap is documented in the inspected sources.
++4. If a below-limit export still loses rows or a full-export route fails, obtain sanitized counts, matching filters, time boundaries and request identifiers for renewed investigation.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon Insights; version, browser, region and plan unknown.  
-+**Preconditions:** Synthetic table with more than 10,000 rows, stable filters and sort order (assumed).
++**Environment:** Beacon web UI assumed; version, browser, region and plan unknown.
++**Preconditions:** Synthetic Insights dataset exceeding 10,000 rows (assumed).
 +
-+1. Open a March Insights table with more than 10,000 rows (source: ticket; synthetic setup assumed).
-+2. Choose Export CSV and inspect the export-dialog banner (source: docs).
-+3. Count data records separately from the header (source: ticket).
++1. Open an Insights table for March (source: ticket).
++2. Note the result count and current sort order (sources: ticket, E2).
++3. Select Export CSV and count data rows excluding the header (sources: ticket, E2).
 +
-+**Expected:** At most 10,000 data rows in current sort order (E2).  
-+**Actual:** Customer reports exactly 10,000 plus header, against 48,212 UI rows (E1).  
-+**Control:** Repeat with only the date range changed to yield fewer than 10,000 rows; expect no truncation from this cap (inferred from E2).  
-+**Frequency:** Always, according to ticket; number of runs unknown.
++**Expected:** At most 10,000 rows, first rows in current sort order, and a limit banner [E2].
++**Actual:** Customer reports 10,000 plus header against 48,212 displayed [E1].
++**Control:** Change only the date range to yield fewer than 10,000 rows; compare exported and displayed counts (proposed test, not performed).
++**Frequency:** Always, according to the ticket.
 +
 +## Escalation Decision
 +
-+**Decision:** No escalation needed at present.
-+
-+**Reason:** Reported behavior matches documentation and an existing feature request (E2–E3). Customer confirmation remains outstanding.
-+
-+**Suggested owner if escalated:** Exports / Query API engineering; actual team name unknown.  
-+**Follow-up cadence:** After the customer selects a route or reports a discrepancy; no promised timeline.
-+
-+Escalate with sanitized counts and filter details if a below-limit export is incomplete or a paginated full export cannot retrieve all matching rows. No escalation has been sent.
++**Decision:** No engineering escalation needed on current evidence.
++**Reason:** Strong match to documented cap and existing feature request [E2–E3]; revisit if the control export contradicts documentation.
++**Suggested owner if escalated:** Insights exports component; exact team unknown.
++**Follow-up cadence:** On customer evidence of below-limit or paginated-export failure; no timeline promised. Nothing filed or sent.
 +
 +## 🔎 Verify This Report
 +
-+1. Open `mock-sources/docs/exports.md`: confirm the 10,000-row cap, current sort order and dialog banner.
-+2. Open `mock-sources/issues/BEACON-097.md`: confirm API pagination and smaller date-range batches; do not promise a delivery date.
-+3. Compare the ticket's reported counts against E2; treat these as reported rather than independently verified.
-+4. If using warehouse exports, verify the customer's plan eligibility; if using the API, obtain its detailed pagination documentation before supplying code.
++1. Open mock-sources/docs/exports.md: verify cap, sort order, banner and conditional warehouse option.
++2. Open mock-sources/issues/BEACON-097.md: verify open feature-request status and both workarounds.
++3. Repeat the exact search matrix above and inspect updated dates; do not infer ticket onset from March.
++4. Have a human perform the control reproduction using synthetic data, then compare counts. It has not been run.
 +
 +## 💬 Draft Customer Response
 +
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -1414,426 +1324,201 @@ index 0000000000000000000000000000000000000000..8e9b69540d48ed7e6220b6453c389421
 +
 +### Engineer TL;DR
 +
-+The documented UI cap exactly matches the reported CSV size. Customer-specific causation is likely, not independently confirmed. Provide the documented full-export alternatives; no engineering escalation is currently warranted.
++An exact 10,000-row CSV result matches the documented UI cap. Provide the documented full-export route or date batches; customer-specific causality remains inferred. No engineering action or customer message was sent.
 +
 +### Claim-Source Map
 +
 +| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Ticket reports the two row counts | E1 | ✅ Verified as report |
-+| 2 | UI cap is 10,000, current sort order; banner documented | E2 | ✅ Verified |
-+| 3 | API cursor pagination is a full-export route | E2–E3 | ✅ Verified |
-+| 4 | Date-range batching is recommended | E3 | ✅ Verified |
-+| 5 | Warehouse exports depend on plan | E2 | ✅ Verified |
-+| 6 | Matching feature request is open without committed delivery date | E3 | ✅ Verified |
-+| 7 | Cap explains this customer's file size | E1–E3 | ⚠️ Inferred |
-+| 8 | Customer's actual export and total are independently correct | E6 | ❌ Unverified |
++| 1 | Ticket reports 48,212 versus 10,000 plus header | E1 | Verified as report |
++| 2 | UI cap, sort order and banner documented | E2 | Verified |
++| 3 | Paginated Query API is documented full-export route | E2 | Verified |
++| 4 | Warehouse export is conditional on plan | E2 | Verified |
++| 5 | Exact open feature request supplies date-batch guidance | E3 | Verified |
++| 6 | Customer's actual mechanism is UI cap | E1–E3 | Inferred |
++| 7 | Four search types completed | E5 | Verified |
 +
 +### Unknowns
 +
-+- Export artifact, actual project state, banner visibility, plan, environment and onset date.
-+- API authentication and detailed cursor response shape; do not invent these.
-+- Confidence limited by lack of project data access. No browser repro or customer resource access was attempted.
++Customer artifact, filter parity, banner visibility, product version, region, plan, March year and onset are unverified. Source fixtures cannot establish current production state. No source-code or no-error claim is made.
++
++### Anti-hallucination Review
++
++Claims extracted and mapped above. No contradiction between export docs and accepted candidate. Customer facts are attributed to the ticket, not treated as independent confirmation. API details limited to the inspected docs; no unverified config option or fix release promised. Batch boundary/count checks are proposed verification precautions, not product guarantees. Customer reply has no internal tracker references, queries, private links, personal names or action claims.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
++**Overall:** High evidence coverage: (6 verified + 1 inferred × 0.5) / 7 = 92.9%. Root-cause label remains Likely because customer-system confirmation is absent.
 +
 +- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
-+- Caps applied: plausible matching issue accepted but customer-level cause not independently verified → Medium (70%). No incomplete-search cap.
-+
-+### Anti-hallucination and contradiction check
-+
-+Claims mapped above to sources read this session. Documentation and the matching issue agree. No fix date, new setting, plan entitlement or unverified API shape is asserted. Recommended routes are documented; coverage verification is explicitly proposed. Recent metadata cannot be correlated to an unspecified onset date.
++- Unverified scored claims: 0 (unknowns listed separately)
++- Caps applied: None; accepted candidate describes the limit, not an unresolved plausible bug. Fixture-only scope limits applicability.
 +
 +### Redaction confirmation
 +
-+Redaction pass: 1 personal name omitted across the two output files; no tokens, private URLs, raw person properties or internal admin links included. Customer draft contains no fixture paths, tracker identifiers, raw queries or internal tools.
++Redaction pass: 1 personal-name omission in drafting, applied to both output files. No tokens, raw person properties, private URLs or admin links retained. All evidence paths are relative to the workspace.
 +
-
-apply patch
-patch: completed
-<workspace>/reports/20261007-000000-SUP-1003-triage.md
-diff --git a/reports/20261007-000000-SUP-1003-customer-response.md b/reports/20261007-000000-SUP-1003-customer-response.md
-new file mode 100644
-index 0000000000000000000000000000000000000000..be553b79f383c8127429468df796d9d1c35fdeec
---- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-customer-response.md
-@@ -0,0 +1,8 @@
-+Hi,
-+
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
-+
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
-+
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
-+
-diff --git a/reports/20261007-000000-SUP-1003-triage.md b/reports/20261007-000000-SUP-1003-triage.md
-new file mode 100644
-index 0000000000000000000000000000000000000000..150e11494209012c1c493fcf7b6a25ac265fa075
---- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-triage.md
-@@ -0,0 +1,182 @@
-+# 🟢 Triage Report: SUP-1003 — CSV export capped at 10,000 rows
-+
-+**Ticket:** SUP-1003  
-+**Customer:** Contoso Learning (synthetic)  
-+**Issue Type:** How-to / documented limitation; initially bug-shaped  
-+**Product Area:** Insights table UI CSV export  
-+**Priority:** 🟢 P4  
-+**Plan Tier:** Unknown  
-+**SLA Target:** Not provided  
-+**Environment:** Beacon; browser, version, region and hosting unknown  
-+**Investigation Mode:** Read-only, offline fixtures
-+
-+## 📖 Context for Reviewers
-+
-+The customer needs all March rows for finance reconciliation. [UI CSV export](../mock-sources/docs/exports.md) downloads table results but has a documented size limit. The ticket reports 48,212 rows in the UI and exactly 10,000 data rows in the CSV. No SDK or browser details were supplied.
-+
-+## Issue Summary
-+
-+The customer asks whether the export is broken or a setting is missing. The reported count matches the documented UI export cap. The full dataset requires a different export route or smaller batches.
-+
-+## Intake
-+
-+ASSUMING: Beacon Insights CSV export, region and plan unknown, one customer report with broader scope unverified.
-+→ Correct me now or I proceed with these.
-+
-+| Field | Value |
-+|---|---|
-+| Issue Type | Initially suspected truncation bug; assessed as documented limitation |
-+| Product Area | Insights UI CSV export |
-+| Timeframe | March dataset; year, onset and export date unspecified |
-+| Impact | Incomplete file for finance reconciliation; one customer report |
-+| Environment | Beacon; browser, version, region and plan unknown |
-+| Identifiers | SUP-1003 |
-+| Reproduction | Export March table; reported 48,212 UI rows versus 10,000 CSV rows plus header, always |
-+| Missing Context | Preferred full-export route; plan only if warehouse export is desired |
-+| First Investigation Paths | Export docs; exact-limit tracker match; recent truncation candidates |
-+
-+## Evidence Gathered
-+
-+| # | Source / Query | Finding | Status |
-+|---|---|---|---|
-+| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 UI rows and 10,000 CSV data rows; P4 | ✅ Verified as ticket content; not independently reproduced |
-+| E2 | mock-sources/docs/exports.md, full read | UI export returns at most 10,000 rows in current sort order; dialog banner states limit. Full export uses Query API cursor pagination or plan-dependent warehouse export | ✅ Verified fixture documentation |
-+| E3 | mock-sources/issues/BEACON-097.md, full read | Exact cap is documented; API pagination or date-range batches advised. Open feature request, backlog, no committed date | ✅ Verified fixture tracker |
-+| E4 | mock-sources/issues/BEACON-160.md, full read | EU dashboard tiles intermittently show no data; direct insights show results | ✅ Verified; rejected as different symptom |
-+| E5 | mock-sources/issues/, four searches below | Only export-specific result is BEACON-097; metadata sweep covers five issues | ✅ Verified search results |
-+| E6 | Customer-specific export / project data | No independent row counts, banner observation or API result available | ❌ Unverified |
-+
-+## 🐛 Known-Issue Search
-+
-+Offline tracker: mock-sources/issues/. Searches executed with rg, not live network tools.
-+
-+| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
-+|---|---|---|---|---|---|
-+| 1 | Hybrid via synonyms | mock-sources/issues | `rg -n -i 'truncat\|limit\|cap\|missing\|partial\|export\|download' mock-sources/issues` | BEACON-097; unrelated Safari matches | Exact limit match |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'CSV\|rows\|Insights\|pagination' mock-sources/issues` | BEACON-097 | Accepted |
-+| 3 | Exact surface | mock-sources/issues | `rg -n -F -e '10,000' -e '10000' -e '48,212' mock-sources/issues` | BEACON-097 | Accepted; no match for 48,212 |
-+| 4 | Recent metadata sweep | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e '^#' mock-sources/issues` | BEACON-097 updated 2026-04-22; BEACON-160 updated 2026-05-02 | Compared all five records; newer issue has different symptom |
-+
-+**Matching issue:** BEACON-097, accepted feature request for exports over 10,000 rows, corroborated by E2.
-+
-+**Closest rejected candidate:** BEACON-160 concerns empty dashboard tiles, not a successful CSV capped at exactly 10,000 rows (E4). Safari delivery/identity matches in the broad search lack the export symptom and were not pursued.
-+
-+**Search gaps:** Ticket omits onset date and March year, so recent metadata cannot establish temporal correlation. This is a fixture-only search, not a claim about a live tracker.
-+
-+## 🗺️ How It Works (and Where It Breaks)
-+
-+The export path imposes the documented limit; the displayed total need not equal the file size (E2).
-+
-+```mermaid
-+flowchart LR
-+    A[March Insights table: reported 48,212 rows] --> B[Export CSV]
-+    B --> C[Documented limit: first 10,000 sorted rows]
-+    C --> D[CSV with 10,000 data rows plus header]
-+    A --> E[Query API with cursor pagination]
-+    E --> F[Complete export route]
-+```
-+
-+## 🎯 Root-Cause Assessment
-+
-+**Assessment:** The reported CSV size matches Beacon's documented UI export limit; the available evidence does not indicate a malfunction or a missing setting.
-+
-+**Confidence:** Likely based on pattern match
-+
-+**Reasoning:** E2 directly confirms the product limit, and E3 matches the exact reported threshold in E1. The customer-specific cause remains inferred because no export was inspected or reproduced (E6). The full known-issue matrix is complete for the available fixtures.
-+
-+**Not explained:** Whether the customer saw the documented banner; independent accuracy of the 48,212-row total. No other symptom was reported.
-+
-+## Recommended Next Action
-+
-+1. 🔧 For a complete export, use the documented Query API route: `GET /api/v2/query` with cursor pagination (E2). Exact authentication, response format and cursor completion rules are not supplied by these fixtures; verify those before providing implementation instructions.
-+2. 🔧 Alternatively, narrow the date range and export batches below 10,000 rows (E3). Verify batch coverage and combined totals against the same filters; this verification is a proposed reconciliation check, not a documented product guarantee.
-+3. Ask which route the customer prefers. Check plan eligibility before suggesting scheduled warehouse export as available (E2).
-+
-+### Reproduction (status: not yet run)
-+
-+**Environment:** Beacon Insights; version, browser, region and plan unknown.  
-+**Preconditions:** Synthetic table with more than 10,000 rows, stable filters and sort order (assumed).
-+
-+1. Open a March Insights table with more than 10,000 rows (source: ticket; synthetic setup assumed).
-+2. Choose Export CSV and inspect the export-dialog banner (source: docs).
-+3. Count data records separately from the header (source: ticket).
-+
-+**Expected:** At most 10,000 data rows in current sort order (E2).  
-+**Actual:** Customer reports exactly 10,000 plus header, against 48,212 UI rows (E1).  
-+**Control:** Repeat with only the date range changed to yield fewer than 10,000 rows; expect no truncation from this cap (inferred from E2).  
-+**Frequency:** Always, according to ticket; number of runs unknown.
-+
-+## Escalation Decision
-+
-+**Decision:** No escalation needed at present.
-+
-+**Reason:** Reported behavior matches documentation and an existing feature request (E2–E3). Customer confirmation remains outstanding.
-+
-+**Suggested owner if escalated:** Exports / Query API engineering; actual team name unknown.  
-+**Follow-up cadence:** After the customer selects a route or reports a discrepancy; no promised timeline.
-+
-+Escalate with sanitized counts and filter details if a below-limit export is incomplete or a paginated full export cannot retrieve all matching rows. No escalation has been sent.
-+
-+## 🔎 Verify This Report
-+
-+1. Open `mock-sources/docs/exports.md`: confirm the 10,000-row cap, current sort order and dialog banner.
-+2. Open `mock-sources/issues/BEACON-097.md`: confirm API pagination and smaller date-range batches; do not promise a delivery date.
-+3. Compare the ticket's reported counts against E2; treat these as reported rather than independently verified.
-+4. If using warehouse exports, verify the customer's plan eligibility; if using the API, obtain its detailed pagination documentation before supplying code.
-+
-+## 💬 Draft Customer Response
-+
-+Hi,
-+
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
-+
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
-+
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
-+
-+--- END OF CUSTOMER-FACING CONTENT ---
-+
-+## 🔬 Evidence Pack (internal only)
-+
-+✅ Pre-send spot check: all cited references verified.
-+
-+### Engineer TL;DR
-+
-+The documented UI cap exactly matches the reported CSV size. Customer-specific causation is likely, not independently confirmed. Provide the documented full-export alternatives; no engineering escalation is currently warranted.
-+
-+### Claim-Source Map
-+
-+| # | Claim | Source | Status |
-+|---|---|---|---|
-+| 1 | Ticket reports the two row counts | E1 | ✅ Verified as report |
-+| 2 | UI cap is 10,000, current sort order; banner documented | E2 | ✅ Verified |
-+| 3 | API cursor pagination is a full-export route | E2–E3 | ✅ Verified |
-+| 4 | Date-range batching is recommended | E3 | ✅ Verified |
-+| 5 | Warehouse exports depend on plan | E2 | ✅ Verified |
-+| 6 | Matching feature request is open without committed delivery date | E3 | ✅ Verified |
-+| 7 | Cap explains this customer's file size | E1–E3 | ⚠️ Inferred |
-+| 8 | Customer's actual export and total are independently correct | E6 | ❌ Unverified |
-+
-+### Unknowns
-+
-+- Export artifact, actual project state, banner visibility, plan, environment and onset date.
-+- API authentication and detailed cursor response shape; do not invent these.
-+- Confidence limited by lack of project data access. No browser repro or customer resource access was attempted.
-+
-+### Confidence Score
-+
-+**Overall:** Medium, 70% after cap.
-+
-+- Verified claims: 6
-+- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
-+- Caps applied: plausible matching issue accepted but customer-level cause not independently verified → Medium (70%). No incomplete-search cap.
-+
-+### Anti-hallucination and contradiction check
-+
-+Claims mapped above to sources read this session. Documentation and the matching issue agree. No fix date, new setting, plan entitlement or unverified API shape is asserted. Recommended routes are documented; coverage verification is explicitly proposed. Recent metadata cannot be correlated to an unspecified onset date.
-+
-+### Redaction confirmation
-+
-+Redaction pass: 1 personal name omitted across the two output files; no tokens, private URLs, raw person properties or internal admin links included. Customer draft contains no fixture paths, tracker identifiers, raw queries or internal tools.
 
 exec
-/bin/zsh -lc "rg -n '"'^## |''^'"\\*\\*Confidence:|END OF CUSTOMER|Pre-send|@|Bearer|go/admin' reports/20261007-000000-SUP-1003*.md" in <workspace>
- succeeded in 0ms:
-reports/20261007-000000-SUP-1003-triage.md:13:## 📖 Context for Reviewers
-reports/20261007-000000-SUP-1003-triage.md:17:## Issue Summary
-reports/20261007-000000-SUP-1003-triage.md:21:## Intake
-reports/20261007-000000-SUP-1003-triage.md:38:## Evidence Gathered
-reports/20261007-000000-SUP-1003-triage.md:49:## 🐛 Known-Issue Search
-reports/20261007-000000-SUP-1003-triage.md:66:## 🗺️ How It Works (and Where It Breaks)
-reports/20261007-000000-SUP-1003-triage.md:79:## 🎯 Root-Cause Assessment
-reports/20261007-000000-SUP-1003-triage.md:83:**Confidence:** Likely based on pattern match
-reports/20261007-000000-SUP-1003-triage.md:89:## Recommended Next Action
-reports/20261007-000000-SUP-1003-triage.md:109:## Escalation Decision
-reports/20261007-000000-SUP-1003-triage.md:120:## 🔎 Verify This Report
-reports/20261007-000000-SUP-1003-triage.md:127:## 💬 Draft Customer Response
-reports/20261007-000000-SUP-1003-triage.md:137:--- END OF CUSTOMER-FACING CONTENT ---
-reports/20261007-000000-SUP-1003-triage.md:139:## 🔬 Evidence Pack (internal only)
-reports/20261007-000000-SUP-1003-triage.md:141:✅ Pre-send spot check: all cited references verified.
+/bin/zsh -lc "rg -n '"'^## |''^'"\\*\\*Confidence:|END OF CUSTOMER|Redaction pass' reports/20261007-224124-SUP-1003-triage.md; rg -n 'Bearer|https?://|@|go/admin|Sam' reports/20261007-224124-SUP-1003-*.md" in <workspace>
+ exited 1 in 0ms:
+8:## 📖 Context for Reviewers
+12:## Issue Summary
+16:## Intake
+31:## Evidence Gathered
+41:## 🐛 Known-Issue Search
+54:## 🗺️ How It Works (and Where It Breaks)
+67:## 🎯 Root-Cause Assessment
+71:**Confidence:** Likely based on pattern match
+77:## Recommended Next Action
+98:## Escalation Decision
+105:## 🔎 Verify This Report
+112:## 💬 Draft Customer Response
+122:--- END OF CUSTOMER-FACING CONTENT ---
+124:## 🔬 Evidence Pack (internal only)
+163:Redaction pass: 1 personal-name omission in drafting, applied to both output files. No tokens, raw person properties, private URLs or admin links retained. All evidence paths are relative to the workspace.
 
-diff --git a/reports/20261007-000000-SUP-1003-customer-response.md b/reports/20261007-000000-SUP-1003-customer-response.md
+diff --git a/reports/20261007-224124-SUP-1003-customer-response.md b/reports/20261007-224124-SUP-1003-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..be553b79f383c8127429468df796d9d1c35fdeec
+index 0000000000000000000000000000000000000000..19f3020f1b356ac20224adb0cd44a4f6a634b277
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-customer-response.md
++++ b/reports/20261007-224124-SUP-1003-customer-response.md
 @@ -0,0 +1,8 @@
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
-diff --git a/reports/20261007-000000-SUP-1003-triage.md b/reports/20261007-000000-SUP-1003-triage.md
+diff --git a/reports/20261007-224124-SUP-1003-triage.md b/reports/20261007-224124-SUP-1003-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..150e11494209012c1c493fcf7b6a25ac265fa075
+index 0000000000000000000000000000000000000000..325e3b5f6cb6cb23966f236853e40f91bfb68fef
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-triage.md
-@@ -0,0 +1,182 @@
-+# 🟢 Triage Report: SUP-1003 — CSV export capped at 10,000 rows
++++ b/reports/20261007-224124-SUP-1003-triage.md
+@@ -0,0 +1,164 @@
++# 🟢 Triage Report: SUP-1003 — CSV export stops at 10,000 rows
 +
-+**Ticket:** SUP-1003  
-+**Customer:** Contoso Learning (synthetic)  
-+**Issue Type:** How-to / documented limitation; initially bug-shaped  
-+**Product Area:** Insights table UI CSV export  
-+**Priority:** 🟢 P4  
-+**Plan Tier:** Unknown  
-+**SLA Target:** Not provided  
-+**Environment:** Beacon; browser, version, region and hosting unknown  
-+**Investigation Mode:** Read-only, offline fixtures
++**Issue Type:** Data / How-to (bug-shaped intake)
++**Product Area:** Insights table UI CSV export
++**Priority:** P4
++**Investigation Mode:** Read-only; offline synthetic Beacon fixtures
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs all March rows for finance reconciliation. [UI CSV export](../mock-sources/docs/exports.md) downloads table results but has a documented size limit. The ticket reports 48,212 rows in the UI and exactly 10,000 data rows in the CSV. No SDK or browser details were supplied.
++The customer needs a complete March dataset for finance reconciliation. The Insights table reports 48,212 rows, but the downloaded CSV contains 10,000 data rows plus a header [E1]. Export documentation describes a UI limit and full-export alternatives [E2].
 +
 +## Issue Summary
 +
-+The customer asks whether the export is broken or a setting is missing. The reported count matches the documented UI export cap. The full dataset requires a different export route or smaller batches.
++The customer reports that March CSV downloads always stop at exactly 10,000 data rows. The documented UI cap likely explains the discrepancy [E1–E3]; no customer file or account was inspected.
 +
 +## Intake
 +
-+ASSUMING: Beacon Insights CSV export, region and plan unknown, one customer report with broader scope unverified.
++ASSUMING: Beacon Insights web export, region and plan unknown, one reported customer with broader scope unknown.
 +→ Correct me now or I proceed with these.
 +
 +| Field | Value |
 +|---|---|
-+| Issue Type | Initially suspected truncation bug; assessed as documented limitation |
-+| Product Area | Insights UI CSV export |
-+| Timeframe | March dataset; year, onset and export date unspecified |
-+| Impact | Incomplete file for finance reconciliation; one customer report |
-+| Environment | Beacon; browser, version, region and plan unknown |
++| Issue Type / Area | Data / How-to; Insights UI CSV |
++| Timeframe | March dataset; year, onset and ticket date unspecified |
++| Impact | Full finance reconciliation list unavailable through one UI export; broader scope unknown |
++| Environment | Web UI inferred; browser, product version, region and plan unknown |
 +| Identifiers | SUP-1003 |
-+| Reproduction | Export March table; reported 48,212 UI rows versus 10,000 CSV rows plus header, always |
-+| Missing Context | Preferred full-export route; plan only if warehouse export is desired |
-+| First Investigation Paths | Export docs; exact-limit tracker match; recent truncation candidates |
++| Reproduction | Export March Insights table; expected 48,212 rows, reported actual 10,000 plus header, always |
++| Missing Context | Actual CSV and query/filter parity not verified; plan needed only to assess warehouse option |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 UI rows and 10,000 CSV data rows; P4 | ✅ Verified as ticket content; not independently reproduced |
-+| E2 | mock-sources/docs/exports.md, full read | UI export returns at most 10,000 rows in current sort order; dialog banner states limit. Full export uses Query API cursor pagination or plan-dependent warehouse export | ✅ Verified fixture documentation |
-+| E3 | mock-sources/issues/BEACON-097.md, full read | Exact cap is documented; API pagination or date-range batches advised. Open feature request, backlog, no committed date | ✅ Verified fixture tracker |
-+| E4 | mock-sources/issues/BEACON-160.md, full read | EU dashboard tiles intermittently show no data; direct insights show results | ✅ Verified; rejected as different symptom |
-+| E5 | mock-sources/issues/, four searches below | Only export-specific result is BEACON-097; metadata sweep covers five issues | ✅ Verified search results |
-+| E6 | Customer-specific export / project data | No independent row counts, banner observation or API result available | ❌ Unverified |
++| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 displayed rows and exactly 10,000 exported data rows | ✅ Verified as ticket content; outcome not independently verified |
++| E2 | mock-sources/docs/exports.md | UI export capped at 10,000 in current sort order; limit banner; full export via Query API cursor pagination or plan-dependent scheduled warehouse export | ✅ Verified fixture documentation |
++| E3 | mock-sources/issues/BEACON-097.md | Exact matching cap; open feature request, updated 2026-04-22; guidance: paginated API or smaller date-range batches; no committed delivery date | ✅ Verified fixture issue |
++| E4 | mock-sources/issues/BEACON-160.md | EU dashboard tiles showing No data while direct insights work | ✅ Verified; rejected as different surface and symptom |
++| E5 | Four rg search passes over mock-sources/issues/ (matrix below) | Export candidate BEACON-097 found across matrix; updated dates inspected across all five issues | ✅ Verified executed searches |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline tracker: mock-sources/issues/. Searches executed with rg, not live network tools.
-+
 +| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid via synonyms | mock-sources/issues | `rg -n -i 'truncat\|limit\|cap\|missing\|partial\|export\|download' mock-sources/issues` | BEACON-097; unrelated Safari matches | Exact limit match |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'CSV\|rows\|Insights\|pagination' mock-sources/issues` | BEACON-097 | Accepted |
-+| 3 | Exact surface | mock-sources/issues | `rg -n -F -e '10,000' -e '10000' -e '48,212' mock-sources/issues` | BEACON-097 | Accepted; no match for 48,212 |
-+| 4 | Recent metadata sweep | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e '^#' mock-sources/issues` | BEACON-097 updated 2026-04-22; BEACON-160 updated 2026-05-02 | Compared all five records; newer issue has different symptom |
++| 1 | Hybrid synonym discovery | mock-sources/issues/ | rg -n -i 'truncat\|missing rows\|incomplete\|limit\|cap\|export\|csv' mock-sources/issues | BEACON-097 | Accepted exact cap match |
++| 2 | Broad lexical | mock-sources/issues/ | rg -n -i 'export\|csv\|rows' mock-sources/issues | BEACON-097 | Accepted; other browser SDK hits were lexical noise |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F -e '10,000' -e 'Export CSV' -e '48,212' mock-sources/issues | BEACON-097 | Exact 10,000 match; other exact strings not found |
++| 4 | Recent sweep | mock-sources/issues/ | rg -n -i 'export\|csv\|rows\|updated:' mock-sources/issues; rg -n 'updated:\|created:' mock-sources/issues | BEACON-097 | Matching issue updated 2026-04-22; later fixture updates through 2026-05-04 concern other areas |
 +
-+**Matching issue:** BEACON-097, accepted feature request for exports over 10,000 rows, corroborated by E2.
++**Candidate inspection:** Full bodies of BEACON-097 and BEACON-160 read. BEACON-097 accepted as a documented limitation and feature request, not evidence of a new export regression. BEACON-160 rejected because intermittent EU dashboard rendering does not explain an exact CSV row cap [E3–E5].
 +
-+**Closest rejected candidate:** BEACON-160 concerns empty dashboard tiles, not a successful CSV capped at exactly 10,000 rows (E4). Safari delivery/identity matches in the broad search lack the export symptom and were not pursued.
-+
-+**Search gaps:** Ticket omits onset date and March year, so recent metadata cannot establish temporal correlation. This is a fixture-only search, not a claim about a live tracker.
++**Search gaps:** Fixture snapshot only, not a live service. Ticket timeframe cannot be correlated with issue dates because March year and onset are unspecified. No external repositories searched; offline demo rules apply.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+The export path imposes the documented limit; the displayed total need not equal the file size (E2).
++The UI export includes only the first 10,000 rows in the current sort order [E2]. The gap occurs at the documented export limit.
 +
 +```mermaid
 +flowchart LR
-+    A[March Insights table: reported 48,212 rows] --> B[Export CSV]
-+    B --> C[Documented limit: first 10,000 sorted rows]
-+    C --> D[CSV with 10,000 data rows plus header]
++    A[Insights results: reported 48,212 rows] --> B[UI CSV export]
++    B --> C[Documented 10,000 row cap]
++    C --> D[Partial CSV for reconciliation]
 +    A --> E[Query API with cursor pagination]
-+    E --> F[Complete export route]
++    E --> F[Documented full export route]
 +```
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported CSV size matches Beacon's documented UI export limit; the available evidence does not indicate a malfunction or a missing setting.
++**Assessment:** The documented Insights UI export limit likely explains the exact truncation; this matches expected documented behavior rather than establishing a new bug.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** E2 directly confirms the product limit, and E3 matches the exact reported threshold in E1. The customer-specific cause remains inferred because no export was inspected or reproduced (E6). The full known-issue matrix is complete for the available fixtures.
++**Reasoning:** Reported count [E1] matches the explicit documentation [E2] and exact tracker candidate [E3]. The full offline search gate ran [E5]. Confidence limited by lack of project data access; no CSV, traces, account state or reproduction on the customer's setup confirms the mechanism.
 +
-+**Not explained:** Whether the customer saw the documented banner; independent accuracy of the 48,212-row total. No other symptom was reported.
++**Not explained:** Whether the customer saw the banner, whether displayed and exported filters match, and whether all 48,212 rows remain obtainable through a full-export route.
 +
 +## Recommended Next Action
 +
-+1. 🔧 For a complete export, use the documented Query API route: `GET /api/v2/query` with cursor pagination (E2). Exact authentication, response format and cursor completion rules are not supplied by these fixtures; verify those before providing implementation instructions.
-+2. 🔧 Alternatively, narrow the date range and export batches below 10,000 rows (E3). Verify batch coverage and combined totals against the same filters; this verification is a proposed reconciliation check, not a documented product guarantee.
-+3. Ask which route the customer prefers. Check plan eligibility before suggesting scheduled warehouse export as available (E2).
++1. Use the documented Query API cursor-pagination route for complete exports [E2]; docs identify GET /api/v2/query with cursor, but do not supply a complete request schema or authentication recipe.
++2. Alternatively, narrow dates and export batches [E3]. As a verification precaution, use non-overlapping ranges, keep each batch below the cap and reconcile counts.
++3. Consider scheduled warehouse export only after checking plan entitlement [E2]. No setting to increase the UI cap is documented in the inspected sources.
++4. If a below-limit export still loses rows or a full-export route fails, obtain sanitized counts, matching filters, time boundaries and request identifiers for renewed investigation.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon Insights; version, browser, region and plan unknown.  
-+**Preconditions:** Synthetic table with more than 10,000 rows, stable filters and sort order (assumed).
++**Environment:** Beacon web UI assumed; version, browser, region and plan unknown.
++**Preconditions:** Synthetic Insights dataset exceeding 10,000 rows (assumed).
 +
-+1. Open a March Insights table with more than 10,000 rows (source: ticket; synthetic setup assumed).
-+2. Choose Export CSV and inspect the export-dialog banner (source: docs).
-+3. Count data records separately from the header (source: ticket).
++1. Open an Insights table for March (source: ticket).
++2. Note the result count and current sort order (sources: ticket, E2).
++3. Select Export CSV and count data rows excluding the header (sources: ticket, E2).
 +
-+**Expected:** At most 10,000 data rows in current sort order (E2).  
-+**Actual:** Customer reports exactly 10,000 plus header, against 48,212 UI rows (E1).  
-+**Control:** Repeat with only the date range changed to yield fewer than 10,000 rows; expect no truncation from this cap (inferred from E2).  
-+**Frequency:** Always, according to ticket; number of runs unknown.
++**Expected:** At most 10,000 rows, first rows in current sort order, and a limit banner [E2].
++**Actual:** Customer reports 10,000 plus header against 48,212 displayed [E1].
++**Control:** Change only the date range to yield fewer than 10,000 rows; compare exported and displayed counts (proposed test, not performed).
++**Frequency:** Always, according to the ticket.
 +
 +## Escalation Decision
 +
-+**Decision:** No escalation needed at present.
-+
-+**Reason:** Reported behavior matches documentation and an existing feature request (E2–E3). Customer confirmation remains outstanding.
-+
-+**Suggested owner if escalated:** Exports / Query API engineering; actual team name unknown.  
-+**Follow-up cadence:** After the customer selects a route or reports a discrepancy; no promised timeline.
-+
-+Escalate with sanitized counts and filter details if a below-limit export is incomplete or a paginated full export cannot retrieve all matching rows. No escalation has been sent.
++**Decision:** No engineering escalation needed on current evidence.
++**Reason:** Strong match to documented cap and existing feature request [E2–E3]; revisit if the control export contradicts documentation.
++**Suggested owner if escalated:** Insights exports component; exact team unknown.
++**Follow-up cadence:** On customer evidence of below-limit or paginated-export failure; no timeline promised. Nothing filed or sent.
 +
 +## 🔎 Verify This Report
 +
-+1. Open `mock-sources/docs/exports.md`: confirm the 10,000-row cap, current sort order and dialog banner.
-+2. Open `mock-sources/issues/BEACON-097.md`: confirm API pagination and smaller date-range batches; do not promise a delivery date.
-+3. Compare the ticket's reported counts against E2; treat these as reported rather than independently verified.
-+4. If using warehouse exports, verify the customer's plan eligibility; if using the API, obtain its detailed pagination documentation before supplying code.
++1. Open mock-sources/docs/exports.md: verify cap, sort order, banner and conditional warehouse option.
++2. Open mock-sources/issues/BEACON-097.md: verify open feature-request status and both workarounds.
++3. Repeat the exact search matrix above and inspect updated dates; do not infer ticket onset from March.
++4. Have a human perform the control reproduction using synthetic data, then compare counts. It has not been run.
 +
 +## 💬 Draft Customer Response
 +
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -1843,204 +1528,186 @@ index 0000000000000000000000000000000000000000..150e11494209012c1c493fcf7b6a25ac
 +
 +### Engineer TL;DR
 +
-+The documented UI cap exactly matches the reported CSV size. Customer-specific causation is likely, not independently confirmed. Provide the documented full-export alternatives; no engineering escalation is currently warranted.
++An exact 10,000-row CSV result matches the documented UI cap. Provide the documented full-export route or date batches; customer-specific causality remains inferred. No engineering action or customer message was sent.
 +
 +### Claim-Source Map
 +
 +| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Ticket reports the two row counts | E1 | ✅ Verified as report |
-+| 2 | UI cap is 10,000, current sort order; banner documented | E2 | ✅ Verified |
-+| 3 | API cursor pagination is a full-export route | E2–E3 | ✅ Verified |
-+| 4 | Date-range batching is recommended | E3 | ✅ Verified |
-+| 5 | Warehouse exports depend on plan | E2 | ✅ Verified |
-+| 6 | Matching feature request is open without committed delivery date | E3 | ✅ Verified |
-+| 7 | Cap explains this customer's file size | E1–E3 | ⚠️ Inferred |
-+| 8 | Customer's actual export and total are independently correct | E6 | ❌ Unverified |
++| 1 | Ticket reports 48,212 versus 10,000 plus header | E1 | Verified as report |
++| 2 | UI cap, sort order and banner documented | E2 | Verified |
++| 3 | Paginated Query API is documented full-export route | E2 | Verified |
++| 4 | Warehouse export is conditional on plan | E2 | Verified |
++| 5 | Exact open feature request supplies date-batch guidance | E3 | Verified |
++| 6 | Customer's actual mechanism is UI cap | E1–E3 | Inferred |
++| 7 | Four search types completed | E5 | Verified |
 +
 +### Unknowns
 +
-+- Export artifact, actual project state, banner visibility, plan, environment and onset date.
-+- API authentication and detailed cursor response shape; do not invent these.
-+- Confidence limited by lack of project data access. No browser repro or customer resource access was attempted.
++Customer artifact, filter parity, banner visibility, product version, region, plan, March year and onset are unverified. Source fixtures cannot establish current production state. No source-code or no-error claim is made.
++
++### Anti-hallucination Review
++
++Claims extracted and mapped above. No contradiction between export docs and accepted candidate. Customer facts are attributed to the ticket, not treated as independent confirmation. API details limited to the inspected docs; no unverified config option or fix release promised. Batch boundary/count checks are proposed verification precautions, not product guarantees. Customer reply has no internal tracker references, queries, private links, personal names or action claims.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
++**Overall:** High evidence coverage: (6 verified + 1 inferred × 0.5) / 7 = 92.9%. Root-cause label remains Likely because customer-system confirmation is absent.
 +
 +- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
-+- Caps applied: plausible matching issue accepted but customer-level cause not independently verified → Medium (70%). No incomplete-search cap.
-+
-+### Anti-hallucination and contradiction check
-+
-+Claims mapped above to sources read this session. Documentation and the matching issue agree. No fix date, new setting, plan entitlement or unverified API shape is asserted. Recommended routes are documented; coverage verification is explicitly proposed. Recent metadata cannot be correlated to an unspecified onset date.
++- Unverified scored claims: 0 (unknowns listed separately)
++- Caps applied: None; accepted candidate describes the limit, not an unresolved plausible bug. Fixture-only scope limits applicability.
 +
 +### Redaction confirmation
 +
-+Redaction pass: 1 personal name omitted across the two output files; no tokens, private URLs, raw person properties or internal admin links included. Customer draft contains no fixture paths, tracker identifiers, raw queries or internal tools.
++Redaction pass: 1 personal-name omission in drafting, applied to both output files. No tokens, raw person properties, private URLs or admin links retained. All evidence paths are relative to the workspace.
++
 
 codex
-The reported export matches Beacon’s documented 10,000-row UI limit. Full exports require API cursor pagination or smaller date-range batches. No escalation is needed currently.
+The export likely hits Beacon’s documented 10,000-row UI limit. Full exports require cursor pagination through the Query API or smaller date-range batches.
 
-Saved the [triage report](reports/20261007-000000-SUP-1003-triage.md) and [customer response draft](reports/20261007-000000-SUP-1003-customer-response.md). Nothing was sent.
-diff --git a/reports/20261007-000000-SUP-1003-customer-response.md b/reports/20261007-000000-SUP-1003-customer-response.md
+Saved the [triage report](reports/20261007-224124-SUP-1003-triage.md) and [customer response draft](reports/20261007-224124-SUP-1003-customer-response.md). No escalation recommended on current evidence; nothing sent.
+diff --git a/reports/20261007-224124-SUP-1003-customer-response.md b/reports/20261007-224124-SUP-1003-customer-response.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..be553b79f383c8127429468df796d9d1c35fdeec
+index 0000000000000000000000000000000000000000..19f3020f1b356ac20224adb0cd44a4f6a634b277
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-customer-response.md
++++ b/reports/20261007-224124-SUP-1003-customer-response.md
 @@ -0,0 +1,8 @@
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
-diff --git a/reports/20261007-000000-SUP-1003-triage.md b/reports/20261007-000000-SUP-1003-triage.md
+diff --git a/reports/20261007-224124-SUP-1003-triage.md b/reports/20261007-224124-SUP-1003-triage.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..150e11494209012c1c493fcf7b6a25ac265fa075
+index 0000000000000000000000000000000000000000..325e3b5f6cb6cb23966f236853e40f91bfb68fef
 --- /dev/null
-+++ b/reports/20261007-000000-SUP-1003-triage.md
-@@ -0,0 +1,182 @@
-+# 🟢 Triage Report: SUP-1003 — CSV export capped at 10,000 rows
++++ b/reports/20261007-224124-SUP-1003-triage.md
+@@ -0,0 +1,164 @@
++# 🟢 Triage Report: SUP-1003 — CSV export stops at 10,000 rows
 +
-+**Ticket:** SUP-1003  
-+**Customer:** Contoso Learning (synthetic)  
-+**Issue Type:** How-to / documented limitation; initially bug-shaped  
-+**Product Area:** Insights table UI CSV export  
-+**Priority:** 🟢 P4  
-+**Plan Tier:** Unknown  
-+**SLA Target:** Not provided  
-+**Environment:** Beacon; browser, version, region and hosting unknown  
-+**Investigation Mode:** Read-only, offline fixtures
++**Issue Type:** Data / How-to (bug-shaped intake)
++**Product Area:** Insights table UI CSV export
++**Priority:** P4
++**Investigation Mode:** Read-only; offline synthetic Beacon fixtures
 +
 +## 📖 Context for Reviewers
 +
-+The customer needs all March rows for finance reconciliation. [UI CSV export](../mock-sources/docs/exports.md) downloads table results but has a documented size limit. The ticket reports 48,212 rows in the UI and exactly 10,000 data rows in the CSV. No SDK or browser details were supplied.
++The customer needs a complete March dataset for finance reconciliation. The Insights table reports 48,212 rows, but the downloaded CSV contains 10,000 data rows plus a header [E1]. Export documentation describes a UI limit and full-export alternatives [E2].
 +
 +## Issue Summary
 +
-+The customer asks whether the export is broken or a setting is missing. The reported count matches the documented UI export cap. The full dataset requires a different export route or smaller batches.
++The customer reports that March CSV downloads always stop at exactly 10,000 data rows. The documented UI cap likely explains the discrepancy [E1–E3]; no customer file or account was inspected.
 +
 +## Intake
 +
-+ASSUMING: Beacon Insights CSV export, region and plan unknown, one customer report with broader scope unverified.
++ASSUMING: Beacon Insights web export, region and plan unknown, one reported customer with broader scope unknown.
 +→ Correct me now or I proceed with these.
 +
 +| Field | Value |
 +|---|---|
-+| Issue Type | Initially suspected truncation bug; assessed as documented limitation |
-+| Product Area | Insights UI CSV export |
-+| Timeframe | March dataset; year, onset and export date unspecified |
-+| Impact | Incomplete file for finance reconciliation; one customer report |
-+| Environment | Beacon; browser, version, region and plan unknown |
++| Issue Type / Area | Data / How-to; Insights UI CSV |
++| Timeframe | March dataset; year, onset and ticket date unspecified |
++| Impact | Full finance reconciliation list unavailable through one UI export; broader scope unknown |
++| Environment | Web UI inferred; browser, product version, region and plan unknown |
 +| Identifiers | SUP-1003 |
-+| Reproduction | Export March table; reported 48,212 UI rows versus 10,000 CSV rows plus header, always |
-+| Missing Context | Preferred full-export route; plan only if warehouse export is desired |
-+| First Investigation Paths | Export docs; exact-limit tracker match; recent truncation candidates |
++| Reproduction | Export March Insights table; expected 48,212 rows, reported actual 10,000 plus header, always |
++| Missing Context | Actual CSV and query/filter parity not verified; plan needed only to assess warehouse option |
 +
 +## Evidence Gathered
 +
 +| # | Source / Query | Finding | Status |
 +|---|---|---|---|
-+| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 UI rows and 10,000 CSV data rows; P4 | ✅ Verified as ticket content; not independently reproduced |
-+| E2 | mock-sources/docs/exports.md, full read | UI export returns at most 10,000 rows in current sort order; dialog banner states limit. Full export uses Query API cursor pagination or plan-dependent warehouse export | ✅ Verified fixture documentation |
-+| E3 | mock-sources/issues/BEACON-097.md, full read | Exact cap is documented; API pagination or date-range batches advised. Open feature request, backlog, no committed date | ✅ Verified fixture tracker |
-+| E4 | mock-sources/issues/BEACON-160.md, full read | EU dashboard tiles intermittently show no data; direct insights show results | ✅ Verified; rejected as different symptom |
-+| E5 | mock-sources/issues/, four searches below | Only export-specific result is BEACON-097; metadata sweep covers five issues | ✅ Verified search results |
-+| E6 | Customer-specific export / project data | No independent row counts, banner observation or API result available | ❌ Unverified |
++| E1 | tickets/003-csv-export-truncated.md | Customer reports 48,212 displayed rows and exactly 10,000 exported data rows | ✅ Verified as ticket content; outcome not independently verified |
++| E2 | mock-sources/docs/exports.md | UI export capped at 10,000 in current sort order; limit banner; full export via Query API cursor pagination or plan-dependent scheduled warehouse export | ✅ Verified fixture documentation |
++| E3 | mock-sources/issues/BEACON-097.md | Exact matching cap; open feature request, updated 2026-04-22; guidance: paginated API or smaller date-range batches; no committed delivery date | ✅ Verified fixture issue |
++| E4 | mock-sources/issues/BEACON-160.md | EU dashboard tiles showing No data while direct insights work | ✅ Verified; rejected as different surface and symptom |
++| E5 | Four rg search passes over mock-sources/issues/ (matrix below) | Export candidate BEACON-097 found across matrix; updated dates inspected across all five issues | ✅ Verified executed searches |
 +
 +## 🐛 Known-Issue Search
 +
-+Offline tracker: mock-sources/issues/. Searches executed with rg, not live network tools.
-+
 +| # | Query type | Repo / tracker | Exact executed query | Best Candidate | Conclusion |
 +|---|---|---|---|---|---|
-+| 1 | Hybrid via synonyms | mock-sources/issues | `rg -n -i 'truncat\|limit\|cap\|missing\|partial\|export\|download' mock-sources/issues` | BEACON-097; unrelated Safari matches | Exact limit match |
-+| 2 | Lexical | mock-sources/issues | `rg -n -i 'CSV\|rows\|Insights\|pagination' mock-sources/issues` | BEACON-097 | Accepted |
-+| 3 | Exact surface | mock-sources/issues | `rg -n -F -e '10,000' -e '10000' -e '48,212' mock-sources/issues` | BEACON-097 | Accepted; no match for 48,212 |
-+| 4 | Recent metadata sweep | mock-sources/issues | `rg -n -e '^updated:' -e '^created:' -e '^#' mock-sources/issues` | BEACON-097 updated 2026-04-22; BEACON-160 updated 2026-05-02 | Compared all five records; newer issue has different symptom |
++| 1 | Hybrid synonym discovery | mock-sources/issues/ | rg -n -i 'truncat\|missing rows\|incomplete\|limit\|cap\|export\|csv' mock-sources/issues | BEACON-097 | Accepted exact cap match |
++| 2 | Broad lexical | mock-sources/issues/ | rg -n -i 'export\|csv\|rows' mock-sources/issues | BEACON-097 | Accepted; other browser SDK hits were lexical noise |
++| 3 | Exact surface | mock-sources/issues/ | rg -n -F -e '10,000' -e 'Export CSV' -e '48,212' mock-sources/issues | BEACON-097 | Exact 10,000 match; other exact strings not found |
++| 4 | Recent sweep | mock-sources/issues/ | rg -n -i 'export\|csv\|rows\|updated:' mock-sources/issues; rg -n 'updated:\|created:' mock-sources/issues | BEACON-097 | Matching issue updated 2026-04-22; later fixture updates through 2026-05-04 concern other areas |
 +
-+**Matching issue:** BEACON-097, accepted feature request for exports over 10,000 rows, corroborated by E2.
++**Candidate inspection:** Full bodies of BEACON-097 and BEACON-160 read. BEACON-097 accepted as a documented limitation and feature request, not evidence of a new export regression. BEACON-160 rejected because intermittent EU dashboard rendering does not explain an exact CSV row cap [E3–E5].
 +
-+**Closest rejected candidate:** BEACON-160 concerns empty dashboard tiles, not a successful CSV capped at exactly 10,000 rows (E4). Safari delivery/identity matches in the broad search lack the export symptom and were not pursued.
-+
-+**Search gaps:** Ticket omits onset date and March year, so recent metadata cannot establish temporal correlation. This is a fixture-only search, not a claim about a live tracker.
++**Search gaps:** Fixture snapshot only, not a live service. Ticket timeframe cannot be correlated with issue dates because March year and onset are unspecified. No external repositories searched; offline demo rules apply.
 +
 +## 🗺️ How It Works (and Where It Breaks)
 +
-+The export path imposes the documented limit; the displayed total need not equal the file size (E2).
++The UI export includes only the first 10,000 rows in the current sort order [E2]. The gap occurs at the documented export limit.
 +
 +```mermaid
 +flowchart LR
-+    A[March Insights table: reported 48,212 rows] --> B[Export CSV]
-+    B --> C[Documented limit: first 10,000 sorted rows]
-+    C --> D[CSV with 10,000 data rows plus header]
++    A[Insights results: reported 48,212 rows] --> B[UI CSV export]
++    B --> C[Documented 10,000 row cap]
++    C --> D[Partial CSV for reconciliation]
 +    A --> E[Query API with cursor pagination]
-+    E --> F[Complete export route]
++    E --> F[Documented full export route]
 +```
 +
 +## 🎯 Root-Cause Assessment
 +
-+**Assessment:** The reported CSV size matches Beacon's documented UI export limit; the available evidence does not indicate a malfunction or a missing setting.
++**Assessment:** The documented Insights UI export limit likely explains the exact truncation; this matches expected documented behavior rather than establishing a new bug.
 +
 +**Confidence:** Likely based on pattern match
 +
-+**Reasoning:** E2 directly confirms the product limit, and E3 matches the exact reported threshold in E1. The customer-specific cause remains inferred because no export was inspected or reproduced (E6). The full known-issue matrix is complete for the available fixtures.
++**Reasoning:** Reported count [E1] matches the explicit documentation [E2] and exact tracker candidate [E3]. The full offline search gate ran [E5]. Confidence limited by lack of project data access; no CSV, traces, account state or reproduction on the customer's setup confirms the mechanism.
 +
-+**Not explained:** Whether the customer saw the documented banner; independent accuracy of the 48,212-row total. No other symptom was reported.
++**Not explained:** Whether the customer saw the banner, whether displayed and exported filters match, and whether all 48,212 rows remain obtainable through a full-export route.
 +
 +## Recommended Next Action
 +
-+1. 🔧 For a complete export, use the documented Query API route: `GET /api/v2/query` with cursor pagination (E2). Exact authentication, response format and cursor completion rules are not supplied by these fixtures; verify those before providing implementation instructions.
-+2. 🔧 Alternatively, narrow the date range and export batches below 10,000 rows (E3). Verify batch coverage and combined totals against the same filters; this verification is a proposed reconciliation check, not a documented product guarantee.
-+3. Ask which route the customer prefers. Check plan eligibility before suggesting scheduled warehouse export as available (E2).
++1. Use the documented Query API cursor-pagination route for complete exports [E2]; docs identify GET /api/v2/query with cursor, but do not supply a complete request schema or authentication recipe.
++2. Alternatively, narrow dates and export batches [E3]. As a verification precaution, use non-overlapping ranges, keep each batch below the cap and reconcile counts.
++3. Consider scheduled warehouse export only after checking plan entitlement [E2]. No setting to increase the UI cap is documented in the inspected sources.
++4. If a below-limit export still loses rows or a full-export route fails, obtain sanitized counts, matching filters, time boundaries and request identifiers for renewed investigation.
 +
 +### Reproduction (status: not yet run)
 +
-+**Environment:** Beacon Insights; version, browser, region and plan unknown.  
-+**Preconditions:** Synthetic table with more than 10,000 rows, stable filters and sort order (assumed).
++**Environment:** Beacon web UI assumed; version, browser, region and plan unknown.
++**Preconditions:** Synthetic Insights dataset exceeding 10,000 rows (assumed).
 +
-+1. Open a March Insights table with more than 10,000 rows (source: ticket; synthetic setup assumed).
-+2. Choose Export CSV and inspect the export-dialog banner (source: docs).
-+3. Count data records separately from the header (source: ticket).
++1. Open an Insights table for March (source: ticket).
++2. Note the result count and current sort order (sources: ticket, E2).
++3. Select Export CSV and count data rows excluding the header (sources: ticket, E2).
 +
-+**Expected:** At most 10,000 data rows in current sort order (E2).  
-+**Actual:** Customer reports exactly 10,000 plus header, against 48,212 UI rows (E1).  
-+**Control:** Repeat with only the date range changed to yield fewer than 10,000 rows; expect no truncation from this cap (inferred from E2).  
-+**Frequency:** Always, according to ticket; number of runs unknown.
++**Expected:** At most 10,000 rows, first rows in current sort order, and a limit banner [E2].
++**Actual:** Customer reports 10,000 plus header against 48,212 displayed [E1].
++**Control:** Change only the date range to yield fewer than 10,000 rows; compare exported and displayed counts (proposed test, not performed).
++**Frequency:** Always, according to the ticket.
 +
 +## Escalation Decision
 +
-+**Decision:** No escalation needed at present.
-+
-+**Reason:** Reported behavior matches documentation and an existing feature request (E2–E3). Customer confirmation remains outstanding.
-+
-+**Suggested owner if escalated:** Exports / Query API engineering; actual team name unknown.  
-+**Follow-up cadence:** After the customer selects a route or reports a discrepancy; no promised timeline.
-+
-+Escalate with sanitized counts and filter details if a below-limit export is incomplete or a paginated full export cannot retrieve all matching rows. No escalation has been sent.
++**Decision:** No engineering escalation needed on current evidence.
++**Reason:** Strong match to documented cap and existing feature request [E2–E3]; revisit if the control export contradicts documentation.
++**Suggested owner if escalated:** Insights exports component; exact team unknown.
++**Follow-up cadence:** On customer evidence of below-limit or paginated-export failure; no timeline promised. Nothing filed or sent.
 +
 +## 🔎 Verify This Report
 +
-+1. Open `mock-sources/docs/exports.md`: confirm the 10,000-row cap, current sort order and dialog banner.
-+2. Open `mock-sources/issues/BEACON-097.md`: confirm API pagination and smaller date-range batches; do not promise a delivery date.
-+3. Compare the ticket's reported counts against E2; treat these as reported rather than independently verified.
-+4. If using warehouse exports, verify the customer's plan eligibility; if using the API, obtain its detailed pagination documentation before supplying code.
++1. Open mock-sources/docs/exports.md: verify cap, sort order, banner and conditional warehouse option.
++2. Open mock-sources/issues/BEACON-097.md: verify open feature-request status and both workarounds.
++3. Repeat the exact search matrix above and inspect updated dates; do not infer ticket onset from March.
++4. Have a human perform the control reproduction using synthetic data, then compare counts. It has not been run.
 +
 +## 💬 Draft Customer Response
 +
 +Hi,
 +
-+Thanks for the precise row counts. Beacon’s Insights CSV export is limited to 10,000 data rows, plus the header, in the table’s current sort order. The 48,212-row total can therefore exceed the CSV size; your result matches the documented limit.
++Thanks for noting the exact row count. Beacon’s Insights CSV export is documented to include up to 10,000 data rows, so your result is consistent with that limit. Larger results include the first 10,000 rows in the table’s current sort order; the export dialog should show a limit banner.
 +
-+For the full March list, use the Query API with cursor pagination, or narrow the date range and export in batches, keeping each batch below the limit. Scheduled warehouse exports are another option on plans that include them.
++For your full March reconciliation, use the Query API with cursor pagination, or narrow the date range and export in batches. Keep each batch below the limit and use non-overlapping ranges to avoid counting rows twice.
 +
-+Would you prefer the API route or date-range batches? We can help you choose the next step for your finance reconciliation.
++Scheduled warehouse exports are another documented option on plans that include them. If a smaller batch still loses rows, please share its displayed count and exported data-row count so support can review the discrepancy.
 +
 +--- END OF CUSTOMER-FACING CONTENT ---
 +
@@ -2050,47 +1717,44 @@ index 0000000000000000000000000000000000000000..150e11494209012c1c493fcf7b6a25ac
 +
 +### Engineer TL;DR
 +
-+The documented UI cap exactly matches the reported CSV size. Customer-specific causation is likely, not independently confirmed. Provide the documented full-export alternatives; no engineering escalation is currently warranted.
++An exact 10,000-row CSV result matches the documented UI cap. Provide the documented full-export route or date batches; customer-specific causality remains inferred. No engineering action or customer message was sent.
 +
 +### Claim-Source Map
 +
 +| # | Claim | Source | Status |
 +|---|---|---|---|
-+| 1 | Ticket reports the two row counts | E1 | ✅ Verified as report |
-+| 2 | UI cap is 10,000, current sort order; banner documented | E2 | ✅ Verified |
-+| 3 | API cursor pagination is a full-export route | E2–E3 | ✅ Verified |
-+| 4 | Date-range batching is recommended | E3 | ✅ Verified |
-+| 5 | Warehouse exports depend on plan | E2 | ✅ Verified |
-+| 6 | Matching feature request is open without committed delivery date | E3 | ✅ Verified |
-+| 7 | Cap explains this customer's file size | E1–E3 | ⚠️ Inferred |
-+| 8 | Customer's actual export and total are independently correct | E6 | ❌ Unverified |
++| 1 | Ticket reports 48,212 versus 10,000 plus header | E1 | Verified as report |
++| 2 | UI cap, sort order and banner documented | E2 | Verified |
++| 3 | Paginated Query API is documented full-export route | E2 | Verified |
++| 4 | Warehouse export is conditional on plan | E2 | Verified |
++| 5 | Exact open feature request supplies date-batch guidance | E3 | Verified |
++| 6 | Customer's actual mechanism is UI cap | E1–E3 | Inferred |
++| 7 | Four search types completed | E5 | Verified |
 +
 +### Unknowns
 +
-+- Export artifact, actual project state, banner visibility, plan, environment and onset date.
-+- API authentication and detailed cursor response shape; do not invent these.
-+- Confidence limited by lack of project data access. No browser repro or customer resource access was attempted.
++Customer artifact, filter parity, banner visibility, product version, region, plan, March year and onset are unverified. Source fixtures cannot establish current production state. No source-code or no-error claim is made.
++
++### Anti-hallucination Review
++
++Claims extracted and mapped above. No contradiction between export docs and accepted candidate. Customer facts are attributed to the ticket, not treated as independent confirmation. API details limited to the inspected docs; no unverified config option or fix release promised. Batch boundary/count checks are proposed verification precautions, not product guarantees. Customer reply has no internal tracker references, queries, private links, personal names or action claims.
 +
 +### Confidence Score
 +
-+**Overall:** Medium, 70% after cap.
++**Overall:** High evidence coverage: (6 verified + 1 inferred × 0.5) / 7 = 92.9%. Root-cause label remains Likely because customer-system confirmation is absent.
 +
 +- Verified claims: 6
 +- Inferred claims: 1
-+- Unverified claims: 1
-+- Arithmetic: (6 + 0.5) / 8 × 100 = 81.25%.
-+- Caps applied: plausible matching issue accepted but customer-level cause not independently verified → Medium (70%). No incomplete-search cap.
-+
-+### Anti-hallucination and contradiction check
-+
-+Claims mapped above to sources read this session. Documentation and the matching issue agree. No fix date, new setting, plan entitlement or unverified API shape is asserted. Recommended routes are documented; coverage verification is explicitly proposed. Recent metadata cannot be correlated to an unspecified onset date.
++- Unverified scored claims: 0 (unknowns listed separately)
++- Caps applied: None; accepted candidate describes the limit, not an unresolved plausible bug. Fixture-only scope limits applicability.
 +
 +### Redaction confirmation
 +
-+Redaction pass: 1 personal name omitted across the two output files; no tokens, private URLs, raw person properties or internal admin links included. Customer draft contains no fixture paths, tracker identifiers, raw queries or internal tools.
++Redaction pass: 1 personal-name omission in drafting, applied to both output files. No tokens, raw person properties, private URLs or admin links retained. All evidence paths are relative to the workspace.
++
 
 tokens used
-29,326
-The reported export matches Beacon’s documented 10,000-row UI limit. Full exports require API cursor pagination or smaller date-range batches. No escalation is needed currently.
+29,805
+The export likely hits Beacon’s documented 10,000-row UI limit. Full exports require cursor pagination through the Query API or smaller date-range batches.
 
-Saved the [triage report](reports/20261007-000000-SUP-1003-triage.md) and [customer response draft](reports/20261007-000000-SUP-1003-customer-response.md). Nothing was sent.
+Saved the [triage report](reports/20261007-224124-SUP-1003-triage.md) and [customer response draft](reports/20261007-224124-SUP-1003-customer-response.md). No escalation recommended on current evidence; nothing sent.

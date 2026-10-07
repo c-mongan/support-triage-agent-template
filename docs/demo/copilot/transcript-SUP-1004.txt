@@ -1,16 +1,18 @@
-I triaged SUP-1004 and saved both files.
+I triaged SUP-1004 and saved the report and the customer reply. The blank dashboards most likely come from the open EU-region query-cache incident (status page entry and `mock-sources/issues/BEACON-160.md`). The ticket doesn't state the customer's region, and there is no project data to check, so this is a pattern match, not a confirmed diagnosis.
 
-**Files:**
-- `<workspace>/reports/20261007-225200-SUP-1004-triage.md`
-- `<workspace>/reports/20261007-225200-SUP-1004-customer-response.md`
+**Saved files**
+- `reports/20261007-233919-SUP-1004-triage.md`
+- `reports/20261007-233919-SUP-1004-customer-response.md`
 
 **Root-cause confidence:** Likely based on pattern match
 
-**TL;DR:** The symptom matches the 2026-05-02 EU-region dashboard incident on the status page and the open bug BEACON-160. Both describe an unhealthy query-cache node that makes tiles show "No data" while insights opened directly still work. The ticket doesn't state Fabrikam's region, and "every tile" is broader than the incident's "some EU projects". So the report recommends confirming region and project ID, and escalating as a new P1 if they're on US or direct insights are also empty.I triaged SUP-1004 and saved both files.
+**TL;DR:**
+1. The symptom, start time and date match the 2026-05-02 incident and BEACON-160, where dashboard tiles show "No data" for EU projects while insights opened directly still work.
+2. A support engineer needs to confirm the customer's region and whether an insight opened directly shows data. If the project is in the US or direct insights are also empty, this should be escalated as a new P1.Triage of SUP-1004 is done.
 
-- **Triage report:** `<workspace>/reports/20261007-225200-SUP-1004-triage.md`
-- **Customer response:** `<workspace>/reports/20261007-225200-SUP-1004-customer-response.md`
+- **Triage report:** `reports/20261007-233919-SUP-1004-triage.md`
+- **Customer response:** `reports/20261007-233919-SUP-1004-customer-response.md`
 - **Root-cause confidence:** Likely based on pattern match
 
-**TL;DR:** The symptom matches the 2026-05-02 EU-region dashboard incident on the status page and the open bug BEACON-160. Both describe an unhealthy query-cache node that makes tiles show "No data" while insights opened directly still work. The ticket doesn't give Fabrikam's region, and "every tile" is broader than the incident's "some EU projects". Next step: confirm their region and project ID, and escalate as a new P1 if they're on US or direct insights are also empty.
+**TL;DR:** The blank dashboards most likely come from the open EU-region query-cache incident (BEACON-160). Its symptom, start time and date match this ticket. A support engineer should confirm the customer's region and whether an insight opened directly shows data. If the project is in the US or direct insights are also empty, escalate it as a new P1.
 

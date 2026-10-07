@@ -12,6 +12,10 @@ The goal is to produce careful, evidence-graded triage reports, not to automate 
 - State uncertainty clearly.
 - Keep customer-facing drafts free of internal tool names, raw queries, private links, secrets, and sensitive data.
 - Save generated reports under `reports/` only.
+- Stay inside the working directory: no parent-directory or home-directory searches, and only relative paths in reports.
+- Only claim actions that happened. Never tell the customer the case "has been passed to" an engineer.
+- `Confirmed by data` needs the customer's own data (logs, events, traces, reproduction); docs or a known issue alone cap at Likely.
+- With no `mock-sources/` and no connectors, record the known-issue source as unavailable and cap confidence at Suspected.
 - Match investigation depth to ticket priority — do not rabbit-hole low-priority tickets.
 
 ## Required workflow
