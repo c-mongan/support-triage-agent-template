@@ -47,6 +47,7 @@ copilot plugin install support-triage-agent@support-triage-agent-template
 ```bash
 codex plugin marketplace add c-mongan/support-triage-agent-template
 codex plugin add support-triage-agent@support-triage-agent-template
+mkdir -p ~/.codex/rules/                   # optional policy, from a clone
 cp codex/support-triage.rules ~/.codex/rules/   # optional, from a clone: forbids rm, git/gh writes, POSTs
 ```
 
