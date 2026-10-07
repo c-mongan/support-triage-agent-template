@@ -5,7 +5,7 @@
 //   node scripts/eval.mjs DIR [DIR...]          # markdown score table; exit 1 if any report < --min
 //   node scripts/eval.mjs --json DIR             # machine-readable scores
 //   node scripts/eval.mjs --min 6 DIR            # pass mark (default: every criterion)
-import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync, realpathSync } from 'node:fs';
 import { join, resolve, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ROOT, checkReport, checkCustomerResponse, section, tableRows, SECRET_PATTERNS } from './validate.mjs';
@@ -120,7 +120,8 @@ export function markdown(results) {
   return [head, sep, ...rows, ...(notes.length ? ['', ...notes] : [])].join('\n');
 }
 
-if (resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)) {
+// realpath both sides: the script may be invoked through a symlinked checkout.
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   const args = process.argv.slice(2);
   const json = args.includes('--json');
   const minIdx = args.indexOf('--min');

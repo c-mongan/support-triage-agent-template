@@ -4,7 +4,7 @@
 //   node scripts/validate.mjs                 # validate the repository
 //   node scripts/validate.mjs --report FILE   # validate one generated triage report
 //   node scripts/validate.mjs --response FILE # validate one generated customer response
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync, realpathSync } from 'node:fs';
 import { join, dirname, resolve, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSkill, SKILL_PATH } from './build-skill.mjs';
@@ -311,7 +311,8 @@ export function validateRepo() {
   return errors;
 }
 
-if (resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)) {
+// realpath both sides: the script may be invoked through a symlinked checkout.
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   const [flag, file] = process.argv.slice(2);
   let errors;
   if (flag === '--report') errors = checkReport(readFileSync(file, 'utf8')).map((e) => `${file}: ${e}`);

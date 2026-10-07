@@ -1,7 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { ROOT } from '../scripts/validate.mjs';
 import { scoreReport, sensitiveValues, CRITERIA, EXPECTED } from '../scripts/eval.mjs';
 
@@ -69,4 +72,15 @@ test('a wrong root cause fails correct_finding', () => {
 
 test('a missing customer response fails structure', () => {
   assert.equal(scoreReport(report, null, 'SUP-1004').scores.structure, false);
+});
+
+test('CLI scripts still run when invoked through a symlinked checkout', (t) => {
+  const link = join(mkdtempSync(join(tmpdir(), 'sta-link-')), 'repo');
+  t.after(() => rmSync(dirname(link), { recursive: true, force: true }));
+  symlinkSync(fileURLToPath(new URL('..', import.meta.url)), link);
+  // The fixtures hold one ticket, so the eval exits 1 for the missing three; it must still print scores.
+  const out = spawnSync('node', [join(link, 'scripts/eval.mjs'), join(link, 'tests/fixtures')], { encoding: 'utf8' }).stdout;
+  assert.match(out, /SUP-1004 \|.*7\/7/);
+  const val = execFileSync('node', [join(link, 'scripts/validate.mjs'), '--report', join(link, 'tests/fixtures/eval-SUP-1004-triage.md')], { encoding: 'utf8' });
+  assert.match(val, /^OK /m);
 });

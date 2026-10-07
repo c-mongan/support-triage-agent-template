@@ -163,7 +163,7 @@ stray="$(find . -type f -newer fixtures.sha ! -path './reports/*' ! -name 'trans
 [[ -z "$stray" ]] && ok "writes confined to reports/" || bad "unexpected writes outside reports/: $stray"
 
 say ""; say "-- offline eval (scripts/eval.mjs)"
-if node "$REPO/scripts/eval.mjs" reports > eval.md 2>&1; then ok "eval: every report scores full marks on the rubric"
+if node "$REPO/scripts/eval.mjs" reports > eval.md 2>&1 && grep -q '/7 |' eval.md; then ok "eval: every report scores full marks on the rubric"
 else bad "eval: at least one report below full marks"; fi
 cat eval.md >> "$LOG"
 
