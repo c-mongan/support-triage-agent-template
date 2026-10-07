@@ -3,7 +3,7 @@
 # Copy to ~/.codex/rules/ (or $CODEX_HOME/rules/). Rules match a leading argv
 # prefix only, so they cannot catch shell redirects (`> file`), every flag
 # ordering, or code run inside an interpreter. The real write boundary is the
-# permissions profile in codex/support-triage.permissions.toml, which makes the
+# Codex profile in codex/support-triage.config.toml, which makes the
 # workspace read-only except reports/ and disables network access for commands.
 # `match` / `not_match` examples are checked by Codex when the file loads.
 
@@ -11,6 +11,11 @@
 prefix_rule(pattern=[["rm", "rmdir", "unlink", "shred", "mv", "cp", "ln", "install", "dd", "truncate", "tee"]], decision="forbidden",
   match=[["rm", "-rf", "tickets"], ["mv", "a", "b"], ["cp", "a", "tickets/a"], ["tee", "tickets/a"], ["truncate", "-s", "0", "a"]],
   not_match=[["cat", "tickets/a"], ["ls", "-la"]])
+# The same commands by absolute path, or behind a wrapper that runs its argument.
+prefix_rule(pattern=[["/bin/rm", "/usr/bin/rm", "/bin/rmdir", "/usr/bin/unlink", "/bin/mv", "/usr/bin/mv", "/bin/cp", "/usr/bin/cp", "/bin/ln", "/usr/bin/ln", "/usr/bin/tee", "/bin/dd", "/usr/bin/truncate", "/usr/bin/shred"]], decision="forbidden",
+  match=[["/bin/rm", "-rf", "tickets"], ["/usr/bin/tee", "a"]])
+prefix_rule(pattern=[["env", "command", "builtin", "exec", "xargs", "nohup", "nice", "time", "timeout", "sudo"], ["rm", "rmdir", "unlink", "shred", "mv", "cp", "ln", "tee", "dd", "truncate", "/bin/rm", "/usr/bin/rm"]], decision="forbidden",
+  match=[["env", "rm", "-rf", "tickets"], ["command", "rm", "a"], ["xargs", "rm"]], not_match=[["env"], ["xargs", "echo"]])
 prefix_rule(pattern=[["chmod", "chown", "chgrp", "touch", "mkfifo"]], decision="forbidden",
   match=[["chmod", "-R", "777", "."], ["touch", "a"]])
 prefix_rule(pattern=["sed", ["-i", "--in-place", "-i.bak", "-i''"]], decision="forbidden",

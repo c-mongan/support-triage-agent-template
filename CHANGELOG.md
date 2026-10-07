@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## 1.3.0 - 2026-10-08
+
+Fixes from an independent QA review of 1.2.0.
+
+### Security
+
+- Copilot hook: a subagent started with the `task` tool inside a `/triage` session could run a shell write. The hook now denies every subagent except the plugin's own `support-triage-agent`, and carries the triage rules into that subagent's session by matching its first prompt to the `task` call.
+- Copilot hook: a symlink inside `reports/` (for example `reports/archive -> ../tickets`) could redirect a file-tool write outside `reports/`. The hook now checks every path component for symlinks, refuses hard-linked files, and checks every path argument of a write.
+- Copilot hook: MCP and connector tools are denied during triage unless the tool name is read-only (`get_`, `list_`, `search_`, `read_`, `fetch_`, `query_` and similar).
+- Copilot hook: argument parsing no longer reads past the first matching field, so a later field cannot hide the real path.
+- Claude Code settings: the `Bash` tool is denied outright and `node`, `npx` and `gh` are no longer pre-approved. Writes are pre-approved only under `reports/`; writes to `tickets/`, `mock-sources/`, `.git/`, `.claude/` and the home folder are denied, and more MCP write tools are denied. The validator rejects settings that pre-approve a shell or an unscoped write.
+- Codex execpolicy: absolute-path binaries (`/bin/rm`, `/usr/bin/tee`) and wrappers followed directly by a write command (`env rm`, `xargs rm`, `nohup rm`, `command rm`) are forbidden. The remaining prefix-rule gaps (`find -delete`, `env FOO=1 rm`, `timeout 5 rm`, `xargs -0 rm`) are documented and covered by the sandbox profile.
+
+### Changed
+
+- Codex profile: `codex/support-triage.permissions.toml` is now `codex/support-triage.config.toml`, a profile file copied to `~/.codex/` and chosen with `codex --profile support-triage`. Appending the old file to `config.toml` made plain `codex` and `codex plugin list` exit with an error; the profile file leaves normal launches unchanged.
+- Agent instructions: stay inside the working directory and write relative paths only; use real seconds in report filenames instead of `000000`; never tell the customer the case "has been passed to" an engineer; record a missing `mock-sources/` as an unavailable source and cap confidence at Suspected; `Confirmed by data` needs the customer's own data, not documentation alone.
+- The validator rejects reports or replies with real email addresses, absolute local paths, a claimed hand-off, or `Confirmed by data` with only documentation evidence.
+- `scripts/e2e.sh` adds a subagent probe and a symlink probe, checks that plain `codex plugin list` still works after the install, and scores the eval before the probes run.
+- The README opens with a recording of a real `/triage` session.
+
 ## 1.2.0 - 2026-10-08
 
 ### Added

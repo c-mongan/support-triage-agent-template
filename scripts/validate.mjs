@@ -42,7 +42,7 @@ export const REQUIRED_FILES = [
   '.codex-plugin/plugin.json',
   '.agents/plugins/marketplace.json',
   'codex/support-triage.rules',
-  'codex/support-triage.permissions.toml',
+  'codex/support-triage.config.toml',
   'scripts/eval.mjs',
   'copilot/hooks.json',
   'copilot/triage-guard.sh',
@@ -72,6 +72,17 @@ export const SECRET_PATTERNS = [
   /\bAKIA[0-9A-Z]{16}\b/,
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
 ];
+// Emails on reserved or placeholder domains are fine; anything else is treated as PII.
+export const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const SAFE_EMAIL_DOMAIN = /@([A-Za-z0-9-]+\.)*(example\.(com|org|net)|example|invalid|test|localhost|redacted|users\.noreply\.github\.com)$/i;
+export function piiEmails(text) {
+  return (text.match(EMAIL) || []).filter((e) => !SAFE_EMAIL_DOMAIN.test(e) && !/^\[?redacted/i.test(e));
+}
+// Absolute local paths leak the operator's machine layout and point outside the workspace.
+export const ABSOLUTE_PATH = /(^|[\s`'"(\[|])(\/(Users|home|Volumes|private|tmp|var\/folders|root|mnt|opt)\/[^\s`'")\]|]+|[A-Za-z]:\\[^\s`'")\]|]+|~\/[^\s`'")\]|]+)/m;
+// Evidence that comes from the customer's own system, which Confirmed by data needs.
+const CUSTOMER_EVIDENCE = /\b(ticket|customer|log|logs|trace|HAR|console|event data|request id|reproduc\w*|account|project data|screenshot)\b/i;
+const DOC_ONLY_SOURCE = /mock-sources\/|docs?\b|release|status|changelog|BEACON-\d+|issue/i;
 const INTERNAL_MARKERS = [/mock-sources\//, /\bWebFetch\b/, /\bGrep\b/, /Evidence Pack/i, /\bMCP\b/];
 
 export function parseFrontMatter(text) {
@@ -145,6 +156,17 @@ export function checkReport(text) {
   if (marker < 0) errors.push('missing END OF CUSTOMER-FACING CONTENT marker');
   else if (draft >= 0 && marker < draft) errors.push('END OF CUSTOMER-FACING CONTENT marker must come after the Draft Customer Response');
   for (const p of SECRET_PATTERNS) if (p.test(text)) errors.push(`unredacted secret-like value matches ${p}`);
+  for (const e of piiEmails(text)) errors.push(`unredacted email address: ${e}`);
+  const abs = text.match(ABSOLUTE_PATH);
+  if (abs) errors.push(`absolute path found (${abs[2]}); use paths relative to the working directory`);
+  if (conf && conf[1].includes('Confirmed by data')) {
+    const sources = section(text, 'Evidence Gathered').split('\n')
+      .filter((l) => /^\s*\|\s*[A-Za-z]?\d+\s*\|/.test(l) && !/unavailable|unverified|not available|no match|not run/i.test(l))
+      .map((l) => (l.split('|')[2] || '').trim());
+    if (!sources.some((src) => CUSTOMER_EVIDENCE.test(src) || !DOC_ONLY_SOURCE.test(src))) {
+      errors.push('"Confirmed by data" needs an Evidence Gathered row from customer data (ticket, logs, traces, reproduction); docs or known issues alone support Likely at most');
+    }
+  }
   return errors;
 }
 
@@ -154,6 +176,11 @@ export function checkCustomerResponse(text) {
   if (EMOJI.test(text)) errors.push('customer response contains emoji');
   for (const p of INTERNAL_MARKERS) if (p.test(text)) errors.push(`customer response leaks internal detail matching ${p}`);
   for (const p of SECRET_PATTERNS) if (p.test(text)) errors.push(`unredacted secret-like value matches ${p}`);
+  for (const e of piiEmails(text)) errors.push(`unredacted email address: ${e}`);
+  if (ABSOLUTE_PATH.test(text)) errors.push('customer response contains an absolute local path');
+  if (/\b(I(?:'|’)ve|I have|we(?:'|’)ve|we have|has been|have been)\s+(passed|escalated|forwarded|sent|handed)\b/i.test(text)) {
+    errors.push('customer response claims a hand-off that triage did not perform (read-only); say a person will review instead');
+  }
   return errors;
 }
 
@@ -277,9 +304,16 @@ export function validateRepo() {
 
   // Read-only settings must keep denying destructive verbs.
   try {
-    const deny = JSON.parse(read('.claude/settings.json')).permissions?.deny || [];
-    for (const d of ['Bash(rm:*)', 'Bash(git push:*)', 'Bash(gh issue close:*)', 'Bash(gh pr merge:*)']) {
+    const perms = JSON.parse(read('.claude/settings.json')).permissions || {};
+    const deny = perms.deny || [];
+    for (const d of ['Bash', 'Bash(rm:*)', 'Bash(git push:*)', 'Bash(gh issue close:*)', 'Bash(gh pr merge:*)', 'Write(tickets/**)', 'Edit(tickets/**)']) {
       if (!deny.includes(d)) err('.claude/settings.json', `deny list must include ${d}`);
+    }
+    // Pre-approving a shell, an interpreter or an unscoped write would undo the read-only defaults.
+    for (const a of perms.allow || []) {
+      if (/^Bash\b/.test(a) || a === 'Write' || a === 'Edit' || /^(Write|Edit)\((?!reports\/)/.test(a)) {
+        err('.claude/settings.json', `allow list must not pre-approve ${a}`);
+      }
     }
   } catch { /* reported above */ }
 

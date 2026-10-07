@@ -14,7 +14,7 @@ What appears to be happening:
 
 The next best step is [specific action or workaround]. To confirm whether this is the same issue or a separate configuration problem, could you also share [smallest missing context — for example: a network log from the affected browser, the exact code that fires the event, the SDK version output from `<runtime check>`]?
 
-[If escalating: "I'm passing this to our engineering team to check [specific thing]. I'll come back to you within [timeframe] with what they find."]
+[If escalation is recommended: "A member of our team will review this with engineering to check [specific thing] and follow up with you." Do not say it has already been passed on, and do not promise a timeframe.]
 
 [If a workaround exists: "In the meantime, [workaround] should restore the behavior you were seeing before."]
 

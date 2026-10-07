@@ -4,14 +4,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, copyFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, copyFileSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ROOT } from '../scripts/validate.mjs';
 
 const CODEX = process.env.CODEX_BIN || 'codex';
 const RULES = join(ROOT, 'codex/support-triage.rules');
-const PROFILE = join(ROOT, 'codex/support-triage.permissions.toml');
+const PROFILE = join(ROOT, 'codex/support-triage.config.toml');
 const have = spawnSync(CODEX, ['--version'], { encoding: 'utf8' }).status === 0;
 if (!have && process.env.CODEX_REQUIRED === '1') throw new Error(`codex CLI not found (${CODEX})`);
 const skip = have ? false : 'codex CLI not installed';
@@ -37,9 +37,11 @@ const FORBIDDEN = [
   'npm install x', 'npm i x', 'npm ci', 'yarn add x', 'pnpm add x', 'npx rimraf .', 'pip install x', 'pip3 install x',
   'uv pip install x', 'python3 -m pip install x', 'brew install x',
   'sudo rm -rf /', 'kill -9 1',
+  '/bin/rm -rf tickets', '/usr/bin/rm a', '/bin/ln -s a b', 'env rm -rf tickets', 'command rm a', 'xargs rm', 'nohup rm a',
 ];
 // Known rule gaps (single-token options, shell redirects, sh -c scripts): documented, and covered by the profile test below.
-const KNOWN_GAPS = ['git --git-dir=.git push', 'sh -c rm_-rf_tickets', 'bash -lc echo_x>tickets/a'];
+const KNOWN_GAPS = ['git --git-dir=.git push', 'sh -c rm_-rf_tickets', 'bash -lc echo_x>tickets/a',
+  'find . -name x -delete', 'xargs -0 rm', 'env FOO=1 rm a', 'timeout 5 rm a'];
 // Commands the triage workflow needs must stay available.
 const ALLOWED = ['cat tickets/001.md', 'ls -la', 'rg -n BEACON mock-sources', 'grep -rn Safari mock-sources', 'sed -n 1,40p tickets/001.md',
   'head -50 tickets/001.md', 'find mock-sources -name *.md', 'git log --oneline', 'git status', 'python3 --version', 'node --version'];
@@ -65,9 +67,12 @@ test('permissions profile: workspace read-only except reports/', { skip: sandbox
   t.after(() => rmSync(base, { recursive: true, force: true }));
   const home = join(base, 'home'), ws = join(base, 'ws');
   mkdirSync(home); mkdirSync(join(ws, 'tickets'), { recursive: true });
-  copyFileSync(PROFILE, join(home, 'config.toml')); // README step: append the profile to config.toml
+  writeFileSync(join(home, 'config.toml'), '# the user\'s own settings stay untouched\n');
+  copyFileSync(PROFILE, join(home, 'support-triage.config.toml')); // README step: copy the profile file
+  mkdirSync(join(ws, 'reports'));
+  symlinkSync('../tickets', join(ws, 'reports/archive'));
   writeFileSync(join(ws, 'tickets/t.md'), 'original\n');
-  const run = (script) => spawnSync(CODEX, ['sandbox', '-c', 'default_permissions="support-triage"', '--', 'sh', '-c', script],
+  const run = (script) => spawnSync(CODEX, ['sandbox', '--profile', 'support-triage', '--', 'sh', '-c', script],
     { cwd: ws, env: { ...process.env, CODEX_HOME: home }, encoding: 'utf8' }).status;
 
   const denied = {
@@ -80,6 +85,7 @@ test('permissions profile: workspace read-only except reports/', { skip: sandbox
     'new file at root': 'echo x > stray.md',
     'git init': 'git init -q .',
     'sed -i': "sed -i.bak 's/original/pwned/' tickets/t.md",
+    'symlink under reports/': 'echo pwned > reports/archive/t.md',
   };
   for (const [name, script] of Object.entries(denied)) assert.notEqual(run(script), 0, `${name} should be denied`);
   assert.equal(readFileSync(join(ws, 'tickets/t.md'), 'utf8'), 'original\n');
@@ -87,4 +93,16 @@ test('permissions profile: workspace read-only except reports/', { skip: sandbox
 
   assert.equal(run('mkdir -p reports && echo ok > reports/r.md'), 0, 'reports/ must stay writable (and creatable)');
   assert.equal(readFileSync(join(ws, 'reports/r.md'), 'utf8'), 'ok\n');
+});
+
+// QA H3: installing the profile must not break a plain `codex` launch.
+test('profile file leaves plain codex commands working', { skip }, (t) => {
+  const home = mkdtempSync(join(tmpdir(), 'sta-profile-home-'));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  writeFileSync(join(home, 'config.toml'), '');
+  copyFileSync(PROFILE, join(home, 'support-triage.config.toml'));
+  for (const args of [['plugin', 'list'], ['execpolicy', 'check', '--rules', RULES, 'ls']]) {
+    const r = spawnSync(CODEX, args, { env: { ...process.env, CODEX_HOME: home }, encoding: 'utf8' });
+    assert.equal(r.status, 0, `codex ${args.join(' ')}: ${r.stderr}`);
+  }
 });

@@ -18,7 +18,7 @@ Use [`references/triage-report-template.md`](references/triage-report-template.m
 
 ## Confidence
 
-- **Confirmed by data:** direct evidence proves the cause.
+- **Confirmed by data:** direct evidence from the customer's own system (logs, events, traces, account state or a reproduction) proves the cause. Docs, release notes or a matching known issue alone are not enough; use Likely.
 - **Likely based on pattern match:** the evidence points strongly to one cause, but one or more facts remain unverified.
 - **Suspected, needs human verification:** plausible, but not enough evidence to act as if true.
 

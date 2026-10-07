@@ -132,3 +132,38 @@ test('an Evidence Gathered section with no table rows is rejected', () => {
   const report = sample.replace(/(^## Evidence Gathered\n)[\s\S]*?(?=^## )/m, '$1\nNothing yet.\n\n');
   assert.match(checkReport(report).join('\n'), /Evidence Gathered has no table rows/);
 });
+
+test('a real email address in a report or reply is rejected; placeholder domains pass', () => {
+  assert.ok(checkReport(sample + '\nContact: jane.doe@acme-corp.io\n').some((e) => /email/.test(e)));
+  assert.ok(checkCustomerResponse(sampleReply + '\nReply to ops@acme-corp.io\n').some((e) => /email/.test(e)));
+  assert.deepEqual(checkReport(sample + '\nContact: [redacted]@example.com and dev@beacon.example\n'), []);
+});
+
+test('an absolute local path in a report or reply is rejected; relative paths pass', () => {
+  for (const p of ['/Users/alex/work/mock-sources/issues/BEACON-142.md', '/Volumes/Data/x.md', '/home/u/x.md', 'C:\\Users\\a\\x.md', '~/notes/x.md']) {
+    assert.ok(checkReport(sample + `\nSee \`${p}\`.\n`).some((e) => /absolute path/.test(e)), p);
+  }
+  assert.ok(checkCustomerResponse(sampleReply + '\nSee /Users/alex/report.md\n').some((e) => /absolute/.test(e)));
+  assert.deepEqual(checkReport(sample + '\nSee `mock-sources/issues/BEACON-142.md` and https://example.com/a/b.\n'), []);
+});
+
+test('Confirmed by data needs customer evidence, not docs alone', () => {
+  const confirmed = (rows) => sample
+    .replace(/(\*\*Confidence:?\*\*:?\s*).*/, '$1Confirmed by data')
+    .replace(/(## [^\n]*Evidence Gathered\n)[\s\S]*?(?=\n## )/, `$1| # | Source | Query | Finding | Status |\n|---|---|---|---|---|\n${rows}\n`);
+  const docs = '| 1 | `mock-sources/docs/exports.md` | Read | Limit is 10,000 rows | Verified |\n| 2 | Project-data MCP | n/a | Not available | Unverified, tool unavailable |';
+  assert.ok(checkReport(confirmed(docs)).some((e) => /Confirmed by data/.test(e)));
+  assert.ok(!checkReport(confirmed(docs + '\n| 3 | Ticket SUP-1003 | Read | Export has exactly 10,000 rows | Verified |')).some((e) => /Confirmed by data/.test(e)));
+});
+
+test('a customer reply that claims a hand-off triage did not do is rejected', () => {
+  assert.ok(checkCustomerResponse(sampleReply + "\nI've passed this to our engineering team.\n").some((e) => /hand-off/.test(e)));
+  assert.ok(checkCustomerResponse(sampleReply + '\nThis has been escalated.\n').some((e) => /hand-off/.test(e)));
+  assert.deepEqual(checkCustomerResponse(sampleReply + '\nA member of our team will review this with engineering.\n'), []);
+});
+
+test('Claude settings keep the shell denied and never pre-approve interpreters', () => {
+  const s = JSON.parse(readFileSync(join(ROOT, '.claude/settings.json'), 'utf8')).permissions;
+  assert.ok(s.deny.includes('Bash'));
+  assert.ok(!s.allow.some((a) => /^Bash|^(Write|Edit)$/.test(a)));
+});

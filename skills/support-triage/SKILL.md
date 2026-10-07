@@ -26,7 +26,9 @@ Reduce time-to-diagnosis without inventing facts.
 3. **No stale hardcoding.** When SDK behavior, feature availability, API shapes, or config rules matter, fetch live docs or live source before stating them. Do not rely on memorized version numbers.
 4. **Search known issues before blaming the customer.** Before concluding "misconfiguration", "expected behavior", "not a bug", or "no matching issue", complete the Known-Issue Search Gate below and cite the searches you ran.
 5. **Escalate cleanly.** If evidence is insufficient or contradicts documented behavior, produce an escalation brief instead of pretending certainty.
-6. **Redact in saved outputs.** Strip API keys, tokens, raw person properties, private session URLs, internal admin links, and customer PII from anything saved to disk or copied into customer-facing text. Keep public bug URLs, public docs URLs, and non-sensitive identifiers.
+6. **Redact in saved outputs.** Strip API keys, tokens, raw person properties, private session URLs, internal admin links, and customer PII (including email addresses) from anything saved to disk or copied into customer-facing text. Keep public bug URLs, public docs URLs, and non-sensitive identifiers.
+7. **Stay inside the working directory.** Read and search only the current working directory and its subfolders. Never search, list or read parent directories, the home directory or other projects, and never cite files from outside the working directory. Write every file path in a report as a path relative to the working directory (for example `mock-sources/issues/BEACON-142.md`), never as an absolute path.
+8. **Only claim actions that happened.** Never write that something was done (escalated, filed, passed to an engineer, reproduced, fixed) unless a tool call this session did it. Triage is read-only, so the customer reply can say a person *will* review the case, not that it already *has been* passed on.
 
 ## Anti-hallucination guards
 
@@ -64,7 +66,7 @@ The Draft Customer Response must NOT:
 - Invent fix recipes not grounded in docs or public issue comments.
 - Apologize for bugs that are not yet confirmed as bugs.
 
-When uncertain, defer to "an engineer will confirm" or link the specific docs page. Better to under-promise than retract.
+When uncertain, say a support engineer will review the findings, or link the specific docs page. Do not say the case "has been passed to" anyone: nothing was sent. Better to under-promise than retract.
 
 ### 6. Surface assumptions before investigating
 
@@ -116,6 +118,8 @@ If the working directory contains a `mock-sources/` folder, the ticket is about 
 - Run the Known-Issue Search Gate against `mock-sources/issues/` with Grep: hybrid (synonyms and paraphrases of the symptom), lexical (2–4 short noun phrases), exact (quoted error strings, method names, header names), and recent (compare the `updated:` front-matter dates with the ticket timeframe).
 - Cite sources by relative path (for example `mock-sources/issues/BEACON-142.md`). Do not search the web for Beacon: it does not exist.
 - Never edit anything under `mock-sources/` or the ticket files. They are fixtures.
+
+If there is **no** `mock-sources/` folder and no connector or web tool is available, do not pretend you searched. Add an Evidence Gathered row with status `Unavailable — no known-issue source in this workspace`, mark the Known-Issue Search Gate as not run, and cap the root-cause confidence at `Suspected, needs human verification`. Only say a web or docs lookup happened if a tool call this session made it.
 
 ## Speed: parallelization is mandatory
 
@@ -218,7 +222,7 @@ Then:
 
 Save the report under `reports/` in the current working directory using a filename pattern like `YYYYMMDD-HHmmss-<ticket-id>-triage.md`. Save the customer-facing draft as a separate file named `YYYYMMDD-HHmmss-<ticket-id>-customer-response.md` with **no internal detail and no emojis**, ready to copy-paste into the support tool.
 
-The two filenames are fixed: the report always ends in `-triage.md` and the reply in `-customer-response.md`. Take the timestamp from the session context or the current date you know; do not call a shell or `date` for it. If you only know the date, use `000000` for the time.
+The two filenames are fixed: the report always ends in `-triage.md` and the reply in `-customer-response.md`. Take the timestamp, including real hours, minutes and seconds, from the session context or the current time you know; do not call a shell or `date` for it. If you do not know the exact time, use your best estimate of the current time rather than `000000`, so that two runs on the same day do not overwrite each other.
 
 Create both files with the file-create/Write tool, never with a shell command (no `mkdir`, `touch`, `tee` or redirection). Most hosts create the `reports/` folder for you. If the save fails because `reports/` does not exist and the tool cannot create it, do not retry through a shell: print the full report and the customer response inline, then tell the operator to run `mkdir reports` and re-run.
 
@@ -240,6 +244,7 @@ Caps:
 - If the Known-Issue Search Gate is incomplete on a bug-shaped ticket, cap at Low (49%).
 - If the report says "not a bug" / "expected behavior" / "no matching issue" without the full search matrix, cap at Low (40%).
 - If a public issue plausibly matches but has not been ruled out, cap at Medium (70%) and mention the candidate.
+- `Confirmed by data` needs data from the customer's own system (their logs, events, request traces, account state or a reproduction on their setup). Documentation, release notes, a status page or a matching known issue alone can support `Likely based on pattern match`, never `Confirmed by data`.
 
 ## Visual formatting — internal vs customer-facing
 
