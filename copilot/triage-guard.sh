@@ -13,9 +13,11 @@ dir="${COPILOT_PLUGIN_DATA:-${PLUGIN_DATA:-${TMPDIR:-/tmp}/support-triage-agent}
 case "${1:-}" in
   prompt)
     prompt="$(field prompt | sed 's/^[[:space:]]*//')"
-    case "$prompt" in
-      /triage*|/support-triage-agent:triage*) mkdir -p "$dir" && : > "$dir/$sid" ;;
-    esac
+    # field() retains JSON whitespace escapes, so accept those delimiters too.
+    triage_command='^/(support-triage-agent:)?triage([[:space:]]|\\[tnr]|$)'
+    if [[ "$prompt" =~ $triage_command ]]; then
+      mkdir -p "$dir" && : > "$dir/$sid"
+    fi
     ;;
   tool)
     case "$(field toolName)" in
