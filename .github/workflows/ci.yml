@@ -22,6 +22,9 @@ jobs:
         run: node --test tests/*.test.mjs
       - name: Validate repository, reports and demo output
         run: node scripts/validate.mjs
+      - name: Offline eval of the recorded demo reports (no model)
+        run: |
+          node scripts/eval.mjs docs/demo/copilot/reports docs/demo/codex/reports | tee -a "$GITHUB_STEP_SUMMARY"
 
   plugin-install:
     name: Plugin install (Copilot CLI + Claude Code + Codex)
@@ -57,9 +60,11 @@ jobs:
           codex plugin list | tee codex.txt
           grep -q "support-triage-agent@support-triage-agent-template" codex.txt
           ls "$CODEX_HOME"/plugins/cache/support-triage-agent-template/support-triage-agent/*/skills/support-triage/SKILL.md
-          codex execpolicy check --rules codex/support-triage.rules rm -rf tickets | grep -q '"decision":"forbidden"'
-          codex execpolicy check --rules codex/support-triage.rules git push origin main | grep -q '"decision":"forbidden"'
-          ! codex execpolicy check --rules codex/support-triage.rules cat tickets/001.md | grep -q forbidden
+          P=$(ls -d "$CODEX_HOME"/plugins/cache/support-triage-agent-template/support-triage-agent/*/ | tail -1)
+          test -f "$P/codex/support-triage.permissions.toml" && test -f "$P/codex/support-triage.rules"
+      - name: Codex execpolicy and permissions-profile tests
+        # CODEX_SANDBOX_TEST also runs the bubblewrap sandbox probes on Linux; drop it if the runner lacks user namespaces.
+        run: CODEX_REQUIRED=1 CODEX_SANDBOX_TEST=1 node --test tests/codex-policy.test.mjs
 
   secrets:
     name: Secret scan (gitleaks)

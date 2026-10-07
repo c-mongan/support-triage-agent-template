@@ -1,11 +1,54 @@
-# Codex execpolicy rules for the support triage workflow.
-# Copy to ~/.codex/rules/ (or $CODEX_HOME/rules/) to forbid destructive or
-# write-side commands while triaging. Codex rules cover shell commands only;
-# file edits made through apply_patch are governed by the sandbox and the skill.
-prefix_rule(pattern=["rm"], decision="forbidden")
-prefix_rule(pattern=["rmdir"], decision="forbidden")
-prefix_rule(pattern=["mv"], decision="forbidden")
-prefix_rule(pattern=["git", ["push", "reset", "clean", "commit", "rebase"]], decision="forbidden")
-prefix_rule(pattern=["gh", ["issue", "pr", "release", "repo", "api"]], decision="forbidden")
-prefix_rule(pattern=["curl", ["-X", "--request", "-d", "--data", "-F", "--form"]], decision="forbidden")
-prefix_rule(pattern=[["npm", "pnpm", "yarn", "pip", "pip3", "brew"], "install"], decision="forbidden")
+# Codex execpolicy rules for the support triage workflow (defence in depth).
+#
+# Copy to ~/.codex/rules/ (or $CODEX_HOME/rules/). Rules match a leading argv
+# prefix only, so they cannot catch shell redirects (`> file`), every flag
+# ordering, or code run inside an interpreter. The real write boundary is the
+# permissions profile in codex/support-triage.permissions.toml, which makes the
+# workspace read-only except reports/ and disables network access for commands.
+# `match` / `not_match` examples are checked by Codex when the file loads.
+
+# Delete, move or overwrite files.
+prefix_rule(pattern=[["rm", "rmdir", "unlink", "shred", "mv", "cp", "ln", "install", "dd", "truncate", "tee"]], decision="forbidden",
+  match=[["rm", "-rf", "tickets"], ["mv", "a", "b"], ["cp", "a", "tickets/a"], ["tee", "tickets/a"], ["truncate", "-s", "0", "a"]],
+  not_match=[["cat", "tickets/a"], ["ls", "-la"]])
+prefix_rule(pattern=[["chmod", "chown", "chgrp", "touch", "mkfifo"]], decision="forbidden",
+  match=[["chmod", "-R", "777", "."], ["touch", "a"]])
+prefix_rule(pattern=["sed", ["-i", "--in-place", "-i.bak", "-i''"]], decision="forbidden",
+  match=[["sed", "-i", "s/a/b/", "f"]], not_match=[["sed", "-n", "1,5p", "f"]])
+prefix_rule(pattern=["perl", ["-i", "-pi", "-pi.bak", "-e", "-E"]], decision="forbidden",
+  match=[["perl", "-pi", "-e", "s/a/b/", "f"], ["perl", "-e", "unlink 'a'"]])
+
+# Inline code in interpreters can do anything the sandbox allows.
+prefix_rule(pattern=[["python", "python3"], ["-c", "-"]], decision="forbidden",
+  match=[["python3", "-c", "import os; os.remove('a')"]], not_match=[["python3", "--version"]])
+prefix_rule(pattern=[["node", "deno", "bun"], ["-e", "--eval", "-p", "--print", "eval"]], decision="forbidden",
+  match=[["node", "-e", "require('fs').rmSync('a')"], ["bun", "-e", "1"]], not_match=[["node", "--version"]])
+prefix_rule(pattern=[["ruby", "php", "osascript"], ["-e", "-r"]], decision="forbidden",
+  match=[["ruby", "-e", "File.delete('a')"], ["osascript", "-e", "x"]])
+
+# Version control: no history rewrites, pushes or global-option forms that dodge the prefix.
+prefix_rule(pattern=["git", ["push", "reset", "clean", "commit", "rebase", "checkout", "restore", "switch", "merge", "stash", "rm", "mv", "apply", "am", "cherry-pick", "revert", "tag", "branch", "remote", "config", "-C", "-c", "--git-dir", "--work-tree"]], decision="forbidden",
+  match=[["git", "push", "origin", "main"], ["git", "-C", ".", "reset", "--hard"], ["git", "-c", "core.x=y", "push"]],
+  not_match=[["git", "log", "--oneline"], ["git", "status"], ["git", "diff"]])
+
+# Remote writes: tickets, PRs, releases, repos, raw API calls and chat posts.
+prefix_rule(pattern=["gh", ["issue", "pr", "release", "repo", "api", "gist", "secret", "variable", "workflow", "run", "label", "auth"]], decision="forbidden",
+  match=[["gh", "issue", "close", "1"], ["gh", "api", "-X", "POST", "x"]], not_match=[["gh", "--version"]])
+prefix_rule(pattern=["curl", ["-X", "--request", "-d", "--data", "--data-raw", "--data-binary", "--json", "-F", "--form", "-T", "--upload-file", "-o", "-O", "--output", "-s", "-sS", "-fsSL", "-sSL", "-L", "-k"]], decision="forbidden",
+  match=[["curl", "-X", "POST", "https://x"], ["curl", "-s", "-X", "POST", "https://x"], ["curl", "-o", "a", "https://x"]],
+  not_match=[["curl", "--version"]])
+prefix_rule(pattern=[["wget", "scp", "rsync", "sftp", "ftp", "nc", "ssh"]], decision="forbidden",
+  match=[["wget", "https://x"], ["rsync", "-a", "a", "b"]])
+
+# Package managers and installers.
+prefix_rule(pattern=[["npm", "pnpm", "yarn", "bun"], ["install", "i", "ci", "add", "remove", "rm", "uninstall", "update", "up", "upgrade", "link", "publish", "exec", "dlx", "x"]], decision="forbidden",
+  match=[["npm", "i", "left-pad"], ["npm", "ci"], ["yarn", "add", "x"], ["pnpm", "add", "x"]], not_match=[["npm", "--version"]])
+prefix_rule(pattern=["npx"], decision="forbidden", match=[["npx", "rimraf", "."]])
+prefix_rule(pattern=[["pip", "pip3", "pipx", "uv", "brew", "apt", "apt-get", "gem", "cargo", "go"], ["install", "uninstall", "add", "remove", "upgrade", "run", "tool", "get", "pip"]], decision="forbidden",
+  match=[["pip", "install", "x"], ["brew", "install", "x"], ["uv", "pip", "install", "x"]], not_match=[["pip", "--version"]])
+prefix_rule(pattern=[["python", "python3"], "-m", ["pip", "venv", "http.server"]], decision="forbidden",
+  match=[["python3", "-m", "pip", "install", "x"]])
+
+# Privilege, process and system changes.
+prefix_rule(pattern=[["sudo", "su", "doas", "kill", "killall", "pkill", "launchctl", "systemctl", "crontab", "defaults", "security"]], decision="forbidden",
+  match=[["sudo", "rm", "-rf", "/"], ["kill", "-9", "1"]])

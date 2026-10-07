@@ -183,6 +183,8 @@ After research returns, write the triage report in one pass using the template s
 ## 📖 Context for Reviewers
 ## Issue Summary
 ## Intake
+ASSUMING: <stack>, <region>, <plan>, <single-user vs systemic>.
+→ Correct me now or I proceed with these.
 ## Evidence Gathered
 ## 🐛 Known-Issue Search
 ## 🗺️ How It Works (and Where It Breaks)
@@ -199,7 +201,13 @@ After research returns, write the triage report in one pass using the template s
 ## 🔬 Evidence Pack (internal only)
 ```
 
-Do not rename or drop headings; the budget limits how deep you investigate, not the report shape. For a P4, short sections are fine ("Not needed" under Escalation Decision). Keep exactly one `**Confidence:**` line under Root-Cause Assessment using one of the three labels verbatim (`Confirmed by data`, `Likely based on pattern match`, `Suspected, needs human verification`), and put the `--- END OF CUSTOMER-FACING CONTENT ---` marker after the Draft Customer Response. Then:
+Do not rename or drop headings; the budget limits how deep you investigate, not the report shape. For a P4, short sections are fine ("Not needed" under Escalation Decision). Keep exactly one `**Confidence:**` line under Root-Cause Assessment using one of the three labels verbatim (`Confirmed by data`, `Likely based on pattern match`, `Suspected, needs human verification`), and put the `--- END OF CUSTOMER-FACING CONTENT ---` marker after the Draft Customer Response. Three more checks the validator enforces on every report:
+
+- Copy both Phase 0 lines (`ASSUMING: ...` and `→ Correct me now or I proceed with these.`) into the Intake section, above the table.
+- Give Evidence Gathered at least one table row, and cite its row numbers (or source IDs) in the Root-Cause Assessment.
+- Embed the full customer reply under Draft Customer Response (40+ words). Do not replace it with a pointer to the separate customer-response file.
+
+Then:
 
 - Run the **anti-hallucination protocol** (claim extraction, source mapping, verification status, contradiction check, unverified-claim review).
 - Run the **pre-send spot check** on the Draft Customer Response and Root-Cause Assessment: re-verify any cited issue, docs link, version, "known bug" claim, "no match found" claim, recommended config option, and any "code does X" / "no error raised" claim.

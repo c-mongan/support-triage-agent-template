@@ -28,6 +28,11 @@
 
 ## Intake
 
+```text
+ASSUMING: [stack], [region], [plan], [single-user vs systemic].
+→ Correct me now or I proceed with these.
+```
+
 | Field | Value |
 |---|---|
 | Timeframe | [when it started, ongoing? observed range] |
@@ -115,7 +120,7 @@ Keep to 3–5 steps. Focus on the root-cause and recommended-fix claims.
 
 ⚠️ **No emojis in this section.** This block is copy-pasteable into the support tool as-is.
 
-[Ready-to-send response. Acknowledge → finding → next action → smallest missing context ask → expectation-setting close. No internal tool names, no private links, no raw queries, no sensitive data.]
+[The full ready-to-send response, embedded here, not a pointer to the separate file. Acknowledge → finding → next action → smallest missing context ask → expectation-setting close. No internal tool names, no private links, no raw queries, no sensitive data.]
 
 --- END OF CUSTOMER-FACING CONTENT ---
 

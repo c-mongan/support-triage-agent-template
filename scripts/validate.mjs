@@ -42,6 +42,8 @@ export const REQUIRED_FILES = [
   '.codex-plugin/plugin.json',
   '.agents/plugins/marketplace.json',
   'codex/support-triage.rules',
+  'codex/support-triage.permissions.toml',
+  'scripts/eval.mjs',
   'copilot/hooks.json',
   'copilot/triage-guard.sh',
   'examples/setup-demo.sh',
@@ -63,7 +65,7 @@ export const REQUIRED_FILES = [
 const SHELL_TOOLS = ['bash', 'shell', 'execute', 'powershell', 'terminal'];
 // Pictographic emoji only; ©, ®, ™ and plain arrows are allowed.
 const EMOJI = /(?![\u00A9\u00AE\u2122\u2190-\u21FF])\p{Extended_Pictographic}/u;
-const SECRET_PATTERNS = [
+export const SECRET_PATTERNS = [
   /whsec_[A-Za-z0-9]{8,}/,
   /\b(sk|pk|rk)_(live|test)_[A-Za-z0-9]{8,}/,
   /\bgh[pousr]_[A-Za-z0-9]{20,}/,
@@ -90,7 +92,19 @@ function headings(text) {
     .map((l) => l.replace(/^#+\s*/, '').replace(/[^\p{L}\p{N}()\-, ]/gu, '').trim());
 }
 
-function section(text, name) {
+export const MIN_REPLY_WORDS = 40;
+
+export function words(s) {
+  return (s.match(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu) || []).length;
+}
+
+// Data rows in the first markdown table of a block (header and separator excluded).
+export function tableRows(block) {
+  const rows = block.split('\n').filter((l) => /^\s*\|.*\|\s*$/.test(l));
+  return Math.max(0, rows.filter((l) => !/^\s*\|[\s:|-]+\|\s*$/.test(l)).length - 1);
+}
+
+export function section(text, name) {
   const lines = text.split('\n');
   const start = lines.findIndex((l) => /^##\s/.test(l) && l.includes(name));
   if (start < 0) return '';
@@ -111,12 +125,20 @@ export function checkReport(text) {
   } else if (!CONFIDENCE_LABELS.some((l) => conf[1].trim().replace(/^`|`$/g, '').startsWith(l))) {
     errors.push(`invalid confidence label: "${conf[1].trim()}" (expected one of: ${CONFIDENCE_LABELS.join(' | ')})`);
   }
+  // Phase 0 assumption block, before any evidence is gathered.
+  const beforeEvidence = text.split(/^##\s.*Evidence Gathered/m)[0];
+  if (!/^\s*ASSUMING:\s*\S/m.test(beforeEvidence)) errors.push('missing Phase 0 "ASSUMING: ..." line before Evidence Gathered');
+  if (!/Correct me now/.test(beforeEvidence)) errors.push('missing "→ Correct me now or I proceed with these." line after ASSUMING');
+  if (tableRows(section(text, 'Evidence Gathered')) < 1) errors.push('Evidence Gathered has no table rows');
   const reply = section(text, 'Draft Customer Response')
     .split('--- END OF CUSTOMER-FACING CONTENT ---')[0]
     .split('\n')
     .filter((l) => !/No emojis in this section/i.test(l))
     .join('\n');
   if (!reply.trim()) errors.push('Draft Customer Response is empty');
+  else if (words(reply.replace(/\S*customer-response\.md\S*/g, '')) < MIN_REPLY_WORDS) {
+    errors.push(`Draft Customer Response must embed the full reply (${MIN_REPLY_WORDS}+ words), not just point to the separate file`);
+  }
   if (EMOJI.test(reply)) errors.push('Draft Customer Response contains emoji');
   const marker = text.lastIndexOf('--- END OF CUSTOMER-FACING CONTENT ---');
   const draft = text.search(/^##\s.*Draft Customer Response/m);
