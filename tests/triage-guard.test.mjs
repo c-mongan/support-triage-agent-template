@@ -57,6 +57,8 @@ for (const [label, toolName, toolArgs, allowed] of [
   ['apply_patch in reports', 'apply_patch', { input: '*** Begin Patch\n*** Add File: reports/a.md\n+x\n*** End Patch' }, true],
   ['apply_patch outside', 'apply_patch', { input: '*** Begin Patch\n*** Add File: reports/a.md\n+x\n*** Update File: README.md\n@@\n-a\n+b\n*** End Patch' }, false],
   ['apply_patch move out', 'apply_patch', { input: '*** Begin Patch\n*** Update File: reports/a.md\n*** Move to: tickets/a.md\n*** End Patch' }, false],
+  ['apply_patch quote in path', 'apply_patch', { input: '*** Begin Patch\n*** Add File: reports/a"/../../tickets/x.md\n+x\n*** End Patch' }, false],
+  ['apply_patch absolute in reports', 'apply_patch', { input: `*** Begin Patch\n*** Add File: ${CWD}/reports/b.md\n+x\n*** End Patch` }, true],
   ['apply_patch unparseable', 'apply_patch', { input: 'garbage' }, false],
   ['read tool', 'view', { path: '/etc/hosts' }, true]
 ]) {

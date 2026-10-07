@@ -54,7 +54,8 @@ case "${1:-}" in
         deny "The plugin blocks shell commands. Use the read, search and web tools, and save reports with the file-create tool under reports/."
         ;;
       apply_patch|*_apply_patch)
-        files="$(printf '%s' "$in" | grep -oE '\*\*\* (Add|Update|Delete) File: [^\\"]+|\*\*\* Move to: [^\\"]+' | sed -E 's/^\*\*\* (Add |Update |Delete )?(File|Move to): //')"
+        # Each target runs to the next JSON newline escape; any other escape stays in the path and is refused.
+        files="$(printf '%s' "$in" | grep -oE '\*\*\* (Add|Update|Delete) File: ([^"\\]|\\[^nr])+|\*\*\* Move to: ([^"\\]|\\[^nr])+' | sed -E 's/^\*\*\* (Add |Update |Delete )?(File|Move to): //')"
         [ -n "$files" ] || deny "The plugin could not read the patch targets, so it blocks the patch."
         while IFS= read -r f; do
           in_reports "$f" || deny "The plugin only allows writes under reports/ (blocked: $f)."
