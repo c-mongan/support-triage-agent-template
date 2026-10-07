@@ -1,6 +1,7 @@
-# Sample Ticket
+# Ticket 001: Safari checkout events missing
 
-**Source:** synthetic example
+**Source:** synthetic example (fictional product: Beacon)
+**Ticket ID:** SUP-1001
 **Customer:** Acme Analytics
 **Priority:** P2
 

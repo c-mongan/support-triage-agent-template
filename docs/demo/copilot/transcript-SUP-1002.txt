@@ -1,0 +1,26 @@
+I triaged SUP-1002 and saved both files.
+
+**Saved files**
+- `<workspace>/reports/20261007-120017-SUP-1002-triage.md`
+- `<workspace>/reports/20261007-120017-SUP-1002-customer-response.md`
+
+**Root-cause confidence:** Likely based on pattern match
+
+**TL;DR:** The 401s most likely come from the customer's refactor, not Beacon's secret rotation. A global `express.json()` combined with HMAC over `JSON.stringify(req.body)` breaks verification, which matches the docs and BEACON-151. The first failure came after the deploy, and the 14:20 secret reload did not fix it. The next step is to send the drafted reply pointing to `express.raw({ type: 'application/json' })` on the webhook route only. Escalate with a failing delivery's raw body and signature headers if it still fails after that change.
+
+Two caveats:
+- I had no project-data access, so the diagnosis rests on the ticket log, the docs and the issue tracker, and a secret misapplied during rotation is not ruled out.
+- I did not open BEACON-160. No search hit linked it to webhooks, so I treated it as unrelated.
+
+I omitted the customer's name, email and the pasted secret value from both saved files. The reply also tells the customer to rotate that secret again.Triage of SUP-1002 is complete.
+
+- **Triage report:** `reports/20261007-120017-SUP-1002-triage.md`
+- **Customer response:** `reports/20261007-120017-SUP-1002-customer-response.md`
+- **Root-cause confidence:** Likely based on pattern match
+
+**TL;DR:** The 401s most likely come from the customer's refactor. A global `express.json()` plus an HMAC over `JSON.stringify(req.body)` breaks verification, which matches the docs and BEACON-151. Send the drafted reply pointing to `express.raw({ type: 'application/json' })` on the webhook route only. If it still fails, escalate with a failing delivery's raw body and signature headers.
+
+**Caveats:** The agent had no project-data access, so a secret misapplied during rotation is not ruled out. It also did not open BEACON-160, because nothing linked it to webhooks.
+
+The saved files omit the customer's name, email and the secret value the customer pasted. The reply also tells the customer to rotate that secret again.
+

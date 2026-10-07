@@ -5,7 +5,7 @@ description: Produce a structured, evidence-graded support triage report.
 
 # Triage Report
 
-Use `templates/triage-report.md` as the canonical report structure.
+Use [`references/triage-report-template.md`](references/triage-report-template.md) (in this skill's directory) as the canonical report structure. Keep its section headings unchanged: the CI structure check and downstream tooling rely on them.
 
 ## Rules
 

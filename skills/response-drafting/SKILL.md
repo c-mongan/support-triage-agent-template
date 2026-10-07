@@ -7,6 +7,8 @@ description: Draft customer-facing support responses from verified triage findin
 
 Customer responses should be clear, calm, specific, and honest about uncertainty.
 
+Start from [`references/customer-response-template.md`](references/customer-response-template.md) in this skill's directory.
+
 ## Structure
 
 1. Acknowledge the report and useful details.

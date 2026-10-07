@@ -1,0 +1,18 @@
+{
+  "name": "support-triage-agent-template",
+  "owner": { "name": "Conor Mongan", "url": "https://github.com/c-mongan" },
+  "metadata": {
+    "description": "Read-only support triage plugin for GitHub Copilot CLI and Claude Code.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "support-triage-agent",
+      "source": "./",
+      "description": "Read-only support triage workflow: turns customer tickets into evidence-graded triage reports with confidence labels, a known-issue search gate, and a draft customer response.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "category": "support"
+    }
+  ]
+}
