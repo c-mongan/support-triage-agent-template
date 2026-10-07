@@ -1,5 +1,7 @@
-I understand the whole team is seeing blank dashboards ahead of your board meeting. A reported EU dashboard incident on May 2 matches the “No data” message and timing, but we still need to confirm whether your project is affected.
+We understand that the whole team cannot use dashboards ahead of your noon board meeting.
 
-Please try opening one affected insight directly. Direct insights were reported to work during that incident and may let you view the figures while dashboard loading is checked. Could you share your project region and project ID, whether that insight shows results, and whether the dashboards are still blank?
+A reported EU-region dashboard incident began at 08:10 UTC on May 2 and matches the “No data” message you described. We have not yet confirmed whether your project is affected by that incident.
 
-This warrants urgent engineering review to confirm the connection and recovery status. We cannot yet confirm a restoration time.
+Please confirm your project ID and region, and try opening one affected insight directly with the same date range and filters. Direct insights were reported as unaffected in that incident; if yours returns results, it may provide temporary access for the meeting.
+
+This needs urgent engineering review. We cannot yet confirm recovery or a fix time.

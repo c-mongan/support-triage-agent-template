@@ -1,8 +1,6 @@
-Hi,
+Thanks for the details about the Safari versions and the SDK upgrade. This looks like a documented regression in browser SDK 3.12.0 that can drop events sent immediately before navigation in Safari 17 and 18. It closely matches your symptoms, but we need to confirm the timing of your checkout event.
 
-The Safari versions, SDK version, and missing confirmation-page events you described match a documented event-delivery regression in browser SDK 3.12.0. It affects events sent immediately before navigation; we still need to confirm whether that timing applies to your checkout flow.
+The release notes list a fix in SDK 3.12.2. Please test that version with the same checkout flow. If you need an interim workaround, pass `{ transport: 'beacon' }` to the affected `beacon.track()` call, or use `await beacon.flush()` before navigating.
 
-The release notes document a fix in SDK 3.12.2. Please upgrade to that version and compare a test checkout in Safari with Chrome. If you need an interim workaround, the delivery guide recommends passing `{ transport: 'beacon' }` to `beacon.track()` for the affected event, or calling `await beacon.flush()` before redirecting.
-
-Could you share a sanitized snippet showing where `checkout_completed` is sent and whether a redirect, route change, or tab close follows it? If it still fails after upgrading, please include one sanitized Safari network capture and the deployed SDK version from `beacon.version` so an engineer can confirm the delivery path.
+Could you share a sanitized snippet showing the `checkout_completed` call and any redirect or route change that follows it? If events still go missing with the fix, a sanitized Safari network capture from one affected test checkout will help an engineer investigate. Please remove payment details, personal data, cookies, and tokens.
 

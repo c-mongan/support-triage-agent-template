@@ -1,22 +1,18 @@
-I triaged SUP-1003 and saved both files.
+I triaged SUP-1003 and saved the report and the customer reply. I didn't query any customer project data, because no project-data tool was available. The customer's plan tier is therefore unconfirmed.
 
-**Paths**
-- `reports/20261007-133525-SUP-1003-triage.md`
-- `reports/20261007-133525-SUP-1003-customer-response.md`
-
-**Root-cause confidence:** Confirmed by data
-
-**TL;DR:** The 10,000-row stop is the documented cap on UI CSV export (`mock-sources/docs/exports.md`), tracked as open feature request BEACON-097, so it isn't a defect. The draft reply points Sam to the Query API with cursor pagination, date-range batches, or the warehouse export if the plan includes it, and makes no timeline promise.
-
-I had no project data, so I couldn't check whether Sam saw the limit banner or which plan they are on.Triage of SUP-1003 is done.
-
-- **Triage report:** `reports/20261007-133525-SUP-1003-triage.md`
-- **Customer response:** `reports/20261007-133525-SUP-1003-customer-response.md`
+- **Report path:** `reports/20261007-225143-SUP-1003-triage.md`
+- **Response path:** `reports/20261007-225143-SUP-1003-customer-response.md`
 - **Root-cause confidence:** Confirmed by data
 
-**TL;DR:** The export stops at 10,000 rows because that is the documented cap on UI CSV export (`mock-sources/docs/exports.md`). It is an open feature request, BEACON-097, not a defect.
+**TL;DR:** The export isn't broken. The Beacon docs (`mock-sources/docs/exports.md`) say the UI Export CSV button is capped at 10,000 rows, which matches what the customer sees. The open feature request BEACON-097 tracks raising the cap, with no committed date, and the customer reply offers the documented workarounds: Query API cursor pagination, the plan-dependent warehouse export, or exporting in date-range batches.
 
-The draft reply points the customer to the Query API with cursor pagination, date-range batches, or the warehouse export if their plan includes it. It makes no timeline promise.
+I ran the full known-issue search matrix over `mock-sources/`, and no other issue or status incident matched.I triaged SUP-1003 and saved both files.
 
-I had no project data. I couldn't check whether the customer saw the limit banner or which plan they are on.
+- **Report:** `reports/20261007-225143-SUP-1003-triage.md`
+- **Customer response:** `reports/20261007-225143-SUP-1003-customer-response.md`
+- **Root-cause confidence:** Confirmed by data
+
+**TL;DR:** The export isn't broken. The docs (`mock-sources/docs/exports.md`) say the UI Export CSV button is capped at 10,000 rows, which matches what the customer sees. The cap is tracked as feature request BEACON-097 with no committed date. The reply offers documented workarounds: Query API pagination, warehouse export (plan-dependent), or date-range batches.
+
+I couldn't query customer project data, so the customer's plan tier is unconfirmed.
 
