@@ -6,6 +6,17 @@
 ![Status: experimental](https://img.shields.io/badge/status-experimental-orange)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
+<!-- portfolio-video:start -->
+
+## Short video overview
+
+**21 seconds.** Recorded CLI run using a synthetic ticket. Experimental; a support engineer reviews each result.
+
+[![Watch the 21-second video overview](docs/portfolio-video/poster.jpg)](https://github.com/c-mongan/support-triage-agent-template/releases/tag/portfolio-overview-2026-10-23)
+
+[Watch on GitHub](https://github.com/c-mongan/support-triage-agent-template/releases/tag/portfolio-overview-2026-10-23) · [Download MP4](https://github.com/c-mongan/support-triage-agent-template/releases/download/portfolio-overview-2026-10-23/triage.mp4) · [Transcript](docs/portfolio-video/transcript.txt) · [Captions](docs/portfolio-video/captions.srt) · [Credits and source notes](docs/portfolio-video/README.md)
+<!-- portfolio-video:end -->
+
 ![A real /triage session in Copilot CLI: the plugin installed in a clean home triages a synthetic webhook ticket, saves a report and a draft reply under reports/, and leaves the fixtures unchanged](docs/demo/triage-session.gif)
 
 <sub>A real, unedited `/triage` run on synthetic ticket 002 ([cast](docs/demo/triage-session.cast), [script](docs/demo/triage-session.sh)). The full E2E harness with the hostile probes is in [Verified end to end](#verified-end-to-end).</sub>
