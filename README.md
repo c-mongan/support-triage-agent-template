@@ -12,9 +12,9 @@
 
 **21 seconds.** Recorded CLI run using a synthetic ticket. Experimental; a support engineer reviews each result.
 
-https://github.com/user-attachments/assets/2f33e5a8-4086-4579-b247-49c4e3ba80f4
+[![Watch the 21-second video overview](docs/portfolio-video/poster.jpg)](https://github.com/c-mongan/support-triage-agent-template/releases/tag/portfolio-overview-2026-10-23)
 
-[Open the video](https://github.com/user-attachments/assets/2f33e5a8-4086-4579-b247-49c4e3ba80f4) · [Transcript](docs/portfolio-video/transcript.txt) · [Captions](docs/portfolio-video/captions.srt) · [Credits and source notes](docs/portfolio-video/README.md)
+[Watch on GitHub](https://github.com/c-mongan/support-triage-agent-template/releases/tag/portfolio-overview-2026-10-23) · [Download MP4](https://github.com/c-mongan/support-triage-agent-template/releases/download/portfolio-overview-2026-10-23/triage.mp4) · [Transcript](docs/portfolio-video/transcript.txt) · [Captions](docs/portfolio-video/captions.srt) · [Credits and source notes](docs/portfolio-video/README.md)
 <!-- portfolio-video:end -->
 
 ![A real /triage session in Copilot CLI: the plugin installed in a clean home triages a synthetic webhook ticket, saves a report and a draft reply under reports/, and leaves the fixtures unchanged](docs/demo/triage-session.gif)
