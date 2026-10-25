@@ -1,0 +1,36 @@
+name: Bug report
+description: Something in the plugin, hook, profile, validator or eval does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security problems (tool misuse, writes outside `reports/`, secrets in reports), use private vulnerability reporting instead of this form. Do not paste real customer data or credentials.
+  - type: dropdown
+    id: cli
+    attributes:
+      label: CLI
+      options: [GitHub Copilot CLI, OpenAI Codex CLI, Claude Code, None (validator / eval / scripts)]
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Plugin version and CLI version.
+      placeholder: "plugin 1.3.0, copilot 1.0.93"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Steps to reproduce, and what you expected instead. Use a synthetic ticket if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output or logs
+      description: Redact secrets, emails and private URLs first.
+      render: shell
