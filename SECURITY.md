@@ -6,7 +6,7 @@ Only the latest release receives security fixes. See [CHANGELOG.md](CHANGELOG.md
 
 ## Reporting a vulnerability
 
-Please report vulnerabilities privately through GitHub's [private vulnerability reporting](../../security/advisories/new) for this repository. Do not open a public issue or pull request for a suspected vulnerability. Include the plugin version, the CLI you used (Copilot CLI, Codex CLI or Claude Code) and its version, and the smallest ticket or input that reproduces the problem.
+Please report vulnerabilities privately through GitHub's [private vulnerability reporting](https://github.com/c-mongan/support-triage-agent-template/security/advisories/new) for this repository. Do not open a public issue or pull request for a suspected vulnerability. Include the plugin version, the CLI you used (Copilot CLI, Codex CLI or Claude Code) and its version, and the smallest ticket or input that reproduces the problem.
 
 ## Design and scope
 
