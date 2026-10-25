@@ -98,4 +98,4 @@ Every connector you wire is a new data flow into the LLM provider. Before connec
 - Scope MCP credentials per engineer with audit logging.
 - Document the connector list in your security handbook.
 
-For demos, evals, and external-facing portfolio runs, comment out the product-data MCP. The agent still works with public-only sources and is a reasonable demo of the workflow.
+For demos, evals, and runs you will share publicly, comment out the product-data MCP. The agent still works with public-only sources and is a reasonable demo of the workflow.
