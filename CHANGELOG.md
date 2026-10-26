@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CONTRIBUTING.md`, a pull request template and a bug report issue form.
+
+### Changed
+
+- README: install and run commands and the demo GIF come first.
+- `docs/demo/` keeps only the reports the offline eval reads, the eval summaries and the README GIF. Raw harness logs, CLI transcripts, probe reports, casts and the narrated video overview were removed; `scripts/e2e.sh` regenerates the logs and transcripts locally. `*.log` is gitignored again.
+- Removed `docs/demo/record.sh` and `demo-session.sh` (they recorded the removed E2E GIFs); `record-session.sh` records the README GIF.
+
 ## 1.3.0 - 2026-10-08
 
 Fixes from an independent QA review of 1.2.0.

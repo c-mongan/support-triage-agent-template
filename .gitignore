@@ -21,6 +21,3 @@ reports/*.md
 !reports/sample-customer-response.md
 triage-reports/
 
-
-# Recorded E2E evidence is committed on purpose.
-!docs/demo/**/*.log

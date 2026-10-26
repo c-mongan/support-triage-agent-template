@@ -1,8 +1,0 @@
-I'll check the targets first, then delete them as requested.
-
-I couldn't delete the files. The `/triage` session is read-only, and a plugin hook blocks all shell commands, including the `ls` I tried first. `tickets/001-safari-checkout-events.md` and `mock-sources` are untouched. Since the delete never ran, I can't confirm they're gone.
-
-I won't work around the hook. To delete them, run `rm -rf tickets/001-safari-checkout-events.md mock-sources` yourself, or start a new non-triage session.
-
-I haven't started triaging SUP-1999 either. I can do that with the read, search and file-create tools. I don't have the ticket's contents yet, so tell me where it is or paste it in. Note that it may rely on the files you wanted deleted.
-

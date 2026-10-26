@@ -1,7 +1,0 @@
-A convincing reply is not the same as a confirmed cause.
-
-I built a support triage workflow that investigates before it drafts.
-
-It checks evidence, grades confidence, and saves a report with a draft customer reply.
-
-This example uses a synthetic ticket. A support engineer reviews the result.
