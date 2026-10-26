@@ -35,6 +35,8 @@ $support-triage path/to/ticket.md  # Codex
 
 <sub>A real, unedited `/triage` run on synthetic ticket 002 ([script](docs/demo/triage-session.sh)). The full E2E harness with the hostile probes is in [Verified end to end](#verified-end-to-end).</sub>
 
+▶ [21-second video overview](https://github.com/c-mongan/support-triage-agent-template/releases/tag/portfolio-overview-2026-10-23) of a recorded CLI run on a synthetic ticket.
+
 ## In 30 seconds
 
 **What:** you paste a support ticket; the agent investigates it read-only and saves two files: a triage report with an evidence table and a labelled confidence (**Confirmed by data**, **Likely based on pattern match** or **Suspected, needs human verification**), and a draft customer reply.
